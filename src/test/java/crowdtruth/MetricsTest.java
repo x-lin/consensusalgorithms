@@ -1,6 +1,8 @@
 package crowdtruth;
 
-import com.google.common.collect.*;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSet;
 import com.opencsv.bean.CsvBindByName;
 import com.opencsv.bean.CsvToBeanBuilder;
 import crowdtruth.Metrics.MetricsScores;
@@ -12,8 +14,9 @@ import org.junit.runner.RunWith;
 
 import java.io.FileNotFoundException;
 import java.io.FileReader;
-import java.util.*;
-import java.util.function.Function;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Objects;
 import java.util.function.Predicate;
 
 import static org.hamcrest.CoreMatchers.equalTo;
@@ -82,7 +85,7 @@ public class MetricsTest {
     @Test
     @Parameters({"2vs3work_agr.csv", "3vs4work_agr.csv", "4vs5work_agr.csv", "5vs6work_agr.csv", "6vs7work_agr" +
             ".csv", "7vs8work_agr.csv", "8vs9work_agr.csv"})
-    public void incrementalWorkerAgreementForClosedTask( String filename ) {
+    public void incrementalWorkerAgreementForClosedTask( String filename ) throws InterruptedException {
         //WHEN
         MetricsScores metricsScores = calculateClosedMetricsScores( filename, TestData.class,
                 TEST_DATA_ANNOTATION_OPTIONS );
@@ -146,30 +149,41 @@ public class MetricsTest {
 
     @Test
     public void tutorialData() {
-        List<Data> data = parseData( "relex_example.csv", TutorialData.class );
-        ImmutableList<TestData> processedData = data.stream().flatMap( d -> Arrays.stream( d.getChosenAnnotation()
+        //GIVEN
+        List<TutorialData> data = parseData( "relex_example.csv", TutorialData.class );
+        ImmutableList<CrowdtruthData> processedData = data.stream().flatMap( d -> Arrays.stream( d.getChosenAnnotation()
                 .split( " " ) ).map( a -> a.substring( 1,
                 a.length() - 1 ) ).map( String::toLowerCase ).map( a -> new
-                TestData( d.getMediaUnitId(), d.getId(),
+                CrowdtruthData( d.getMediaUnitId(), d.getId(),
                 d.getWorkerId(), a ) ) )
                 .collect( ImmutableList.toImmutableList() );
 
-        ImmutableSet<MediaUnit> annotatedUnits = annotate( processedData, TUTORIAL_ANNOTATION_OPTIONS );
+        //WHEN
+        ImmutableSet<MediaUnit> annotatedUnits = CrowdtruthData.annotate( processedData,
+                TUTORIAL_ANNOTATION_OPTIONS );
         MetricsScores metricsScores = Metrics.calculateClosed( annotatedUnits );
+
+        //THEN
+        //TODO add assertions
     }
 
     @Test
     public void tutorialDataCustom() {
-        List<Data> data = parseData( "relex_example_custom.csv", CustomTutorialData.class );
-        ImmutableList<TestData> processedData = data.stream().flatMap( d -> Arrays.stream( d.getChosenAnnotation()
+        //GIVEN
+        List<CustomTutorialData> data = parseData( "relex_example_custom.csv", CustomTutorialData.class );
+        ImmutableList<CrowdtruthData> processedData = data.stream().flatMap( d -> Arrays.stream( d.getChosenAnnotation()
                 .split( " " ) ).map( a -> a.substring( 1,
                 a.length() - 1 ) ).map( String::toLowerCase ).map( a -> new
-                TestData( d.getMediaUnitId(), d.getId(),
-                d.getWorkerId(), a ) ) )
+                CrowdtruthData( d.getMediaUnitId(), d.getId(), d.getWorkerId(), a ) ) )
                 .collect( ImmutableList.toImmutableList() );
 
-        ImmutableSet<MediaUnit> annotatedUnits = annotate( processedData, TUTORIAL_ANNOTATION_OPTIONS );
+        //WHEN
+        ImmutableSet<MediaUnit> annotatedUnits = CrowdtruthData.annotate( processedData,
+                TUTORIAL_ANNOTATION_OPTIONS );
         MetricsScores metricsScores = Metrics.calculateClosed( annotatedUnits );
+
+        //THEN
+        //TODO add assertions
     }
 
     private void assertAnnotationQualityEmpty( MetricsScores metricsScores ) {
@@ -183,8 +197,9 @@ public class MetricsTest {
                 matcher ) );
     }
 
-    private static void assertWorkerQuality( MetricsScores metricsScores, Matcher<Double> matcher, Predicate<WorkerId>
-            workerFilter ) {
+    private static void assertWorkerQuality( MetricsScores metricsScores, Matcher<Double> matcher,
+                                             Predicate<WorkerId>
+                                                     workerFilter ) {
         metricsScores.getWorkerQualityScores().entrySet().stream().filter( e -> workerFilter.test( e.getKey().getId()
         ) ).forEach( e -> assertThat( "WQS does not match for worker " + e.getKey(), e.getValue(), matcher ) );
     }
@@ -201,72 +216,41 @@ public class MetricsTest {
 
     private static <T extends Data> MetricsScores calculateClosedMetricsScores( String filename, Class<T>
             deserializedType, String... allAnnotations ) {
-        List<Data> data = parseData( filename, deserializedType );
-        ImmutableSet<MediaUnit> annotatedUnits = annotate( data, allAnnotations );
+        List<T> data = parseData( filename, deserializedType );
+        ImmutableSet<CrowdtruthData> convertedData = convertData( data );
+        ImmutableSet<MediaUnit> annotatedUnits = CrowdtruthData.annotate( convertedData, allAnnotations );
         return Metrics.calculateClosed( annotatedUnits );
     }
 
     private static <T extends Data> MetricsScores calculateOpenMetricsScores( String filename, Class<T>
             deserializedType ) {
-        List<Data> data = parseData( filename, deserializedType );
-        ImmutableSet<MediaUnit> annotatedUnits = annotate( data );
+        List<T> data = parseData( filename, deserializedType );
+        ImmutableSet<MediaUnit> annotatedUnits = CrowdtruthData.annotate( convertData( data ) );
         return Metrics.calculateOpen( annotatedUnits );
     }
 
-
-    private static <T extends Data> ImmutableSet<MediaUnit> annotate( List<T> data, String... allAnnotationNames ) {
-        Map<MediaUnitId, Map<WorkerId, Set<MediaUnitAnnotationId>>> knownAnnotations = Maps.newHashMap();
-        Set<MediaUnit> mediaUnits = Sets.newHashSet();
-        data.forEach( d -> {
-            MediaUnitId mediaUnitId = new MediaUnitId( d.getMediaUnitId() );
-            Map<WorkerId, Set<MediaUnitAnnotationId>> workers = knownAnnotations.computeIfAbsent( mediaUnitId, u ->
-                    Maps.newHashMap() );
-            Set<MediaUnitAnnotationId> annotations = workers.computeIfAbsent( new WorkerId( d.getWorkerId() ), a -> Sets
-                    .newHashSet() );
-            annotations.add( new MediaUnitAnnotationId( d.getChosenAnnotation(), mediaUnitId ) );
-        } );
-
-        Map<WorkerId, Worker> workers = knownAnnotations.values().stream().flatMap( a -> a.keySet().stream() )
-                .distinct().collect( ImmutableMap.toImmutableMap( Function.identity(), Worker::new ) );
-
-        knownAnnotations.forEach( ( mediaUnitId, workerAnnotations ) -> {
-            ImmutableSet<MediaUnitAnnotationId> allAnnotations = Arrays.stream(
-                    allAnnotationNames )
-                    .map( a -> new MediaUnitAnnotationId( String.valueOf( a ), mediaUnitId ) )
-                    .collect( ImmutableSet.toImmutableSet() );
-            MediaUnit mediaUnit = new MediaUnit( mediaUnitId, allAnnotationNames.length > 0 ? allAnnotations :
-                    workerAnnotations.values()
-                            .stream().flatMap( Collection::stream ).collect( ImmutableSet.toImmutableSet() ) );
-            mediaUnits.add( mediaUnit );
-            workerAnnotations.forEach( (( workerId, annotationIds ) -> {
-                annotationIds.forEach( mediaUnitAnnotationId -> mediaUnit.annotate( workers.get( workerId ),
-                        mediaUnitAnnotationId,
-                        true ) );
-                if (allAnnotationNames.length > 0) {
-                    allAnnotations.stream().filter( a -> !annotationIds.contains( a ) ).forEach( a -> {
-                        mediaUnit.annotate( workers.get( workerId ), a, false );
-                    } );
-                }
-            }) );
-        } );
-
-        return ImmutableSet.copyOf( mediaUnits );
+    public static <T extends Data> ImmutableSet<CrowdtruthData> convertData( List<T> data ) {
+        return data.stream().map( d -> new CrowdtruthData(
+                d.getMediaUnitId(), d.getId(), d.getWorkerId(), d.getChosenAnnotation() ) ).collect( ImmutableSet
+                .toImmutableSet() );
     }
 
-    private static <T extends Data> ImmutableList<Data> parseData( String filename, Class<T> deserializedClass ) {
+
+    private static <T extends Data> ImmutableList<T> parseData( String filename, Class<T>
+            deserializedClass ) {
         try {
             List<T> data = new CsvToBeanBuilder<T>( new FileReader(
                     "src/test/resources/crowdtruth/test_data/metrics/" + filename ) ).withType( deserializedClass )
                     .build().parse();
-            System.out.println( "=======Parsed CSV data=========" );
-            System.out.println( data );
+            System.err.println( "=======Parsed CSV data=========" );
+            System.err.println( data );
             return ImmutableList.copyOf( data );
         } catch (FileNotFoundException e) {
             throw new AssertionError( "Cannot parse data.", e );
         }
     }
 
-    public interface Data {
+    private interface Data {
         String getMediaUnitId();
 
         String getId();
@@ -320,6 +304,7 @@ public class MetricsTest {
         }
     }
 
+
     public static class TutorialData implements Data {
         @CsvBindByName(column = "_unit_id", required = true)
         private String mediaUnitId;
@@ -366,23 +351,25 @@ public class MetricsTest {
 
     public static class TestData implements Data {
         @CsvBindByName(column = "_unit_id", required = true)
-        private final String mediaUnitId;
+        private String mediaUnitId;
 
         @CsvBindByName(column = "_id", required = true)
-        private final String id;
+        private String id;
 
         @CsvBindByName(column = "_worker_id", required = true)
-        private final String workerId;
+        private String workerId;
 
         @CsvBindByName(column = "out_col", required = true)
-        private final String chosenAnnotation;
+        private String chosenAnnotation;
 
-        public TestData( String mediaUnitId, String id, String workerId, String
-                chosenAnnotation ) {
-            this.mediaUnitId = mediaUnitId;
-            this.id = id;
-            this.workerId = workerId;
-            this.chosenAnnotation = chosenAnnotation;
+        @Override
+        public String toString() {
+            return "TestData{" +
+                    "mediaUnitId='" + this.mediaUnitId + '\'' +
+                    ", id='" + this.id + '\'' +
+                    ", workerId='" + this.workerId + '\'' +
+                    ", chosenAnnotation='" + this.chosenAnnotation + '\'' +
+                    '}';
         }
 
         @Override
@@ -403,16 +390,6 @@ public class MetricsTest {
         @Override
         public String getChosenAnnotation() {
             return this.chosenAnnotation;
-        }
-
-        @Override
-        public String toString() {
-            return "TestData{" +
-                    "mediaUnitId='" + this.mediaUnitId + '\'' +
-                    ", id='" + this.id + '\'' +
-                    ", workerId='" + this.workerId + '\'' +
-                    ", chosenAnnotation='" + this.chosenAnnotation + '\'' +
-                    '}';
         }
     }
 }

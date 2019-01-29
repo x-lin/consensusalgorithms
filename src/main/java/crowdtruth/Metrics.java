@@ -20,10 +20,6 @@ public class Metrics {
     //compute metrics until delta falls below threshold (=stable)
     private static final double DELTA = 0.001;
 
-//    //constant that shall replace the denominator, in case of 0
-//    private static final double SMALL_NUMBER_CONST = 0.00000001;
-
-
     private Map<Annotation, Double> annotationQualityScores;
 
     private Map<Worker, Double> workerQualityScores;
@@ -90,9 +86,32 @@ public class Metrics {
                 break;
             }
         }
+
+        ImmutableMap.Builder<MediaUnitAnnotation, Double> mediaUnitAnnotationScores = ImmutableMap.builder();
+        this.mediaUnitQualityScores.keySet()
+                .forEach( m ->
+                        m.getMediaVector().getResult().keySet().forEach( a -> mediaUnitAnnotationScores.put( a,
+                                getMediaUnitAnnotationScore( m, a ) )
+                        ) );
+
         System.err.println( "Finished calculation." );
         return new MetricsScores( closedTask ? this.annotationQualityScores : ImmutableMap.of(), this
-                .workerQualityScores, this.mediaUnitQualityScores );
+                .workerQualityScores, this.mediaUnitQualityScores, mediaUnitAnnotationScores.build() );
+    }
+
+    //degree of clarity with which an mediaUnitAnnotation is expressed in a unit
+    private double getMediaUnitAnnotationScore( MediaUnit mediaUnit, MediaUnitAnnotation mediaUnitAnnotation ) {
+        AtomicDouble numerator = new AtomicDouble( 0 );
+        AtomicDouble denominator = new AtomicDouble( 0 );
+        mediaUnit.getWorkers().forEach( worker -> {
+            double score = worker.getWorkerVector( mediaUnit ).getAnnotationResults().getResult(
+                    mediaUnitAnnotation )
+                    .getScore();
+            double workerQualityScore = this.workerQualityScores.get( worker );
+            numerator.addAndGet( score * workerQualityScore );
+            denominator.addAndGet( workerQualityScore );
+        } );
+        return denominator.get() == 0 ? 0 : numerator.get() / denominator.get();
     }
 
 
@@ -235,11 +254,15 @@ public class Metrics {
 
         private final ImmutableMap<MediaUnit, Double> mediaUnitQualityScores;
 
+        private final ImmutableMap<MediaUnitAnnotation, Double> mediaUnitAnnotationScores;
+
         private MetricsScores( Map<Annotation, Double> annotationQualityScores, Map<Worker, Double>
-                workerQualityScores, Map<MediaUnit, Double> mediaUnitQualityScores ) {
+                workerQualityScores, Map<MediaUnit, Double> mediaUnitQualityScores, ImmutableMap<MediaUnitAnnotation,
+                Double> mediaUnitAnnotationScores ) {
             this.annotationQualityScores = ImmutableMap.copyOf( annotationQualityScores );
             this.workerQualityScores = ImmutableMap.copyOf( workerQualityScores );
             this.mediaUnitQualityScores = ImmutableMap.copyOf( mediaUnitQualityScores );
+            this.mediaUnitAnnotationScores = mediaUnitAnnotationScores;
         }
 
         public ImmutableMap<Annotation, Double> getAnnotationQualityScores() {
@@ -254,19 +277,8 @@ public class Metrics {
             return this.mediaUnitQualityScores;
         }
 
-        //degree of clarity with which an mediaUnitAnnotation is expressed in a unit
-        public double getMediaUnitAnnotationScore( MediaUnit mediaUnit, MediaUnitAnnotation mediaUnitAnnotation ) {
-            AtomicDouble numerator = new AtomicDouble( 0 );
-            AtomicDouble denominator = new AtomicDouble( 0 );
-            mediaUnit.getWorkers().forEach( worker -> {
-                double score = worker.getWorkerVector( mediaUnit ).getAnnotationResults().getResult(
-                        mediaUnitAnnotation )
-                        .getScore();
-                double workerQualityScore = this.workerQualityScores.get( worker );
-                numerator.addAndGet( score * workerQualityScore );
-                denominator.addAndGet( workerQualityScore );
-            } );
-            return denominator.get() == 0 ? 0 : numerator.get() / denominator.get();
+        public ImmutableMap<MediaUnitAnnotation, Double> getMediaUnitAnnotationScores() {
+            return this.mediaUnitAnnotationScores;
         }
 
         @Override
@@ -278,6 +290,9 @@ public class Metrics {
                     .toImmutableMap( a -> a.getKey().getId(), Entry::getValue ) ) +
                     ", mediaUnitQualityScores=" + this.mediaUnitQualityScores.entrySet().stream().collect( ImmutableMap
                     .toImmutableMap( a -> a.getKey().getId(), Entry::getValue ) ) +
+                    ", mediaUnitAnnotationScores=" + this.mediaUnitAnnotationScores.entrySet().stream().collect(
+                    ImmutableMap
+                            .toImmutableMap( a -> a.getKey().getId(), Entry::getValue ) ) +
                     '}';
         }
     }
