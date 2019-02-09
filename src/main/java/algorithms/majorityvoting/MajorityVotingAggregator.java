@@ -13,6 +13,12 @@ import java.util.Map.Entry;
 import java.util.stream.Collectors;
 
 /**
+ * Implements majority voting algorithm for aggregating defect reports as described by:
+ *
+ * Improved Crowdsourced Software Inspection: Development of an Experimental Process Support Platform
+ * P. Penzenstadler
+ * 2018
+ *
  * @author LinX
  */
 public class MajorityVotingAggregator {
