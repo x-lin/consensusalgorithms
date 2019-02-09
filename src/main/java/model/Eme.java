@@ -24,7 +24,7 @@ public class Eme {
 
     private final EmeType emeType;
 
-    private final int emeGroupId;
+    private final Integer emeGroupId;
 
     public Eme( final Record record ) {
         this.emeId = record.getValue( EME_ID_COLUMN, String.class );
@@ -52,7 +52,7 @@ public class Eme {
         return this.emeType;
     }
 
-    public int getEmeGroupId() {
+    public Integer getEmeGroupId() {
         return this.emeGroupId;
     }
 
@@ -93,7 +93,7 @@ public class Eme {
 
         private EmeType emeType;
 
-        private int emeGroupId;
+        private Integer emeGroupId;
 
         private Builder( final String emeId ) {
             this.emeId = emeId;

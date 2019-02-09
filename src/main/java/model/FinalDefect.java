@@ -1,21 +1,42 @@
 package model;
 
+import org.jooq.Record;
+
 import java.util.Objects;
 
 /**
  * @author LinX
  */
 public class FinalDefect {
+    public static final String FINAL_DEFECT_TABLE = "final_defect";
+
+    public static final String EME_ID_COLUMN = "eme_id";
+
+    public static final String EME_TEXT_COLUMN = "eme_text";
+
+    public static final String SCENARIO_ID = "scenario_id";
+
+    public static final String AGREEMENT_COEFF_COLUMN = "agreement_coeff";
+
+    public static final String FINAL_DEFECT_TYPE_COLUMN = "final_defect_type";
+
     private final String emeId;
 
     private final String emeText;
 
     private final String scenarioId;
 
-
     private final Double agreementCoeff;
 
     private final FinalDefectType finalDefectType;
+
+    public FinalDefect( final Record record ) {
+        this.emeId = record.getValue( EME_ID_COLUMN, String.class );
+        this.emeText = record.getValue( EME_TEXT_COLUMN, String.class );
+        this.scenarioId = record.getValue( SCENARIO_ID, String.class );
+        this.agreementCoeff = record.getValue( AGREEMENT_COEFF_COLUMN, Double.class );
+        this.finalDefectType = record.getValue( FINAL_DEFECT_TYPE_COLUMN, FinalDefectType.class );
+    }
 
     private FinalDefect( final Builder builder ) {
         this.emeId = builder.emeId;
