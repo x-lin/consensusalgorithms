@@ -1,57 +1,54 @@
 package runs;
 
+import algorithms.crowdtruth.CrowdtruthData;
+import algorithms.crowdtruth.MediaUnit;
+import algorithms.crowdtruth.Metrics;
 import com.google.common.collect.ImmutableSet;
 import com.opencsv.CSVWriter;
-import crowdtruth.CrowdtruthData;
-import crowdtruth.MediaUnit;
-import crowdtruth.Metrics;
 import model.DefectReport;
+import model.DefectType;
 import org.jooq.impl.DSL;
 
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.sql.Connection;
-import java.sql.DriverManager;
 import java.sql.SQLException;
+import java.util.Arrays;
 
 /**
  * @author LinX
  */
-public class ModelToCrowdtruth {
-    private static final String[] KNOWN_ANNOTATION_OPTIONS = {"MISSING", "WRONG_KEY", "SUPERFLUOUS_EME",
-            "WRONG_RELM", "NO_DEFECT", "SUPERFLUOUS_SYN", "WRONG"};
+public class CrowdtruthRunner {
+    private static final String[] KNOWN_ANNOTATION_OPTIONS = Arrays.stream( DefectType.values() ).map( Enum::name
+    ).toArray( String[]::new );
 
-    private static final String DB_PATH = "jdbc:mysql://localhost:3306/defect_report?serverTimezone=UTC";
 
-    private static final String USER = "root";
+    private static final String CROWDTRUTH_OUT_WORKER_QUALITY_CSV = "output/algorithms.crowdtruth/worker_quality.csv";
 
-    private static final String PASSWORD = "";
+    private static final String CROWDTRUTH_OUT_ANNOTATION_QUALITY_CSV = "output/algorithms" +
+            ".crowdtruth/annotation_quality.csv";
 
-    private static final String CROWDTRUTH_OUT_WORKER_QUALITY_CSV = "output/crowdtruth/worker_quality.csv";
-
-    private static final String CROWDTRUTH_OUT_ANNOTATION_QUALITY_CSV = "output/crowdtruth/annotation_quality.csv";
-
-    private static final String CROWDTRUTH_OUT_MEDIA_UNIT_QUALITY_CSV = "output/crowdtruth/media_unit_quality.csv";
+    private static final String CROWDTRUTH_OUT_MEDIA_UNIT_QUALITY_CSV = "output/algorithms" +
+            ".crowdtruth/media_unit_quality.csv";
 
     private static final String CROWDTRUTH_OUT_MEDIA_UNIT_ANNOTATION_SCORE_CSV =
-            "output/crowdtruth/media_unit_annotation_score.csv";
+            "output/algorithms.crowdtruth/media_unit_annotation_score.csv";
 
 
-    public static void main( String[] args ) throws ClassNotFoundException, SQLException, IOException {
-        Files.createDirectories( Paths.get( "output/crowdtruth" ) );
+    public static void main( final String[] args ) throws ClassNotFoundException, SQLException, IOException {
+        Files.createDirectories( Paths.get( "output/algorithms.crowdtruth" ) );
 
-        try (Connection c = DriverManager.getConnection
-                ( DB_PATH, USER, PASSWORD )) {
-            String sql = "select * from " + DefectReport.DEFECT_REPORT_TABLE;
+        try (Connection c = DatabaseConnector.createConnection()) {
+            final String sql = "select * from " + DefectReport.DEFECT_REPORT_TABLE;
 
-            ImmutableSet<CrowdtruthData> data = DSL.using( c )
+            final ImmutableSet<CrowdtruthData> data = DSL.using( c )
                     .fetch( sql )
                     .map( DefectReport::new ).stream().map( r -> new CrowdtruthData( String.valueOf( r.getTaskId() ),
                             String.valueOf( r.getId() ), String.valueOf( r
                             .getWorkerId() ), r.getDefectType().name() ) ).collect( ImmutableSet.toImmutableSet() );
-            ImmutableSet<MediaUnit> annotatedData = CrowdtruthData.annotate( data, KNOWN_ANNOTATION_OPTIONS );
-            Metrics.MetricsScores metricsScores = Metrics.calculateClosed( annotatedData );
+            final ImmutableSet<MediaUnit> annotatedData = CrowdtruthData.annotate( data, KNOWN_ANNOTATION_OPTIONS );
+            final Metrics.MetricsScores metricsScores = Metrics.calculateClosed( annotatedData );
 
             try (CSVWriter workerQualityWriter = new CSVWriter( Files.newBufferedWriter( Paths.get(
                     CROWDTRUTH_OUT_WORKER_QUALITY_CSV ) ) )) {

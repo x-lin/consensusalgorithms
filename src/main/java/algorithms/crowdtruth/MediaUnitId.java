@@ -1,14 +1,14 @@
-package crowdtruth;
+package algorithms.crowdtruth;
 
 import java.util.Objects;
 
 /**
  * @author LinX
  */
-public final class WorkerId {
+public final class MediaUnitId {
     private final String id;
 
-    public WorkerId(String id) {
+    public MediaUnitId( String id ) {
         this.id = id;
     }
 
@@ -18,15 +18,15 @@ public final class WorkerId {
     }
 
     @Override
-    public boolean equals(Object o) {
+    public boolean equals( Object o ) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
-        WorkerId workerId = (WorkerId) o;
-        return Objects.equals(this.id, workerId.id);
+        MediaUnitId mediaUnit = (MediaUnitId) o;
+        return Objects.equals( this.id, mediaUnit.id );
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(this.id);
+        return Objects.hash( this.id );
     }
 }

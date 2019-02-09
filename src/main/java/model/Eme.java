@@ -1,0 +1,121 @@
+package model;
+
+import org.jooq.Record;
+
+import java.util.Objects;
+
+/**
+ * @author LinX
+ */
+public class Eme {
+    public static String EME_TABLE = "eme";
+
+    public static String EME_ID_COLUMN = "eme_id";
+
+    public static String EME_TEXT = "eme_text";
+
+    public static String EME_TYPE_COLUMN = "eme_type";
+
+    public static String EME_GROUP_COLUMN = "eme_group";
+
+    private final String emeId;
+
+    private final String emeText;
+
+    private final EmeType emeType;
+
+    private final int emeGroupId;
+
+    public Eme( final Record record ) {
+        this.emeId = record.getValue( EME_ID_COLUMN, String.class );
+        this.emeText = record.getValue( EME_TEXT, String.class );
+        this.emeType = record.getValue( EME_TYPE_COLUMN, EmeType.class );
+        this.emeGroupId = record.getValue( EME_GROUP_COLUMN, Integer.class );
+    }
+
+    private Eme( final Builder builder ) {
+        this.emeId = builder.emeId;
+        this.emeText = builder.emeText;
+        this.emeType = builder.emeType;
+        this.emeGroupId = builder.emeGroupId;
+    }
+
+    public String getEmeId() {
+        return this.emeId;
+    }
+
+    public String getEmeText() {
+        return this.emeText;
+    }
+
+    public EmeType getEmeType() {
+        return this.emeType;
+    }
+
+    public int getEmeGroupId() {
+        return this.emeGroupId;
+    }
+
+    @Override
+    public boolean equals( final Object o ) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        final Eme eme = (Eme) o;
+        return this.emeGroupId == eme.emeGroupId &&
+                Objects.equals( this.emeId, eme.emeId ) &&
+                Objects.equals( this.emeText, eme.emeText ) &&
+                this.emeType == eme.emeType;
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash( this.emeId, this.emeText, this.emeType, this.emeGroupId );
+    }
+
+    @Override
+    public String toString() {
+        return "Eme{" +
+                "emeId='" + this.emeId + '\'' +
+                ", emeText='" + this.emeText + '\'' +
+                ", emeType=" + this.emeType +
+                ", emeGroupId=" + this.emeGroupId +
+                '}';
+    }
+
+    public static Builder builder( final String emeId ) {
+        return new Builder( emeId );
+    }
+
+    public static class Builder {
+        private final String emeId;
+
+        private String emeText;
+
+        private EmeType emeType;
+
+        private int emeGroupId;
+
+        private Builder( final String emeId ) {
+            this.emeId = emeId;
+        }
+
+        public Builder withEmeText( final String emeText ) {
+            this.emeText = emeText;
+            return this;
+        }
+
+        public Builder withEmeType( final EmeType emeType ) {
+            this.emeType = emeType;
+            return this;
+        }
+
+        public Builder withEmeGroupId( final int emeGroupId ) {
+            this.emeGroupId = emeGroupId;
+            return this;
+        }
+
+        public Eme build() {
+            return new Eme( this );
+        }
+    }
+}

@@ -1,4 +1,4 @@
-package crowdtruth;
+package algorithms.crowdtruth;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableBiMap;

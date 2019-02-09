@@ -1,4 +1,4 @@
-package crowdtruth;
+package algorithms.crowdtruth;
 
 /**
  * Whether the worker has chosen the annotation option or not.

@@ -10,15 +10,11 @@ import java.util.Objects;
 public class Scenario {
     public static String SCENARIO_TABLE = "scenario";
 
-    public static String ID_COLUMN = "id";
-
     public static String SCENARIO_ID_COLUMN = "scenario_id";
 
     public static String SCENARIO_NAME_COLUMN = "scenario_name";
 
     public static String SCENARIO_TEXT_COLUMN = "scenario_text";
-
-    private final int id;
 
     private final String scenarioId;
 
@@ -26,15 +22,16 @@ public class Scenario {
 
     private final String scenarioText;
 
-    public Scenario(Record record) {
-        this.id = record.getValue(ID_COLUMN, Integer.class);
-        this.scenarioId = record.getValue(SCENARIO_ID_COLUMN, String.class);
-        this.scenarioName = record.getValue(SCENARIO_NAME_COLUMN, String.class);
-        this.scenarioText = record.getValue(SCENARIO_TEXT_COLUMN, String.class);
+    public Scenario( final Record record ) {
+        this.scenarioId = record.getValue( SCENARIO_ID_COLUMN, String.class );
+        this.scenarioName = record.getValue( SCENARIO_NAME_COLUMN, String.class );
+        this.scenarioText = record.getValue( SCENARIO_TEXT_COLUMN, String.class );
     }
 
-    public int getId() {
-        return this.id;
+    private Scenario( final Builder builder ) {
+        this.scenarioId = builder.scenarioId;
+        this.scenarioName = builder.scenarioName;
+        this.scenarioText = builder.scenarioText;
     }
 
     public String getScenarioId() {
@@ -50,28 +47,57 @@ public class Scenario {
     }
 
     @Override
-    public boolean equals(Object o) {
+    public boolean equals( final Object o ) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
-        Scenario scenario = (Scenario) o;
-        return this.id == scenario.id &&
-                Objects.equals(this.scenarioId, scenario.scenarioId) &&
-                Objects.equals(this.scenarioName, scenario.scenarioName) &&
-                Objects.equals(this.scenarioText, scenario.scenarioText);
+        final Scenario scenario = (Scenario) o;
+        return
+                Objects.equals( this.scenarioId, scenario.scenarioId ) &&
+                        Objects.equals( this.scenarioName, scenario.scenarioName ) &&
+                        Objects.equals( this.scenarioText, scenario.scenarioText );
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(this.id, this.scenarioId, this.scenarioName, this.scenarioText);
+        return Objects.hash( this.scenarioId, this.scenarioName, this.scenarioText );
     }
 
     @Override
     public String toString() {
         return "Scenario{" +
-                "id=" + this.id +
-                ", scenarioId='" + this.scenarioId + '\'' +
+                "scenarioId='" + this.scenarioId + '\'' +
                 ", scenarioName='" + this.scenarioName + '\'' +
                 ", scenarioText='" + this.scenarioText + '\'' +
                 '}';
+    }
+
+    public static Builder builder( final String scenarioId ) {
+        return new Builder( scenarioId );
+    }
+
+    public static class Builder {
+        private final String scenarioId;
+
+        private String scenarioName;
+
+        private String scenarioText;
+
+        private Builder( final String scenarioId ) {
+            this.scenarioId = scenarioId;
+        }
+
+        public Builder withScenarioName( final String scenarioName ) {
+            this.scenarioName = scenarioName;
+            return this;
+        }
+
+        public Builder withScenarioText( final String scenarioText ) {
+            this.scenarioText = scenarioText;
+            return this;
+        }
+
+        public Scenario build() {
+            return new Scenario( this );
+        }
     }
 }

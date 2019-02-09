@@ -61,22 +61,38 @@ public class DefectReport {
 
     private final Integer workshopId;
 
-    private final Integer scenarioId;
+    private final String scenarioId;
 
-    public DefectReport(Record record) {
-        this.id = record.getValue(ID_COLUMN, Integer.class);
-        this.defectReportCode = record.getValue(DEFECT_REPORT_CODE_COLUMN, String.class);
-        this.workshopCode = record.getValue(WORKSHOP_CODE_COLUMN, String.class);
-        this.taskId = record.getValue(TASK_ID_COLUMN, Integer.class);
-        this.workerId = record.getValue(WORKER_ID_COLUMN, Integer.class);
-        this.emeId = record.getValue(EME_ID_COLUMN, String.class);
-        this.defectType = DefectType.fromString(record.getValue(DEFECT_TYPE_COLUMN, String.class));
-        this.defectDescription = record.getValue(DEFECT_DESCRIPTION_COLUMN, String.class);
-        this.synDefectDescription = record.getValue(SYN_DEFECT_DESCRIPTION_COLUMN, String.class);
-        this.synLabel = record.getValue(SYN_LABEL_COLUMN, String.class);
-        this.taskInstanceId = record.getValue(TASK_INSTANCE_ID_COLUMN, Integer.class);
-        this.workshopId = record.getValue(WORKSHOP_ID_COLUMN, Integer.class);
-        this.scenarioId = record.getValue(SCENARIO_ID_COLUMN, Integer.class);
+    public DefectReport( final Record record ) {
+        this.id = record.getValue( ID_COLUMN, Integer.class );
+        this.defectReportCode = record.getValue( DEFECT_REPORT_CODE_COLUMN, String.class );
+        this.workshopCode = record.getValue( WORKSHOP_CODE_COLUMN, String.class );
+        this.taskId = record.getValue( TASK_ID_COLUMN, Integer.class );
+        this.workerId = record.getValue( WORKER_ID_COLUMN, Integer.class );
+        this.emeId = record.getValue( EME_ID_COLUMN, String.class );
+        this.defectType = DefectType.fromString( record.getValue( DEFECT_TYPE_COLUMN, String.class ) );
+        this.defectDescription = record.getValue( DEFECT_DESCRIPTION_COLUMN, String.class );
+        this.synDefectDescription = record.getValue( SYN_DEFECT_DESCRIPTION_COLUMN, String.class );
+        this.synLabel = record.getValue( SYN_LABEL_COLUMN, String.class );
+        this.taskInstanceId = record.getValue( TASK_INSTANCE_ID_COLUMN, Integer.class );
+        this.workshopId = record.getValue( WORKSHOP_ID_COLUMN, Integer.class );
+        this.scenarioId = record.getValue( SCENARIO_ID_COLUMN, String.class );
+    }
+
+    private DefectReport( final Builder builder ) {
+        this.id = builder.id;
+        this.defectReportCode = builder.defectReportCode;
+        this.workshopCode = builder.workshopCode;
+        this.taskId = builder.taskId;
+        this.workerId = builder.workerId;
+        this.emeId = builder.emeId;
+        this.defectType = builder.defectType;
+        this.defectDescription = builder.defectDescription;
+        this.synDefectDescription = builder.synDefectDescription;
+        this.synLabel = builder.synLabel;
+        this.taskInstanceId = builder.taskInstanceId;
+        this.workshopId = builder.workshopId;
+        this.scenarioId = builder.scenarioId;
     }
 
     public int getId() {
@@ -127,34 +143,34 @@ public class DefectReport {
         return this.workshopId;
     }
 
-    public Integer getScenarioId() {
+    public String getScenarioId() {
         return this.scenarioId;
     }
 
     @Override
-    public boolean equals(Object o) {
+    public boolean equals( final Object o ) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
-        DefectReport that = (DefectReport) o;
+        final DefectReport that = (DefectReport) o;
         return this.id == that.id &&
                 this.taskId == that.taskId &&
                 this.workerId == that.workerId &&
-                Objects.equals(this.taskInstanceId, that.taskInstanceId) &&
-                Objects.equals(this.workshopId, that.workshopId) &&
-                Objects.equals(this.defectReportCode, that.defectReportCode) &&
-                Objects.equals(this.workshopCode, that.workshopCode) &&
-                Objects.equals(this.emeId, that.emeId) &&
-                Objects.equals(this.defectType, that.defectType) &&
-                Objects.equals(this.defectDescription, that.defectDescription) &&
-                Objects.equals(this.synDefectDescription, that.synDefectDescription) &&
-                Objects.equals(this.synLabel, that.synLabel);
+                Objects.equals( this.taskInstanceId, that.taskInstanceId ) &&
+                Objects.equals( this.workshopId, that.workshopId ) &&
+                Objects.equals( this.defectReportCode, that.defectReportCode ) &&
+                Objects.equals( this.workshopCode, that.workshopCode ) &&
+                Objects.equals( this.emeId, that.emeId ) &&
+                Objects.equals( this.defectType, that.defectType ) &&
+                Objects.equals( this.defectDescription, that.defectDescription ) &&
+                Objects.equals( this.synDefectDescription, that.synDefectDescription ) &&
+                Objects.equals( this.synLabel, that.synLabel );
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(this.id, this.defectReportCode, this.workshopCode, this.taskId, this.workerId, this
+        return Objects.hash( this.id, this.defectReportCode, this.workshopCode, this.taskId, this.workerId, this
                 .emeId, this.defectType, this.defectDescription, this.synDefectDescription, this.synLabel, this
-                .taskInstanceId, this.workshopId);
+                .taskInstanceId, this.workshopId );
     }
 
     @Override
@@ -173,5 +189,105 @@ public class DefectReport {
                 ", taskInstanceId=" + this.taskInstanceId +
                 ", workshopId=" + this.workshopId +
                 '}';
+    }
+
+    public static Builder builder( final int id ) {
+        return new Builder( id );
+    }
+
+    public static class Builder {
+        private final int id;
+
+        private String defectReportCode;
+
+        private String workshopCode;
+
+        private int taskId;
+
+        private int workerId;
+
+        private String emeId;
+
+        private DefectType defectType;
+
+        private String defectDescription;
+
+        private String synDefectDescription;
+
+        private String synLabel;
+
+        private Integer taskInstanceId;
+
+        private Integer workshopId;
+
+        private String scenarioId;
+
+        private Builder( final int id ) {
+            this.id = id;
+        }
+
+        public Builder withDefectReportCode( final String defectReportCode ) {
+            this.defectReportCode = defectReportCode;
+            return this;
+        }
+
+        public Builder withWorkshopCode( final String workshopCode ) {
+            this.workshopCode = workshopCode;
+            return this;
+        }
+
+        public Builder withTaskId( final int taskId ) {
+            this.taskId = taskId;
+            return this;
+        }
+
+        public Builder withWorkerId( final int workerId ) {
+            this.workerId = workerId;
+            return this;
+        }
+
+        public Builder withEmeId( final String emeId ) {
+            this.emeId = emeId;
+            return this;
+        }
+
+        public Builder withDefectType( final DefectType defectType ) {
+            this.defectType = defectType;
+            return this;
+        }
+
+        public Builder withDefectDescription( final String defectDescription ) {
+            this.defectDescription = defectDescription;
+            return this;
+        }
+
+        public Builder withSynDefectDescription( final String synDefectDescription ) {
+            this.synDefectDescription = synDefectDescription;
+            return this;
+        }
+
+        public Builder withSynLabel( final String synLabel ) {
+            this.synLabel = synLabel;
+            return this;
+        }
+
+        public Builder withTaskInstanceId( final Integer taskInstanceId ) {
+            this.taskInstanceId = taskInstanceId;
+            return this;
+        }
+
+        public Builder withWorkshopId( final Integer workshopId ) {
+            this.workshopId = workshopId;
+            return this;
+        }
+
+        public Builder withScenarioId( final String scenarioId ) {
+            this.scenarioId = scenarioId;
+            return this;
+        }
+
+        public DefectReport build() {
+            return new DefectReport( this );
+        }
     }
 }

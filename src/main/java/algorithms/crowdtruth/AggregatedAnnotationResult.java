@@ -1,4 +1,4 @@
-package crowdtruth;
+package algorithms.crowdtruth;
 
 /**
  * Number of times annotation was chosen for a given media unit.

@@ -1,4 +1,4 @@
-package crowdtruth;
+package algorithms.crowdtruth;
 
 import java.util.Objects;
 

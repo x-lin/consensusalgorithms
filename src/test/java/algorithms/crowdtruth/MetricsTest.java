@@ -1,11 +1,11 @@
-package crowdtruth;
+package algorithms.crowdtruth;
 
+import algorithms.crowdtruth.Metrics.MetricsScores;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.opencsv.bean.CsvBindByName;
 import com.opencsv.bean.CsvToBeanBuilder;
-import crowdtruth.Metrics.MetricsScores;
 import junitparams.JUnitParamsRunner;
 import junitparams.Parameters;
 import org.hamcrest.Matcher;
@@ -240,7 +240,8 @@ public class MetricsTest {
             deserializedClass ) {
         try {
             List<T> data = new CsvToBeanBuilder<T>( new FileReader(
-                    "src/test/resources/crowdtruth/test_data/metrics/" + filename ) ).withType( deserializedClass )
+                    "src/test/resources/algorithms.crowdtruth/test_data/metrics/" + filename ) ).withType(
+                    deserializedClass )
                     .build().parse();
             System.err.println( "=======Parsed CSV data=========" );
             System.err.println( data );
