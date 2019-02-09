@@ -23,21 +23,18 @@ public class CrowdtruthRunner {
     private static final String[] KNOWN_ANNOTATION_OPTIONS = Arrays.stream( DefectType.values() ).map( Enum::name
     ).toArray( String[]::new );
 
+    private static final String CROWDTRUTH_OUT_WORKER_QUALITY_CSV = "output/crowdtruth/worker_quality.csv";
 
-    private static final String CROWDTRUTH_OUT_WORKER_QUALITY_CSV = "output/algorithms.crowdtruth/worker_quality.csv";
+    private static final String CROWDTRUTH_OUT_ANNOTATION_QUALITY_CSV = "output/crowdtruth/annotation_quality.csv";
 
-    private static final String CROWDTRUTH_OUT_ANNOTATION_QUALITY_CSV = "output/algorithms" +
-            ".crowdtruth/annotation_quality.csv";
-
-    private static final String CROWDTRUTH_OUT_MEDIA_UNIT_QUALITY_CSV = "output/algorithms" +
-            ".crowdtruth/media_unit_quality.csv";
+    private static final String CROWDTRUTH_OUT_MEDIA_UNIT_QUALITY_CSV = "output/crowdtruth/media_unit_quality.csv";
 
     private static final String CROWDTRUTH_OUT_MEDIA_UNIT_ANNOTATION_SCORE_CSV =
-            "output/algorithms.crowdtruth/media_unit_annotation_score.csv";
+            "output/crowdtruth/media_unit_annotation_score.csv";
 
 
     public static void main( final String[] args ) throws ClassNotFoundException, SQLException, IOException {
-        Files.createDirectories( Paths.get( "output/algorithms.crowdtruth" ) );
+        Files.createDirectories( Paths.get( "output/crowdtruth" ) );
 
         try (Connection c = DatabaseConnector.createConnection()) {
             final String sql = "select * from " + DefectReport.DEFECT_REPORT_TABLE;
