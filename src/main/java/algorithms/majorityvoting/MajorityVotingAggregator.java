@@ -40,16 +40,17 @@ public class MajorityVotingAggregator {
             final ImmutableMap<DefectType, Double> coefficientsByDefectType = calculateOccurrencesByDefectType( id, this
                     .defectReports );
 
-            final Entry<FinalDefectType, Double> finalDefectType = coefficientsByDefectType.isEmpty() ? new
-                    SimpleImmutableEntry<>( FinalDefectType.UNDECIDABLE, 0.0 ) : calculateFinalDefectType(
-                    coefficientsByDefectType );
-
-            builder.withFinalDefectType( finalDefectType.getKey() ).withAgreementCoeff( finalDefectType.getValue() );
-            this.defectReports.stream().filter( d -> d.getEmeId().equals( id ) )
-                    .findFirst().ifPresent( d -> builder.withScenarioId( d.getScenarioId() ) );
+            if (!coefficientsByDefectType.isEmpty()) {
+                final Entry<FinalDefectType, Double> finalDefectType = calculateFinalDefectType(
+                        coefficientsByDefectType );
+                builder.withFinalDefectType( finalDefectType.getKey() ).withAgreementCoeff( finalDefectType.getValue
+                        () );
+                this.defectReports.stream().filter( d -> d.getEmeId().equals( id ) )
+                        .findFirst().ifPresent( d -> builder.withScenarioId( d.getScenarioId() ) );
+            }
 
             return builder.build();
-        } ).collect( ImmutableSet.toImmutableSet() );
+        } ).filter( f -> f.getFinalDefectType() != null ).collect( ImmutableSet.toImmutableSet() );
     }
 
     private static ImmutableMap<DefectType, Double> calculateOccurrencesByDefectType( final String emeId, final

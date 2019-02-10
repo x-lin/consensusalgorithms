@@ -1,7 +1,10 @@
 package model;
 
+import com.google.common.collect.ImmutableSet;
 import org.jooq.Record;
+import org.jooq.impl.DSL;
 
+import java.sql.Connection;
 import java.util.Objects;
 
 /**
@@ -84,6 +87,13 @@ public class Eme {
 
     public static Builder builder( final String emeId ) {
         return new Builder( emeId );
+    }
+
+    public static ImmutableSet<Eme> fetchEmes( final Connection connection ) {
+        final String sql = "select * from " + EME_TABLE;
+        return DSL.using( connection )
+                .fetch( sql )
+                .map( Eme::new ).stream().collect( ImmutableSet.toImmutableSet() );
     }
 
     public static class Builder {

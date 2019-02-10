@@ -1,8 +1,11 @@
 package model;
 
 
+import com.google.common.collect.ImmutableSet;
 import org.jooq.Record;
+import org.jooq.impl.DSL;
 
+import java.sql.Connection;
 import java.util.Objects;
 
 /**
@@ -189,6 +192,13 @@ public class DefectReport {
                 ", taskInstanceId=" + this.taskInstanceId +
                 ", workshopId=" + this.workshopId +
                 '}';
+    }
+
+    public static ImmutableSet<DefectReport> fetchDefectReports( final Connection connection ) {
+        final String sql = "select * from " + DEFECT_REPORT_TABLE;
+        return DSL.using( connection )
+                .fetch( sql )
+                .map( DefectReport::new ).stream().collect( ImmutableSet.toImmutableSet() );
     }
 
     public static Builder builder( final int id ) {

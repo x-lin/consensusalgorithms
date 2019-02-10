@@ -1,10 +1,8 @@
-package runs;
+package algorithms.crowdtruth;
 
-import algorithms.crowdtruth.CrowdtruthData;
-import algorithms.crowdtruth.MediaUnit;
-import algorithms.crowdtruth.Metrics;
 import com.google.common.collect.ImmutableSet;
 import com.opencsv.CSVWriter;
+import model.DatabaseConnector;
 import model.DefectReport;
 import model.DefectType;
 import org.jooq.impl.DSL;
@@ -41,7 +39,7 @@ public class CrowdtruthRunner {
 
             final ImmutableSet<CrowdtruthData> data = DSL.using( c )
                     .fetch( sql )
-                    .map( DefectReport::new ).stream().map( r -> new CrowdtruthData( String.valueOf( r.getTaskId() ),
+                    .map( DefectReport::new ).stream().map( r -> new CrowdtruthData( String.valueOf( r.getEmeId() ),
                             String.valueOf( r.getId() ), String.valueOf( r
                             .getWorkerId() ), r.getDefectType().name() ) ).collect( ImmutableSet.toImmutableSet() );
             final ImmutableSet<MediaUnit> annotatedData = CrowdtruthData.annotate( data, KNOWN_ANNOTATION_OPTIONS );
@@ -63,14 +61,14 @@ public class CrowdtruthRunner {
 
             try (CSVWriter workerQualityWriter = new CSVWriter( Files.newBufferedWriter( Paths.get(
                     CROWDTRUTH_OUT_MEDIA_UNIT_QUALITY_CSV ) ) )) {
-                workerQualityWriter.writeNext( new String[]{"taskId", "Media Unit Quality Score (UQS)"} );
+                workerQualityWriter.writeNext( new String[]{"emeId", "Media Unit Quality Score (UQS)"} );
                 metricsScores.getMediaUnitQualityScores().forEach( ( w, q ) -> workerQualityWriter.writeNext( new
                         String[]{w.getId().toString(), q.toString()} ) );
             }
 
             try (CSVWriter workerQualityWriter = new CSVWriter( Files.newBufferedWriter( Paths.get(
                     CROWDTRUTH_OUT_MEDIA_UNIT_ANNOTATION_SCORE_CSV ) ) )) {
-                workerQualityWriter.writeNext( new String[]{"taskId", "defectType", "Media Unit Quality Score (UQS)"} );
+                workerQualityWriter.writeNext( new String[]{"emeId", "defectType", "Media Unit Quality Score (UQS)"} );
                 metricsScores.getMediaUnitAnnotationScores().forEach( ( w, q ) -> workerQualityWriter.writeNext( new
                         String[]{w.getId().getMediaUnitId().toString(), w.getId().getName(), q.toString()}
                 ) );

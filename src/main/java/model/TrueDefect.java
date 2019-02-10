@@ -1,7 +1,10 @@
 package model;
 
+import com.google.common.collect.ImmutableSet;
 import org.jooq.Record;
+import org.jooq.impl.DSL;
 
+import java.sql.Connection;
 import java.util.Objects;
 
 /**
@@ -40,22 +43,36 @@ public class TrueDefect {
 
     private final String aboutMeType;
 
-    private final String defectType;
+    private final DefectType defectType;
 
     private final String defectSeverity;
 
     private final String description;
 
-    public TrueDefect(Record record) {
-        this.id = record.getValue(ID_COLUMN, Integer.class);
-        this.codeTd = record.getValue(CODE_TD_COLUMN, String.class);
-        this.aboutModelElement = record.getValue(ABOUT_MODEL_ELEMENT_COLUMN, String.class);
-        this.aboutEmEid = record.getValue(ABOUT_EM_EID_COLUMN, String.class);
-        this.scenario = record.getValue(SCENARIO_COLUMN, String.class);
-        this.aboutMeType = record.getValue(ABOUT_ME_TYPE_COLUMN, String.class);
-        this.defectType = record.getValue(DEFECT_TYPE_COLUMN, String.class);
-        this.defectSeverity = record.getValue(DEFECT_SEVERITY_COLUMN, String.class);
-        this.description = record.getValue(DESCRIPTION_COLUMN, String.class);
+    public TrueDefect( final Record record ) {
+        this.id = record.getValue( ID_COLUMN, Integer.class );
+        this.codeTd = record.getValue( CODE_TD_COLUMN, String.class );
+        this.aboutModelElement = record.getValue( ABOUT_MODEL_ELEMENT_COLUMN, String.class );
+        this.aboutEmEid = record.getValue( ABOUT_EM_EID_COLUMN, String.class );
+        this.scenario = record.getValue( SCENARIO_COLUMN, String.class );
+        this.aboutMeType = record.getValue( ABOUT_ME_TYPE_COLUMN, String.class );
+        this.defectType = DefectType.fromString( record.getValue( DEFECT_TYPE_COLUMN, String.class ).trim() );
+        this.defectSeverity = record.getValue( DEFECT_SEVERITY_COLUMN, String.class );
+        this.description = record.getValue( DESCRIPTION_COLUMN, String.class );
+    }
+
+    private TrueDefect( final int id, final String codeTd, final String aboutModelElement, final String aboutEmEid,
+                        final String scenario, final String aboutMeType, final DefectType defectType, final String
+                                defectSeverity, final String description ) {
+        this.id = id;
+        this.codeTd = codeTd;
+        this.aboutModelElement = aboutModelElement;
+        this.aboutEmEid = aboutEmEid;
+        this.scenario = scenario;
+        this.aboutMeType = aboutMeType;
+        this.defectType = defectType;
+        this.defectSeverity = defectSeverity;
+        this.description = description;
     }
 
     public int getId() {
@@ -82,7 +99,7 @@ public class TrueDefect {
         return this.aboutMeType;
     }
 
-    public String getDefectType() {
+    public DefectType getDefectType() {
         return this.defectType;
     }
 
@@ -94,26 +111,31 @@ public class TrueDefect {
         return this.description;
     }
 
+    public TrueDefect replaceEmeId( final String newEmeId ) {
+        return new TrueDefect( getId(), getCodeTd(), getAboutModelElement(), newEmeId, getScenario(), getAboutMeType
+                (), getDefectType(), getDefectSeverity(), getDescription() );
+    }
+
     @Override
-    public boolean equals(Object o) {
+    public boolean equals( final Object o ) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
-        TrueDefect that = (TrueDefect) o;
+        final TrueDefect that = (TrueDefect) o;
         return this.id == that.id &&
-                Objects.equals(this.codeTd, that.codeTd) &&
-                Objects.equals(this.aboutModelElement, that.aboutModelElement) &&
-                Objects.equals(this.aboutEmEid, that.aboutEmEid) &&
-                Objects.equals(this.scenario, that.scenario) &&
-                Objects.equals(this.aboutMeType, that.aboutMeType) &&
-                Objects.equals(this.defectType, that.defectType) &&
-                Objects.equals(this.defectSeverity, that.defectSeverity) &&
-                Objects.equals(this.description, that.description);
+                Objects.equals( this.codeTd, that.codeTd ) &&
+                Objects.equals( this.aboutModelElement, that.aboutModelElement ) &&
+                Objects.equals( this.aboutEmEid, that.aboutEmEid ) &&
+                Objects.equals( this.scenario, that.scenario ) &&
+                Objects.equals( this.aboutMeType, that.aboutMeType ) &&
+                Objects.equals( this.defectType, that.defectType ) &&
+                Objects.equals( this.defectSeverity, that.defectSeverity ) &&
+                Objects.equals( this.description, that.description );
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(this.id, this.codeTd, this.aboutModelElement, this.aboutEmEid, this.scenario, this
-                .aboutMeType, this.defectType, this.defectSeverity, this.description);
+        return Objects.hash( this.id, this.codeTd, this.aboutModelElement, this.aboutEmEid, this.scenario, this
+                .aboutMeType, this.defectType, this.defectSeverity, this.description );
     }
 
     @Override
@@ -129,5 +151,12 @@ public class TrueDefect {
                 ", defectSeverity='" + this.defectSeverity + '\'' +
                 ", description='" + this.description + '\'' +
                 '}';
+    }
+
+    public static ImmutableSet<TrueDefect> fetchTrueDefects( final Connection connection ) {
+        final String sql = "select * from " + TRUE_DEFECT_TABLE;
+        return DSL.using( connection )
+                .fetch( sql )
+                .map( TrueDefect::new ).stream().collect( ImmutableSet.toImmutableSet() );
     }
 }

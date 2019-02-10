@@ -1,4 +1,4 @@
-package runs;
+package model;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
@@ -7,7 +7,7 @@ import java.sql.SQLException;
 /**
  * @author LinX
  */
-class DatabaseConnector {
+public class DatabaseConnector {
     private static final String DB_PATH = "jdbc:mysql://localhost:3306/defect_report?serverTimezone=UTC";
 
     private static final String USER = "root";

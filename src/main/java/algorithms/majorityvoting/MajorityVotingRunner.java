@@ -1,13 +1,9 @@
-package runs;
+package algorithms.majorityvoting;
 
-import algorithms.majorityvoting.MajorityVotingAggregator;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableSet;
 import com.opencsv.CSVWriter;
-import model.DefectReport;
-import model.Eme;
-import model.FinalDefect;
-import org.jooq.impl.DSL;
+import model.*;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -17,6 +13,7 @@ import java.sql.SQLException;
 import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
@@ -28,13 +25,23 @@ public class MajorityVotingRunner {
     private static final String FINAL_DEFECT_REMOVE_NULL_TASK_INSTANCES_OUT_CSV =
             "output/majorityvoting/finalDefects_noNullTaskInstances.csv";
 
-    public static void main( final String[] args ) throws SQLException, IOException {
+    private final ImmutableSet<FinalDefect> finalDefects;
+
+    private MajorityVotingRunner() throws IOException, SQLException {
+        this.finalDefects = getFinalDefects();
+    }
+
+    public static ImmutableSet<FinalDefect> calculateFinalDefects() throws IOException, SQLException {
+        return new MajorityVotingRunner().finalDefects;
+    }
+
+    private static ImmutableSet<FinalDefect> getFinalDefects() throws IOException, SQLException {
         Files.createDirectories( Paths.get( "output/majorityvoting" ) );
 
         try (Connection connection = DatabaseConnector.createConnection()) {
             //calculate based on all defect reports
-            final ImmutableSet<DefectReport> defectReports = fetchDefectReports( connection );
-            final ImmutableSet<Eme> emes = fetchEmes( connection );
+            final ImmutableSet<DefectReport> defectReports = DefectReport.fetchDefectReports( connection );
+            final ImmutableSet<Eme> emes = Eme.fetchEmes( connection );
             final ImmutableSet<FinalDefect> finalDefects = new MajorityVotingAggregator( emes, defectReports )
                     .aggregate();
             try (CSVWriter finalDefectsCsv = new CSVWriter( Files.newBufferedWriter( Paths.get(
@@ -47,8 +54,11 @@ public class MajorityVotingRunner {
             }
 
             //calculate based on all defect reports that have a task instance
-            final ImmutableSet<DefectReport> defectReportsFiltered = fetchDefectReports( connection ).stream().filter
-                    ( d -> d.getTaskInstanceId() != null ).collect( ImmutableSet.toImmutableSet() );
+            final Set<String> filteredWorkshops = ImmutableSet.of( "WS1", "WS2", "WS3", "WS4" );
+            final ImmutableSet<DefectReport> defectReportsFiltered = DefectReport.fetchDefectReports( connection )
+                    .stream().filter
+                            ( d -> filteredWorkshops.contains( d.getWorkshopCode() ) ).collect( ImmutableSet
+                            .toImmutableSet() );
             final ImmutableSet<FinalDefect> finalDefectsFiltered = new MajorityVotingAggregator( emes,
                     defectReportsFiltered )
                     .aggregate();
@@ -62,7 +72,9 @@ public class MajorityVotingRunner {
             }
 
             //compare with DB table for correctness
-            verifySameResults( finalDefectsFiltered, fetchFinalDefects( connection ) );
+            verifySameResults( finalDefectsFiltered, FinalDefect.fetchFinalDefects( connection ) );
+
+            return finalDefectsFiltered;
         }
     }
 
@@ -87,27 +99,14 @@ public class MajorityVotingRunner {
                             "eme " + db.getEmeId() + " doesn't match. Expected '%s', but was '%s'.", db.getScenarioId(),
                     calculated.getScenarioId() );
         } );
+
+        final ImmutableSet<FinalDefect> calculatedUnmatchedWithDefect = calculatedUnmatched.values().stream().filter(
+                c -> c
+                        .getFinalDefectType() != FinalDefectType.NO_DEFECT ).collect( ImmutableSet.toImmutableSet() );
+
+        Preconditions.checkArgument( calculatedUnmatchedWithDefect.isEmpty(), "%s final defects calculated but not in" +
+                        " DB: %s",
+                calculatedUnmatchedWithDefect.size(), calculatedUnmatchedWithDefect );
     }
 
-    private static ImmutableSet<FinalDefect> fetchFinalDefects( final Connection connection ) {
-        final String sql = "select * from " + FinalDefect.FINAL_DEFECT_TABLE + " where filter_code='WS1, WS2, WS3, " +
-                "WS4'";
-        return DSL.using( connection )
-                .fetch( sql )
-                .map( FinalDefect::new ).stream().collect( ImmutableSet.toImmutableSet() );
-    }
-
-    private static ImmutableSet<DefectReport> fetchDefectReports( final Connection connection ) {
-        final String sql = "select * from " + DefectReport.DEFECT_REPORT_TABLE;
-        return DSL.using( connection )
-                .fetch( sql )
-                .map( DefectReport::new ).stream().collect( ImmutableSet.toImmutableSet() );
-    }
-
-    private static ImmutableSet<Eme> fetchEmes( final Connection connection ) {
-        final String sql = "select * from " + Eme.EME_TABLE;
-        return DSL.using( connection )
-                .fetch( sql )
-                .map( Eme::new ).stream().collect( ImmutableSet.toImmutableSet() );
-    }
 }

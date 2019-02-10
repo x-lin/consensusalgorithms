@@ -1,7 +1,10 @@
 package model;
 
+import com.google.common.collect.ImmutableSet;
 import org.jooq.Record;
+import org.jooq.impl.DSL;
 
+import java.sql.Connection;
 import java.util.Objects;
 
 /**
@@ -96,6 +99,14 @@ public class FinalDefect {
                 ", agreementCoeff=" + this.agreementCoeff +
                 ", finalDefectType=" + this.finalDefectType +
                 '}';
+    }
+
+    public static ImmutableSet<FinalDefect> fetchFinalDefects( final Connection connection ) {
+        final String sql = "select * from " + FINAL_DEFECT_TABLE + " where filter_code='WS1, WS2, WS3, " +
+                "WS4'";
+        return DSL.using( connection )
+                .fetch( sql )
+                .map( FinalDefect::new ).stream().collect( ImmutableSet.toImmutableSet() );
     }
 
     public static class Builder {
