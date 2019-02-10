@@ -1,6 +1,7 @@
 package algorithms.majorityvoting;
 
 import com.google.common.base.Preconditions;
+import com.google.common.base.Predicates;
 import com.google.common.collect.ImmutableSet;
 import com.opencsv.CSVWriter;
 import model.*;
@@ -13,7 +14,6 @@ import java.sql.SQLException;
 import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.Optional;
-import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
@@ -40,7 +40,8 @@ public class MajorityVotingRunner {
 
         try (Connection connection = DatabaseConnector.createConnection()) {
             //calculate based on all defect reports
-            final ImmutableSet<DefectReport> defectReports = DefectReport.fetchDefectReports( connection );
+            final ImmutableSet<DefectReport> defectReports = DefectReport.fetchDefectReports( connection, Predicates
+                    .alwaysTrue() );
             final ImmutableSet<Eme> emes = Eme.fetchEmes( connection );
             final ImmutableSet<FinalDefect> finalDefects = new MajorityVotingAggregator( emes, defectReports )
                     .aggregate();
@@ -53,12 +54,8 @@ public class MajorityVotingRunner {
                         () ), d.getFinalDefectType().name()} ) );
             }
 
-            //calculate based on all defect reports that have a task instance
-            final Set<String> filteredWorkshops = ImmutableSet.of( "WS1", "WS2", "WS3", "WS4" );
-            final ImmutableSet<DefectReport> defectReportsFiltered = DefectReport.fetchDefectReports( connection )
-                    .stream().filter
-                            ( d -> filteredWorkshops.contains( d.getWorkshopCode() ) ).collect( ImmutableSet
-                            .toImmutableSet() );
+            final ImmutableSet<DefectReport> defectReportsFiltered = DefectReport.fetchDefectReports( connection,
+                    DefectReport.workshopFilter( "WS1", "WS2", "WS3", "WS4" ) );
             final ImmutableSet<FinalDefect> finalDefectsFiltered = new MajorityVotingAggregator( emes,
                     defectReportsFiltered )
                     .aggregate();

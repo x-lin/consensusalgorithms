@@ -7,6 +7,8 @@ import org.jooq.impl.DSL;
 
 import java.sql.Connection;
 import java.util.Objects;
+import java.util.Set;
+import java.util.function.Predicate;
 
 /**
  * @author LinX
@@ -194,11 +196,17 @@ public class DefectReport {
                 '}';
     }
 
-    public static ImmutableSet<DefectReport> fetchDefectReports( final Connection connection ) {
+    public static ImmutableSet<DefectReport> fetchDefectReports( final Connection connection, final
+    Predicate<DefectReport> filter ) {
         final String sql = "select * from " + DEFECT_REPORT_TABLE;
         return DSL.using( connection )
                 .fetch( sql )
-                .map( DefectReport::new ).stream().collect( ImmutableSet.toImmutableSet() );
+                .map( DefectReport::new ).stream().filter( filter ).collect( ImmutableSet.toImmutableSet() );
+    }
+
+    public static Predicate<DefectReport> workshopFilter( final String... workshops ) {
+        final Set<String> filteredWorkshops = ImmutableSet.copyOf( workshops );
+        return d -> filteredWorkshops.contains( d.getWorkshopCode() );
     }
 
     public static Builder builder( final int id ) {

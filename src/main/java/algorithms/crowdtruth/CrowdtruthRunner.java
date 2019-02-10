@@ -5,7 +5,6 @@ import com.opencsv.CSVWriter;
 import model.DatabaseConnector;
 import model.DefectReport;
 import model.DefectType;
-import org.jooq.impl.DSL;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -35,13 +34,11 @@ public class CrowdtruthRunner {
         Files.createDirectories( Paths.get( "output/crowdtruth" ) );
 
         try (Connection c = DatabaseConnector.createConnection()) {
-            final String sql = "select * from " + DefectReport.DEFECT_REPORT_TABLE;
-
-            final ImmutableSet<CrowdtruthData> data = DSL.using( c )
-                    .fetch( sql )
-                    .map( DefectReport::new ).stream().map( r -> new CrowdtruthData( String.valueOf( r.getEmeId() ),
-                            String.valueOf( r.getId() ), String.valueOf( r
-                            .getWorkerId() ), r.getDefectType().name() ) ).collect( ImmutableSet.toImmutableSet() );
+            final ImmutableSet<CrowdtruthData> data = DefectReport.fetchDefectReports( c, DefectReport.workshopFilter
+                    ( "WS1", "WS2", "WS3", "WS4" ) ).stream().map( r -> new CrowdtruthData( String.valueOf( r
+                    .getEmeId() ),
+                    String.valueOf( r.getId() ), String.valueOf( r
+                    .getWorkerId() ), r.getDefectType().name() ) ).collect( ImmutableSet.toImmutableSet() );
             final ImmutableSet<MediaUnit> annotatedData = CrowdtruthData.annotate( data, KNOWN_ANNOTATION_OPTIONS );
             final Metrics.MetricsScores metricsScores = Metrics.calculateClosed( annotatedData );
 
