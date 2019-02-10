@@ -1,10 +1,10 @@
 package algorithms.crowdtruth;
 
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Maps;
 import com.opencsv.CSVWriter;
-import model.DatabaseConnector;
-import model.DefectReport;
-import model.DefectType;
+import model.*;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -12,6 +12,8 @@ import java.nio.file.Paths;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.Arrays;
+import java.util.Map;
+import java.util.function.Function;
 
 /**
  * @author LinX
@@ -29,8 +31,18 @@ public class CrowdtruthRunner {
     private static final String CROWDTRUTH_OUT_MEDIA_UNIT_ANNOTATION_SCORE_CSV =
             "output/crowdtruth/media_unit_annotation_score.csv";
 
+    private final ImmutableSet<FinalDefect> finalDefects;
 
-    public static void main( final String[] args ) throws ClassNotFoundException, SQLException, IOException {
+
+    private CrowdtruthRunner() throws IOException, SQLException {
+        this.finalDefects = getFinalDefects();
+    }
+
+    public static ImmutableSet<FinalDefect> calculateFinalDefects() throws IOException, SQLException {
+        return new CrowdtruthRunner().finalDefects;
+    }
+
+    private static ImmutableSet<FinalDefect> getFinalDefects() throws IOException, SQLException {
         Files.createDirectories( Paths.get( "output/crowdtruth" ) );
 
         try (Connection c = DatabaseConnector.createConnection()) {
@@ -70,6 +82,31 @@ public class CrowdtruthRunner {
                         String[]{w.getId().getMediaUnitId().toString(), w.getId().getName(), q.toString()}
                 ) );
             }
+
+            final ImmutableMap<String, Eme> emes = Eme.fetchEmes( c ).stream().collect( ImmutableMap
+                    .toImmutableMap( Eme::getEmeId, Function.identity() ) );
+            return calculateFinalDefects( metricsScores, emes );
         }
+    }
+
+    private static ImmutableSet<FinalDefect> calculateFinalDefects( final Metrics.MetricsScores metricsScores, final
+    ImmutableMap<String, Eme> emes ) {
+        final Map<MediaUnitId, FinalDefect.Builder> finalDefects = Maps.newHashMap();
+        metricsScores.getMediaUnitAnnotationScores().forEach( ( annotation, score ) -> {
+            final MediaUnitId emeId = annotation.getId().getMediaUnitId();
+            final DefectType defectType = DefectType.fromString( annotation.getId().getName() );
+
+            final FinalDefect.Builder builder = finalDefects.computeIfAbsent( emeId, e -> FinalDefect.builder(
+                    emes.get( emeId.toString() ) ) );
+            if (builder.getAgreementCoeff() < score) {
+                builder.withFinalDefectType( FinalDefectType.fromDefectType( defectType ) ).withAgreementCoeff(
+                        score );
+            } else if (builder.getAgreementCoeff() == score) {
+                builder.withFinalDefectType( FinalDefectType.UNDECIDABLE );
+            }
+        } );
+
+        return finalDefects.values().stream().map( FinalDefect.Builder::build ).collect( ImmutableSet
+                .toImmutableSet() );
     }
 }

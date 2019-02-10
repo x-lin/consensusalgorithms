@@ -142,6 +142,14 @@ public class FinalDefect {
             return this;
         }
 
+        public FinalDefectType getFinalDefectType() {
+            return this.finalDefectType;
+        }
+
+        public double getAgreementCoeff() {
+            return this.agreementCoeff;
+        }
+
         public FinalDefect build() {
             return new FinalDefect( this );
         }
