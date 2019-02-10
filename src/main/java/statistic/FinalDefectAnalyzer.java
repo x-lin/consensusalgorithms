@@ -9,6 +9,7 @@ import model.DefectType;
 import model.FinalDefect;
 import model.FinalDefectType;
 import model.TrueDefect;
+import org.jooq.lambda.UncheckedException;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -27,34 +28,39 @@ public class FinalDefectAnalyzer {
         //purposely left empty
     }
 
-    public void write( final ImmutableSet<FinalDefect> defects, final String outputFilePath ) throws IOException,
-            SQLException {
-        final ImmutableMap<String, TrueDefect> trueDefects = AllTrueDefectsMixin.findAllTrueDefects().stream()
-                .collect( ImmutableMap.toImmutableMap( TrueDefect::getAboutEmEid, Function.identity() ) );
-        final ImmutableMap<String, FinalDefect> finalDefects = defects
-                .stream().collect( ImmutableMap.toImmutableMap( FinalDefect::getEmeId, Function.identity() ) );
-        final Map<String, EvaluationResult> results = Maps.newHashMap();
+    public void write( final ImmutableSet<FinalDefect> defects, final String outputFilePath ) {
+        final ImmutableMap<String, TrueDefect> trueDefects;
+        try {
+            trueDefects = AllTrueDefectsMixin.findAllTrueDefects().stream()
+                    .collect( ImmutableMap.toImmutableMap( TrueDefect::getAboutEmEid, Function.identity() ) );
 
-        finalDefects.values().forEach( fd -> {
-            final EvaluationResult evaluationResult = Optional.ofNullable( trueDefects.get( fd.getEmeId() ) ).map( td
-                    -> new EvaluationResult(
-                    fd, td ) ).orElseGet( () -> new EvaluationResult( fd ) );
-            results.put( fd.getEmeId(), evaluationResult );
-        } );
+            final ImmutableMap<String, FinalDefect> finalDefects = defects
+                    .stream().collect( ImmutableMap.toImmutableMap( FinalDefect::getEmeId, Function.identity() ) );
+            final Map<String, EvaluationResult> results = Maps.newHashMap();
 
-        try (CSVWriter finalDefectsCsv = new CSVWriter( Files.newBufferedWriter( Paths.get(
-                outputFilePath ) ) )) {
-            finalDefectsCsv.writeNext( new String[]{"emeId", "emeText", "agreementCoeff",
-                    "finalDefectType", "trueDefectType", "trueDefectId", "isMatching"} );
-            results.values().forEach( r -> finalDefectsCsv.writeNext( new
-                    String[]{r.getEmeId(), r.getEmeText(), r
-                    .getAgreementCoefficient(), r.getFinalDefectType().name(), r.getTrueDefectType().name(), r
-                    .getTrueDefectId(), String.valueOf( r.isMatching() )} ) );
+            finalDefects.values().forEach( fd -> {
+                final EvaluationResult evaluationResult = Optional.ofNullable( trueDefects.get( fd.getEmeId() ) ).map
+                        ( td
+                                -> new EvaluationResult(
+                                fd, td ) ).orElseGet( () -> new EvaluationResult( fd ) );
+                results.put( fd.getEmeId(), evaluationResult );
+            } );
+
+            try (CSVWriter finalDefectsCsv = new CSVWriter( Files.newBufferedWriter( Paths.get(
+                    outputFilePath ) ) )) {
+                finalDefectsCsv.writeNext( new String[]{"emeId", "emeText", "agreementCoeff",
+                        "finalDefectType", "trueDefectType", "trueDefectId", "isMatching"} );
+                results.values().forEach( r -> finalDefectsCsv.writeNext( new
+                        String[]{r.getEmeId(), r.getEmeText(), r
+                        .getAgreementCoefficient(), r.getFinalDefectType().name(), r.getTrueDefectType().name(), r
+                        .getTrueDefectId(), String.valueOf( r.isMatching() )} ) );
+            }
+        } catch (IOException | SQLException e) {
+            throw new UncheckedException( e );
         }
     }
 
-    public static void analyze( final ImmutableSet<FinalDefect> defects, final String outputFilePath ) throws
-            IOException, SQLException {
+    public static void analyze( final ImmutableSet<FinalDefect> defects, final String outputFilePath ) {
         new FinalDefectAnalyzer().write( defects, outputFilePath );
     }
 
