@@ -1,0 +1,14 @@
+@import "../node_modules/@angular/material/prebuilt-themes/indigo-pink.css";
+@import '~bootstrap/dist/css/bootstrap.min.css';
+@import "~taucharts/dist/taucharts.css";
+
+body {
+  font-size: .875rem;
+}
+
+/*
+ * hide trendline
+ */
+.tau-chart__layout__sidebar-right__wrap {
+  display: none;
+}

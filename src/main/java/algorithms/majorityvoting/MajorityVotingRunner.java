@@ -3,8 +3,8 @@ package algorithms.majorityvoting;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Predicates;
 import com.google.common.collect.ImmutableSet;
-import com.opencsv.CSVWriter;
 import model.*;
+import statistic.FinalDefectAnalyzer;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -20,10 +20,10 @@ import java.util.stream.Collectors;
  * @author LinX
  */
 public class MajorityVotingRunner {
-    private static final String FINAL_DEFECT_ALL_OUT_CSV = "output/majorityvoting/finalDefects.csv";
+    private static final String FINAL_DEFECT_ALL_SEM_OUT_CSV = "output/majorityvoting/finalDefects.csv";
 
-    private static final String FINAL_DEFECT_REMOVE_NULL_TASK_INSTANCES_OUT_CSV =
-            "output/majorityvoting/finalDefects_noNullTaskInstances.csv";
+    private static final String FINAL_DEFECT_WS1_4_OUT_CSV =
+            "output/majorityvoting/finalDefects_ws1-4.csv";
 
     private final ImmutableSet<FinalDefect> finalDefects;
 
@@ -45,28 +45,16 @@ public class MajorityVotingRunner {
             final ImmutableSet<Eme> emes = Eme.fetchEmes( connection );
             final ImmutableSet<FinalDefect> finalDefects = new MajorityVotingAggregator( emes, defectReports )
                     .aggregate();
-            try (CSVWriter finalDefectsCsv = new CSVWriter( Files.newBufferedWriter( Paths.get(
-                    FINAL_DEFECT_ALL_OUT_CSV ) ) )) {
-                finalDefectsCsv.writeNext( new String[]{"emeId", "emeText", "scenarioId", "agreementCoeff",
-                        "finalDefectType"} );
-                finalDefects.forEach( d -> finalDefectsCsv.writeNext( new
-                        String[]{d.getEmeId(), d.getEmeText(), d.getScenarioId(), String.valueOf( d.getAgreementCoeff
-                        () ), d.getFinalDefectType().name()} ) );
-            }
+            //FinalDefectAnalyzer.analyze( finalDefects, FINAL_DEFECT_ALL_SEM_OUT_CSV );
+
 
             final ImmutableSet<DefectReport> defectReportsFiltered = DefectReport.fetchDefectReports( connection,
                     DefectReport.workshopFilter( "WS1", "WS2", "WS3", "WS4" ) );
             final ImmutableSet<FinalDefect> finalDefectsFiltered = new MajorityVotingAggregator( emes,
                     defectReportsFiltered )
                     .aggregate();
-            try (CSVWriter finalDefectsCsv = new CSVWriter( Files.newBufferedWriter( Paths.get(
-                    FINAL_DEFECT_REMOVE_NULL_TASK_INSTANCES_OUT_CSV ) ) )) {
-                finalDefectsCsv.writeNext( new String[]{"emeId", "emeText", "scenarioId", "agreementCoeff",
-                        "finalDefectType"} );
-                finalDefectsFiltered.forEach( d -> finalDefectsCsv.writeNext( new
-                        String[]{d.getEmeId(), d.getEmeText(), d.getScenarioId(), String.valueOf( d.getAgreementCoeff
-                        () ), d.getFinalDefectType().name()} ) );
-            }
+
+            FinalDefectAnalyzer.analyze( finalDefectsFiltered, FINAL_DEFECT_WS1_4_OUT_CSV );
 
             //compare with DB table for correctness
             verifySameResults( finalDefectsFiltered, FinalDefect.fetchFinalDefects( connection ) );

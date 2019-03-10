@@ -1,0 +1,91 @@
+<nav class="navbar navbar-dark fixed-top bg-dark flex-md-nowrap p-0 shadow">
+  <a class="navbar-brand col-sm-3 col-md-2 mr-0" href="#"></a>
+  <div class="navbar-buttons">
+    <button mat-button (click)="onWorkerScoresClicked()" style="color:#EEEEEE" routerLink="/home">Worker Scores</button>
+    <button mat-button (click)="onFinalDefectsClicked()" style="color:#EEEEEE" routerLink="/sheet">Final Defects</button>
+    <button mat-button style="color:#EEEEEE" (click)="onCrowdtruthMetricsClicked()" routerLink="/sheet">Crowdtruth Metrics</button>
+  </div>
+</nav>
+
+<div class="container-fluid">
+  <div class="row">
+    <nav class="col-md-2 d-none d-md-block bg-light sidebar bg-white" style="box-shadow: none">
+      <ng-template [ngIf]="workerScoresClicked">
+        <div class="sidebar-sticky">
+          <mat-card>
+            <button mat-flat-button style="width: 100%; font-weight: bold; margin-top: 20px" routerLink="/home" routerLinkActive="active">Correlation Diagrams</button>
+            <button mat-flat-button style="width: 100%; font-weight: bold;" routerLink="/sheet">Tabular Data</button>
+          </mat-card>
+
+          <mat-card class="result" style="margin-top: 10px">
+            <mat-card-header>
+              <mat-card-title>Parameters</mat-card-title>
+            </mat-card-header>
+
+            <mat-divider></mat-divider>
+
+            <mat-card-content>
+                  <mat-card-subtitle>Algorithms</mat-card-subtitle>
+                  <mat-checkbox
+                    class="example-margin"
+                    [checked]="true"
+                    [(indeterminate)]="indeterminate"
+                    [labelPosition]="labelPosition"
+                    [disabled]="disabled">
+                    CrowdTruth
+                  </mat-checkbox>
+            </mat-card-content>
+
+            <!--<mat-divider></mat-divider>-->
+            <!--<mat-card-content>-->
+              <!--<mat-card-subtitle>sad</mat-card-subtitle>-->
+              <!--<mat-slider-->
+                <!--style="width:100%"-->
+                <!--[disabled]="disabled"-->
+                <!--[invert]="invert"-->
+                <!--[max]="max"-->
+                <!--[min]="min"-->
+                <!--[step]="step"-->
+                <!--[thumbLabel]="thumbLabel"-->
+                <!--[tickInterval]="tickInterval"-->
+                <!--[(ngModel)]="value"-->
+                <!--[vertical]="vertical">-->
+              <!--</mat-slider>-->
+            <!--</mat-card-content>-->
+          </mat-card>
+        </div>
+      </ng-template>
+
+      <ng-template [ngIf]="finalDefectsClicked">
+        <div class="sidebar-sticky">
+          <button mat-flat-button style="width: 100%; font-weight: bold; margin-top: 20px" routerLink="/sheet">Tabular Data</button>
+          <mat-card class="result">
+            <mat-card-content>
+              <div>Algorithm</div>
+              <mat-radio-group [(ngModel)]="finalDefectsParameters.type">
+                <div *ngFor="let algoType of algorithmTypes">
+                  <mat-radio-button [value]="algoType" (change)="finalDefectsAlgorithmTypeChanged($event)">
+                    {{algoType}}
+                  </mat-radio-button>
+                </div>
+              </mat-radio-group>
+            </mat-card-content>
+          </mat-card>
+        </div>
+      </ng-template>
+
+      <ng-template [ngIf]="crowdtruthMetricsClicked">
+        <div class="sidebar-sticky">
+          <button mat-flat-button style="width: 100%; font-weight: bold; margin-top: 20px" (click)="onWQSClicked()" routerLink="/sheet">Worker Quality Score</button>
+          <button mat-flat-button style="width: 100%; font-weight: bold; margin-top: 20px" (click)="onAQSClicked()" routerLink="/sheet">Annotation Quality Score</button>
+          <button mat-flat-button style="width: 100%; font-weight: bold; margin-top: 20px" (click)="onUQSClicked()" routerLink="/sheet">Unit Quality Score</button>
+          <button mat-flat-button style="width: 100%; font-weight: bold; margin-top: 20px" (click)="onUASClicked()" routerLink="/sheet">Unit Annotation Score</button>
+        </div>
+      </ng-template>
+    </nav>
+
+    <main role="main" class="col-md-9 ml-sm-auto col-lg-10 px-4">
+      <router-outlet></router-outlet>
+    </main>
+  </div>
+</div>

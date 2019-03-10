@@ -1,0 +1,41 @@
+  <mat-card style="margin-top: 30px; max-height: 400px; min-height: 400px">
+    <mat-card-header>
+      <mat-card-title>Worker Quality ~ F-Measure</mat-card-title>
+      <mat-card-subtitle>Pearson correlation score: {{latestWorkerScores.workerQualityFMeasureCorrelation}}</mat-card-subtitle>
+    </mat-card-header>
+    <mat-card-content style="height: 100%; display:block">
+      <div id="scatterWorkerQualityFMeasure" #scatterWorkerQualityFMeasure style="height: 300px;"></div>
+    </mat-card-content>
+  </mat-card>
+
+  <mat-card style="margin-top: 10px; max-height: 400px; min-height: 400px">
+    <mat-card-header>
+      <mat-card-title>Worker Quality ~ Recall</mat-card-title>
+      <mat-card-subtitle>Pearson correlation score: {{latestWorkerScores.workerQualityPrecisionCorrelation}}</mat-card-subtitle>
+    </mat-card-header>
+    <mat-card-content style="height: 100%; display:block">
+      <div id="scatterWorkerQualityRecall" #scatterWorkerQualityRecall style="height: 300px;"></div>
+    </mat-card-content>
+  </mat-card>
+
+  <mat-card style="margin-top: 10px; max-height: 400px; min-height: 400px">
+    <mat-card-header>
+      <mat-card-title>Worker Quality ~ Precision</mat-card-title>
+      <mat-card-subtitle>Pearson correlation score: {{latestWorkerScores.workerQualityPrecisionCorrelation}}</mat-card-subtitle>
+    </mat-card-header>
+    <mat-card-content style="height: 100%; display:block">
+      <div id="scatterWorkerQualityPrecision" #scatterWorkerQualityPrecision style="height: 300px;"></div>
+    </mat-card-content>
+  </mat-card>
+
+
+
+  <mat-card style="margin-top: 10px; max-height: 400px; min-height: 400px">
+    <mat-card-header>
+      <mat-card-title>Worker Quality ~ Accuracy</mat-card-title>
+      <mat-card-subtitle>Pearson correlation score: {{latestWorkerScores.workerQualityAccuracyCorrelation}}</mat-card-subtitle>
+    </mat-card-header>
+    <mat-card-content style="height: 100%; display:block">
+      <div id="scatterWorkerQualityAccuracy" #scatterWorkerQualityAccuracy style="height: 300px;"></div>
+    </mat-card-content>
+  </mat-card>

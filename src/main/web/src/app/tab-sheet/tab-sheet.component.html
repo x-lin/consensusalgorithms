@@ -1,0 +1,19 @@
+<mat-card style="margin-top: 30px">
+  <mat-card-header>
+    <mat-card-title>{{title}}</mat-card-title>
+  </mat-card-header>
+  <mat-card-content>
+    <div class="mat-elevation-z8">
+      <table mat-table [dataSource]="data" style="width: 100%">
+        <ng-container [matColumnDef]="column" *ngFor="let column of displayedColumns">
+          <th mat-header-cell *matHeaderCellDef> {{column}} </th>
+          <td mat-cell *matCellDef="let element"> {{element[column]}} </td>
+        </ng-container>
+
+        <tr mat-header-row *matHeaderRowDef="columnsToDisplay"></tr>
+        <tr mat-row *matRowDef="let row; columns: columnsToDisplay;"></tr>
+      </table>
+      <!--<mat-paginator [pageSizeOptions]="[5, 10, 20]" showFirstLastButtons></mat-paginator>-->
+    </div>
+  </mat-card-content>
+</mat-card>

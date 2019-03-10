@@ -40,9 +40,9 @@ public class MetricsTest {
     @Test
     @Parameters({"2work_agr.csv", "3work_agr.csv", "4work_agr.csv", "5work_agr.csv", "6work_agr.csv", "7work_agr" +
             ".csv", "8work_agr.csv", "9work_agr.csv", "10work_agr.csv"})
-    public void allWorkersAgreeOnAForClosedTask( String filename ) {
+    public void allWorkersAgreeOnAForClosedTask( final String filename ) {
         //WHEN
-        MetricsScores metricsScores = calculateClosedMetricsScores( filename, TestData.class,
+        final MetricsScores metricsScores = calculateClosedMetricsScores( filename, TestData.class,
                 TEST_DATA_ANNOTATION_OPTIONS );
 
         //THEN
@@ -55,9 +55,9 @@ public class MetricsTest {
     @Test
     @Parameters({"2work_disagr.csv", "3work_disagr.csv", "4work_disagr.csv", "5work_disagr.csv", "6work_disagr.csv",
             "7work_disagr.csv", "8work_disagr.csv", "9work_disagr.csv", "10work_disagr.csv"})
-    public void allWorkersDisagreeForClosedTask( String filename ) {
+    public void allWorkersDisagreeForClosedTask( final String filename ) {
         //WHEN
-        MetricsScores metricsScores = calculateClosedMetricsScores( filename, TestData.class,
+        final MetricsScores metricsScores = calculateClosedMetricsScores( filename, TestData.class,
                 TEST_DATA_ANNOTATION_OPTIONS );
 
         //THEN
@@ -69,9 +69,9 @@ public class MetricsTest {
     @Test
     @Parameters({"3work_outlier.csv", "4work_outlier.csv", "5work_outlier.csv", "6work_outlier.csv", "7work_outlier" +
             ".csv", "8work_outlier.csv", "9work_outlier.csv", "10work_outlier.csv"})
-    public void outlierWorkerForClosedTask( String filename ) {
+    public void outlierWorkerForClosedTask( final String filename ) {
         //WHEN
-        MetricsScores metricsScores = calculateClosedMetricsScores( filename, TestData.class,
+        final MetricsScores metricsScores = calculateClosedMetricsScores( filename, TestData.class,
                 TEST_DATA_ANNOTATION_OPTIONS );
 
         //THEN
@@ -85,9 +85,9 @@ public class MetricsTest {
     @Test
     @Parameters({"2vs3work_agr.csv", "3vs4work_agr.csv", "4vs5work_agr.csv", "5vs6work_agr.csv", "6vs7work_agr" +
             ".csv", "7vs8work_agr.csv", "8vs9work_agr.csv"})
-    public void incrementalWorkerAgreementForClosedTask( String filename ) throws InterruptedException {
+    public void incrementalWorkerAgreementForClosedTask( final String filename ) throws InterruptedException {
         //WHEN
-        MetricsScores metricsScores = calculateClosedMetricsScores( filename, TestData.class,
+        final MetricsScores metricsScores = calculateClosedMetricsScores( filename, TestData.class,
                 TEST_DATA_ANNOTATION_OPTIONS );
 
         //THEN
@@ -98,9 +98,9 @@ public class MetricsTest {
     @Test
     @Parameters({"2work_agr.csv", "3work_agr.csv", "4work_agr.csv", "5work_agr.csv", "6work_agr.csv", "7work_agr" +
             ".csv", "8work_agr.csv", "9work_agr.csv", "10work_agr.csv"})
-    public void allWorkersAgreeOnAForOpenTask( String filename ) {
+    public void allWorkersAgreeOnAForOpenTask( final String filename ) {
         //WHEN
-        MetricsScores metricsScores = calculateOpenMetricsScores( filename, TestData.class );
+        final MetricsScores metricsScores = calculateOpenMetricsScores( filename, TestData.class );
 
         //THEN
         assertAnnotationQualityEmpty( metricsScores );
@@ -112,9 +112,9 @@ public class MetricsTest {
     @Test
     @Parameters({"2work_disagr.csv", "3work_disagr.csv", "4work_disagr.csv", "5work_disagr.csv", "6work_disagr.csv",
             "7work_disagr.csv", "8work_disagr.csv", "9work_disagr.csv", "10work_disagr.csv"})
-    public void allWorkersDisagreeForOpenTask( String filename ) {
+    public void allWorkersDisagreeForOpenTask( final String filename ) {
         //WHEN
-        MetricsScores metricsScores = calculateOpenMetricsScores( filename, TestData.class );
+        final MetricsScores metricsScores = calculateOpenMetricsScores( filename, TestData.class );
 
         //THEN
         assertAnnotationQualityEmpty( metricsScores );
@@ -125,9 +125,9 @@ public class MetricsTest {
     @Test
     @Parameters({"3work_outlier.csv", "4work_outlier.csv", "5work_outlier.csv", "6work_outlier.csv", "7work_outlier" +
             ".csv", "8work_outlier.csv", "9work_outlier.csv", "10work_outlier.csv"})
-    public void outlierWorkerForOpenTask( String filename ) {
+    public void outlierWorkerForOpenTask( final String filename ) {
         //WHEN
-        MetricsScores metricsScores = calculateOpenMetricsScores( filename, TestData.class );
+        final MetricsScores metricsScores = calculateOpenMetricsScores( filename, TestData.class );
 
         //THEN
         assertAnnotationQualityEmpty( metricsScores );
@@ -139,9 +139,9 @@ public class MetricsTest {
     @Test
     @Parameters({"2vs3work_agr.csv", "3vs4work_agr.csv", "4vs5work_agr.csv", "5vs6work_agr.csv", "6vs7work_agr" +
             ".csv", "7vs8work_agr.csv", "8vs9work_agr.csv"})
-    public void incrementalWorkerAgreementForOpenTask( String filename ) {
+    public void incrementalWorkerAgreementForOpenTask( final String filename ) {
         //WHEN
-        MetricsScores metricsScores = calculateOpenMetricsScores( filename, TestData.class );
+        final MetricsScores metricsScores = calculateOpenMetricsScores( filename, TestData.class );
 
         //THEN
         //TODO add assertions
@@ -150,8 +150,9 @@ public class MetricsTest {
     @Test
     public void tutorialData() {
         //GIVEN
-        List<TutorialData> data = parseData( "relex_example.csv", TutorialData.class );
-        ImmutableList<CrowdtruthData> processedData = data.stream().flatMap( d -> Arrays.stream( d.getChosenAnnotation()
+        final List<TutorialData> data = parseData( "relex_example.csv", TutorialData.class );
+        final ImmutableList<CrowdtruthData> processedData = data.stream().flatMap( d -> Arrays.stream( d
+                .getChosenAnnotation()
                 .split( " " ) ).map( a -> a.substring( 1,
                 a.length() - 1 ) ).map( String::toLowerCase ).map( a -> new
                 CrowdtruthData( d.getMediaUnitId(), d.getId(),
@@ -159,9 +160,9 @@ public class MetricsTest {
                 .collect( ImmutableList.toImmutableList() );
 
         //WHEN
-        ImmutableSet<MediaUnit> annotatedUnits = CrowdtruthData.annotate( processedData,
+        final ImmutableSet<MediaUnit> annotatedUnits = CrowdtruthData.annotate( processedData,
                 TUTORIAL_ANNOTATION_OPTIONS );
-        MetricsScores metricsScores = Metrics.calculateClosed( annotatedUnits );
+        final MetricsScores metricsScores = Metrics.calculateClosed( annotatedUnits );
 
         //THEN
         //TODO add assertions
@@ -170,83 +171,84 @@ public class MetricsTest {
     @Test
     public void tutorialDataCustom() {
         //GIVEN
-        List<CustomTutorialData> data = parseData( "relex_example_custom.csv", CustomTutorialData.class );
-        ImmutableList<CrowdtruthData> processedData = data.stream().flatMap( d -> Arrays.stream( d.getChosenAnnotation()
+        final List<CustomTutorialData> data = parseData( "relex_example_custom.csv", CustomTutorialData.class );
+        final ImmutableList<CrowdtruthData> processedData = data.stream().flatMap( d -> Arrays.stream( d
+                .getChosenAnnotation()
                 .split( " " ) ).map( a -> a.substring( 1,
                 a.length() - 1 ) ).map( String::toLowerCase ).map( a -> new
                 CrowdtruthData( d.getMediaUnitId(), d.getId(), d.getWorkerId(), a ) ) )
                 .collect( ImmutableList.toImmutableList() );
 
         //WHEN
-        ImmutableSet<MediaUnit> annotatedUnits = CrowdtruthData.annotate( processedData,
+        final ImmutableSet<MediaUnit> annotatedUnits = CrowdtruthData.annotate( processedData,
                 TUTORIAL_ANNOTATION_OPTIONS );
-        MetricsScores metricsScores = Metrics.calculateClosed( annotatedUnits );
+        final MetricsScores metricsScores = Metrics.calculateClosed( annotatedUnits );
 
         //THEN
         //TODO add assertions
     }
 
-    private void assertAnnotationQualityEmpty( MetricsScores metricsScores ) {
+    private void assertAnnotationQualityEmpty( final MetricsScores metricsScores ) {
         assertThat( metricsScores.getAnnotationQualityScores(), equalTo( ImmutableMap.of() ) );
     }
 
-    private static void assertAnnotationQuality( MetricsScores metricsScores, Matcher<Double>
-            matcher, Predicate<AnnotationName> annotationFilter ) {
+    private static void assertAnnotationQuality( final MetricsScores metricsScores, final Matcher<Double>
+            matcher, final Predicate<AnnotationName> annotationFilter ) {
         metricsScores.getAnnotationQualityScores().entrySet().stream().filter( e -> annotationFilter.test( e
                 .getKey().getName() ) ).forEach( e -> assertThat( "AQS does not match for " + e.getKey(), e.getValue(),
                 matcher ) );
     }
 
-    private static void assertWorkerQuality( MetricsScores metricsScores, Matcher<Double> matcher,
-                                             Predicate<WorkerId>
+    private static void assertWorkerQuality( final MetricsScores metricsScores, final Matcher<Double> matcher,
+                                             final Predicate<WorkerId>
                                                      workerFilter ) {
         metricsScores.getWorkerQualityScores().entrySet().stream().filter( e -> workerFilter.test( e.getKey().getId()
         ) ).forEach( e -> assertThat( "WQS does not match for worker " + e.getKey(), e.getValue(), matcher ) );
     }
 
-    private static void assertWorkerQuality( MetricsScores metricsScores, Matcher<Double> matcher ) {
+    private static void assertWorkerQuality( final MetricsScores metricsScores, final Matcher<Double> matcher ) {
         metricsScores.getWorkerQualityScores().forEach( ( w, q ) -> assertThat( "WQS does not match for " +
                 "worker " + w, q, matcher ) );
     }
 
-    private static void assertMediaUnitQuality( MetricsScores metricsScores, Matcher<Double> matcher ) {
+    private static void assertMediaUnitQuality( final MetricsScores metricsScores, final Matcher<Double> matcher ) {
         metricsScores.getMediaUnitQualityScores().forEach( ( a, q ) -> assertThat( "UQS does not match for " +
                 "media unit " + a, q, matcher ) );
     }
 
-    private static <T extends Data> MetricsScores calculateClosedMetricsScores( String filename, Class<T>
-            deserializedType, String... allAnnotations ) {
-        List<T> data = parseData( filename, deserializedType );
-        ImmutableSet<CrowdtruthData> convertedData = convertData( data );
-        ImmutableSet<MediaUnit> annotatedUnits = CrowdtruthData.annotate( convertedData, allAnnotations );
+    private static <T extends Data> MetricsScores calculateClosedMetricsScores( final String filename, final Class<T>
+            deserializedType, final String... allAnnotations ) {
+        final List<T> data = parseData( filename, deserializedType );
+        final ImmutableSet<CrowdtruthData> convertedData = convertData( data );
+        final ImmutableSet<MediaUnit> annotatedUnits = CrowdtruthData.annotate( convertedData, allAnnotations );
         return Metrics.calculateClosed( annotatedUnits );
     }
 
-    private static <T extends Data> MetricsScores calculateOpenMetricsScores( String filename, Class<T>
+    private static <T extends Data> MetricsScores calculateOpenMetricsScores( final String filename, final Class<T>
             deserializedType ) {
-        List<T> data = parseData( filename, deserializedType );
-        ImmutableSet<MediaUnit> annotatedUnits = CrowdtruthData.annotate( convertData( data ) );
+        final List<T> data = parseData( filename, deserializedType );
+        final ImmutableSet<MediaUnit> annotatedUnits = CrowdtruthData.annotate( convertData( data ) );
         return Metrics.calculateOpen( annotatedUnits );
     }
 
-    public static <T extends Data> ImmutableSet<CrowdtruthData> convertData( List<T> data ) {
+    public static <T extends Data> ImmutableSet<CrowdtruthData> convertData( final List<T> data ) {
         return data.stream().map( d -> new CrowdtruthData(
                 d.getMediaUnitId(), d.getId(), d.getWorkerId(), d.getChosenAnnotation() ) ).collect( ImmutableSet
                 .toImmutableSet() );
     }
 
 
-    private static <T extends Data> ImmutableList<T> parseData( String filename, Class<T>
+    private static <T extends Data> ImmutableList<T> parseData( final String filename, final Class<T>
             deserializedClass ) {
         try {
-            List<T> data = new CsvToBeanBuilder<T>( new FileReader(
-                    "src/test/resources/algorithms.crowdtruth/test_data/metrics/" + filename ) ).withType(
+            final List<T> data = new CsvToBeanBuilder<T>( new FileReader(
+                    "src/test/resources/algorithms/crowdtruth/test_data/metrics/" + filename ) ).withType(
                     deserializedClass )
                     .build().parse();
             System.err.println( "=======Parsed CSV data=========" );
             System.err.println( data );
             return ImmutableList.copyOf( data );
-        } catch (FileNotFoundException e) {
+        } catch (final FileNotFoundException e) {
             throw new AssertionError( "Cannot parse data.", e );
         }
     }

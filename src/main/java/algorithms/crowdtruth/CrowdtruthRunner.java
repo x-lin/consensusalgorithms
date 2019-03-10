@@ -62,6 +62,14 @@ public class CrowdtruthRunner {
         return calculateFinalDefects( adaptedMetrics, this.emes );
     }
 
+    public ImmutableSet<SampledWorker> getAllWorkerScores() {
+        final ImmutableMap<Worker, Double> workerQualityScores = this.metricsScores.getWorkerQualityScores();
+        return workerQualityScores.entrySet().stream().map( w -> {
+            final int workerId = Integer.valueOf( w.getKey().getId().toString() );
+            return new SampledWorker( workerId, w.getValue(), getFinalDefectForWorker( workerId ) );
+        } ).collect( ImmutableSet.toImmutableSet() );
+    }
+
     public ImmutableSet<SampledWorker> sampleWorkers( final SamplingType samplingType, final int
             nrWorkers ) {
         final ImmutableMap<Worker, Double> orderedByQuality = Maps.newHashMap( this.metricsScores
@@ -81,6 +89,10 @@ public class CrowdtruthRunner {
 
     public ImmutableSet<FinalDefect> getFinalDefects() {
         return this.finalDefects;
+    }
+
+    public Metrics.MetricsScores getMetricsScores() {
+        return this.metricsScores;
     }
 
     private ImmutableSet<FinalDefect> getFinalDefectForWorker( final int workerId ) {
