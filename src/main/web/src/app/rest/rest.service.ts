@@ -34,7 +34,14 @@ export class RestService {
 
   workerScoresSubject: BehaviorSubject<DataResult> = new BehaviorSubject(new DataResult('', [], []));
 
+  workerScoresPearsonCorrelationSubject: BehaviorSubject<object> = new BehaviorSubject<object>({});
+
   constructor(private http: HttpClient) { }
+
+  updateWorkerScoresPearsonCorrelation(algorithmType: AlgorithmType) {
+    return this.http.get(RestService.ENDPOINT + 'algorithms/workerScoresPearson?algorithmType=' + algorithmType)
+      .subscribe((data: object) => this.workerScoresPearsonCorrelationSubject.next(data));
+  }
 
   updateFinalDefects(algorithmType: AlgorithmType) {
     return this.http.get(RestService.ENDPOINT + 'algorithms/finalDefects?type=' + algorithmType).subscribe((data: object[]) => {
@@ -57,7 +64,8 @@ export class RestService {
   }
 
   updateWorkerScores() {
-    return this.http.get(RestService.ENDPOINT + 'algorithms/workers').subscribe((data: object[]) => {
+    this.updateWorkerScoresPearsonCorrelation(AlgorithmType.CrowdTruth);
+    return this.http.get(RestService.ENDPOINT + 'algorithms/workers?type=' + AlgorithmType.CrowdTruth).subscribe((data: object[]) => {
       const converted = data.map((d: WorkerScoresResponse) => {
         return {
           workerId: d.workerId,

@@ -48,8 +48,8 @@ public class AlgorithmController {
     }
 
     @GetMapping("/workers")
-    public ImmutableSet<WorkerEvaluationResultMetrics> workers(
-            @RequestParam(value = "type", defaultValue = "CrowdTruth") final AlgorithmType type ) throws IOException,
+    public ImmutableSet<WorkerEvaluationResultMetrics> workers( @RequestParam(value = "type") final AlgorithmType
+                                                                        type ) throws IOException,
             SQLException {
         if (!this.workerCache.containsKey( type )) {
             final ImmutableSet<WorkerEvaluationResultMetrics> evaluationResults = WorkerQualityAnalyzer.create()
@@ -57,6 +57,14 @@ public class AlgorithmController {
             this.workerCache.put( type, evaluationResults );
         }
         return this.workerCache.get( type );
+    }
+
+    @GetMapping("/workerScoresPearson")
+    public WorkerScoresPearson workerScoresPearson( @RequestParam(value = "algorithmType") final AlgorithmType
+                                                            algorithmType ) {
+        final ImmutableSet<WorkerEvaluationResultMetrics> evaluationResults = WorkerQualityAnalyzer.create()
+                .getEvaluationResults( this.crowdtruthRunner.getAllWorkerScores() );
+        return new WorkerScoresPearson( evaluationResults );
     }
 
     @GetMapping("/crowdTruthMetrics")

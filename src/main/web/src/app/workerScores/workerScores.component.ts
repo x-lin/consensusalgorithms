@@ -11,15 +11,9 @@ import {Subject, Subscription} from 'rxjs';
   styleUrls: ['./workerScores.component.css']
 })
 export class WorkerScoresComponent implements OnInit, OnDestroy {
-  @ViewChild('scatterWorkerQualityFMeasure') scatterWorkerQualityFMeasure: ElementRef<HTMLDivElement>;
-
-  @ViewChild('scatterWorkerQualityPrecision') scatterWorkerQualityPrecision: ElementRef<HTMLDivElement>;
-
-  @ViewChild('scatterWorkerQualityRecall') scatterWorkerQualityRecall: ElementRef<HTMLDivElement>;
-
-  @ViewChild('scatterWorkerQualityAccuracy') scatterWorkerQualityAccuracy: ElementRef<HTMLDivElement>;
-
   private workerScoresSubscription: Subscription;
+
+  private workerScoresPearsonSubscription: Subscription;
 
   private chartWorkerQualityFMeasure: taucharts.Chart;
 
@@ -30,11 +24,11 @@ export class WorkerScoresComponent implements OnInit, OnDestroy {
   private chartWorkerQualityAccuracy: taucharts.Chart;
 
 
-  private latestWorkerScores = { // TODO fetch from backend
-    workerQualityFMeasureCorrelation: 0.45,
-    workerQualityPrecisionCorrelation: 0.58,
-    workerQualityAccuracyCorrelation: 0.85,
-    workerQualityRecallCorrelation: 0.54,
+  private latestWorkerScores = {
+    // workerQualityFMeasureCorrelation: 0.45,
+    // workerQualityPrecisionCorrelation: 0.58,
+    // workerQualityAccuracyCorrelation: 0.85,
+    // workerQualityRecallCorrelation: 0.54,
   };
 
 
@@ -44,6 +38,9 @@ export class WorkerScoresComponent implements OnInit, OnDestroy {
   ngOnDestroy(): void {
     if (this.workerScoresSubscription !== undefined) {
       this.workerScoresSubscription.unsubscribe();
+    }
+    if (this.workerScoresPearsonSubscription !== undefined) {
+      this.workerScoresPearsonSubscription.unsubscribe();
     }
     this.removeChart(this.chartWorkerQualityFMeasure);
     this.removeChart(this.chartWorkerQualityPrecision);
@@ -58,6 +55,7 @@ export class WorkerScoresComponent implements OnInit, OnDestroy {
 
   updateWorkerScoresChart() {
     this.workerScoresSubscription = this.restService.workerScoresSubject.subscribe((data: DataResult) => {
+      this.restService.workerScoresPearsonCorrelationSubject.subscribe((d: object) => this.latestWorkerScores = d);
       this.removeChart(this.chartWorkerQualityFMeasure);
       this.removeChart(this.chartWorkerQualityPrecision);
       this.removeChart(this.chartWorkerQualityRecall);
