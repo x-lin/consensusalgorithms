@@ -32,14 +32,16 @@ public class EvaluationResultMetrics {
         this.falseNegatives = results.stream().filter( EvaluationResult::isFalseNegative ).count();
         this.falsePositives = results.stream().filter( EvaluationResult::isFalsePositive ).count();
 
-        final BigDecimal recall = BigDecimal.valueOf( this.truePositives )
-                .divide( BigDecimal.valueOf( this.truePositives + this.falseNegatives ), ROUNDING_ACCURACY * 2,
+        final BigDecimal recall = tPPlusFN() == 0 ? BigDecimal.ZERO : BigDecimal.valueOf( this.truePositives )
+                .divide( BigDecimal.valueOf( tPPlusFN() ), ROUNDING_ACCURACY * 2,
                         RoundingMode.HALF_UP );
-        final BigDecimal precision = BigDecimal.valueOf( this.truePositives ).divide( BigDecimal.valueOf(
-                this.truePositives + this.falsePositives ), ROUNDING_ACCURACY * 2,
-                RoundingMode.HALF_UP );
-        final BigDecimal accuracy = BigDecimal.valueOf( this.truePositives + this.trueNegatives ).divide( BigDecimal
-                        .valueOf( this.truePositives + this.trueNegatives + this.falseNegatives + this.falsePositives
+        final BigDecimal precision = tPPlusFP() == 0 ? BigDecimal.ZERO : BigDecimal.valueOf( this.truePositives )
+                .divide( BigDecimal.valueOf(
+                        tPPlusFP() ), ROUNDING_ACCURACY * 2,
+                        RoundingMode.HALF_UP );
+        final BigDecimal accuracy = allPlus() == 0 ? BigDecimal.ZERO : BigDecimal.valueOf( this.truePositives + this
+                .trueNegatives ).divide( BigDecimal
+                        .valueOf( allPlus()
                         ), ROUNDING_ACCURACY * 2,
                 RoundingMode.HALF_UP );
         final BigDecimal fmeasure = precision.add( recall ).signum() == 0 ? BigDecimal
@@ -52,6 +54,18 @@ public class EvaluationResultMetrics {
         this.precision = precision.doubleValue();
         this.accuracy = accuracy.doubleValue();
         this.fmeasure = fmeasure.doubleValue();
+    }
+
+    private long allPlus() {
+        return this.truePositives + this.trueNegatives + this.falseNegatives + this.falsePositives;
+    }
+
+    private long tPPlusFN() {
+        return this.truePositives + this.falseNegatives;
+    }
+
+    private long tPPlusFP() {
+        return this.truePositives + this.falsePositives;
     }
 
     public long getTruePositives() {

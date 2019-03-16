@@ -2,21 +2,19 @@ package web;
 
 import algorithms.crowdtruth.CrowdtruthRunner;
 import algorithms.majorityvoting.MajorityVotingRunner;
+import algorithms.majorityvoting.adapted.AdaptiveMajorityVoting;
 import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Maps;
-import model.FinalDefect;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
-import statistic.EvaluationResult;
+import statistic.CrowdtruthEvaluation;
 import statistic.FinalDefectAnalyzer;
-import statistic.WorkerEvaluationResultMetrics;
-import statistic.WorkerQualityAnalyzer;
+import statistic.NamedEvaluationResultMetrics;
+import statistic.QualityAnalyzer;
 
 import java.io.IOException;
 import java.sql.SQLException;
-import java.util.Map;
 
 /**
  * @author LinX
@@ -26,50 +24,40 @@ import java.util.Map;
 public class AlgorithmController {
     private final CrowdtruthRunner crowdtruthRunner = CrowdtruthRunner.create();
 
-    private final Map<AlgorithmType, ImmutableSet<WorkerEvaluationResultMetrics>> workerCache = Maps.newHashMap();
-
-    private final Map<AlgorithmType, ImmutableSet<EvaluationResult>> finalDefectsCache = Maps.newHashMap();
-
-    @GetMapping("/finalDefects")
-    public ImmutableSet<EvaluationResult> finalDefects(
-            @RequestParam(value = "type", defaultValue = "CrowdTruth") final AlgorithmType type ) throws IOException,
+    @GetMapping("/finalDefects/CrowdTruth")
+    public WebFinalDefects crowdtruthFinalDefects() throws IOException,
             SQLException {
-        if (!this.finalDefectsCache.containsKey( type )) {
-            final ImmutableSet<FinalDefect> finalDefects;
-            if (type == AlgorithmType.CrowdTruth) {
-                finalDefects = this.crowdtruthRunner.getFinalDefects();
-            } else {
-                finalDefects = MajorityVotingRunner.calculateFinalDefects();
-            }
-            this.finalDefectsCache.put( type, FinalDefectAnalyzer.getFinalDefects( finalDefects ) );
-        }
-
-        return this.finalDefectsCache.get( type );
+        return new WebFinalDefects( FinalDefectAnalyzer.getFinalDefects( this.crowdtruthRunner.getFinalDefects() ) );
     }
+
+    @GetMapping("/finalDefects/MajorityVoting")
+    public WebFinalDefects majorityVotingFinalDefects() throws IOException,
+            SQLException {
+        return new WebFinalDefects( FinalDefectAnalyzer.getFinalDefects( MajorityVotingRunner.calculateFinalDefects()
+        ) );
+    }
+
+    @GetMapping("/finalDefects/AdaptiveMajorityVoting")
+    public WebFinalDefects crowdtruthFinalDefects(
+            @RequestParam(value = "threshold") final double threshold ) throws IOException,
+            SQLException {
+        return new WebFinalDefects( FinalDefectAnalyzer.getFinalDefects( new AdaptiveMajorityVoting().run( threshold
+        ) ) );
+    }
+
 
     @GetMapping("/workers")
-    public ImmutableSet<WorkerEvaluationResultMetrics> workers( @RequestParam(value = "type") final AlgorithmType
-                                                                        type ) throws IOException,
+    public CrowdtruthEvaluation workers() throws IOException,
             SQLException {
-        if (!this.workerCache.containsKey( type )) {
-            final ImmutableSet<WorkerEvaluationResultMetrics> evaluationResults = WorkerQualityAnalyzer.create()
-                    .getEvaluationResults( this.crowdtruthRunner.getAllWorkerScores() );
-            this.workerCache.put( type, evaluationResults );
-        }
-        return this.workerCache.get( type );
-    }
-
-    @GetMapping("/workerScoresPearson")
-    public WorkerScoresPearson workerScoresPearson( @RequestParam(value = "algorithmType") final AlgorithmType
-                                                            algorithmType ) {
-        final ImmutableSet<WorkerEvaluationResultMetrics> evaluationResults = WorkerQualityAnalyzer.create()
+        final ImmutableSet<NamedEvaluationResultMetrics> workerScores = QualityAnalyzer.create()
                 .getEvaluationResults( this.crowdtruthRunner.getAllWorkerScores() );
-        return new WorkerScoresPearson( evaluationResults );
-    }
-
-    @GetMapping("/crowdTruthMetrics")
-    public WebMetricsScores crowdTruthMetrics() throws IOException,
-            SQLException {
-        return new WebMetricsScores( this.crowdtruthRunner.getMetricsScores() );
+        final ImmutableSet<NamedEvaluationResultMetrics> annotationScores = QualityAnalyzer.create()
+                .getEvaluationResults( this.crowdtruthRunner.getAllAnnotationScores() );
+        final ImmutableSet<NamedEvaluationResultMetrics> mediaUnitScores = QualityAnalyzer.create()
+                .getEvaluationResultsForMediaUnits( this.crowdtruthRunner.getAllMediaUnitScores() );
+        return new CrowdtruthEvaluation( workerScores, new PearsonScores( workerScores ),
+                annotationScores, new PearsonScores( annotationScores ),
+                mediaUnitScores, new PearsonScores( mediaUnitScores ),
+                new WebMetricsScores( this.crowdtruthRunner.getMetricsScores() ) );
     }
 }

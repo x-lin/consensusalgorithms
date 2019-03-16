@@ -20,11 +20,6 @@ import java.util.stream.Collectors;
  * @author LinX
  */
 public class MajorityVotingRunner {
-    private static final String FINAL_DEFECT_ALL_SEM_OUT_CSV = "output/majorityvoting/finalDefects.csv";
-
-    private static final String FINAL_DEFECT_WS1_4_OUT_CSV =
-            "output/majorityvoting/finalDefects_ws1-4.csv";
-
     private final ImmutableSet<FinalDefect> finalDefects;
 
     private MajorityVotingRunner() throws IOException, SQLException {
@@ -45,16 +40,12 @@ public class MajorityVotingRunner {
             final ImmutableSet<Eme> emes = Eme.fetchEmes( connection );
             final ImmutableSet<FinalDefect> finalDefects = new MajorityVotingAggregator( emes, defectReports )
                     .aggregate();
-            //FinalDefectAnalyzer.analyze( finalDefects, FINAL_DEFECT_ALL_SEM_OUT_CSV );
-
 
             final ImmutableSet<DefectReport> defectReportsFiltered = DefectReport.fetchDefectReports( connection,
                     DefectReport.workshopFilter( "WS1", "WS2", "WS3", "WS4" ) );
             final ImmutableSet<FinalDefect> finalDefectsFiltered = new MajorityVotingAggregator( emes,
                     defectReportsFiltered )
                     .aggregate();
-
-            FinalDefectAnalyzer.analyze( finalDefectsFiltered, FINAL_DEFECT_WS1_4_OUT_CSV );
 
             //compare with DB table for correctness
             verifySameResults( finalDefectsFiltered, FinalDefect.fetchFinalDefects( connection ) );

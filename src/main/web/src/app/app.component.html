@@ -1,67 +1,85 @@
 <nav class="navbar navbar-dark fixed-top bg-dark flex-md-nowrap p-0 shadow">
   <a class="navbar-brand col-sm-3 col-md-2 mr-0" href="#"></a>
   <div class="navbar-buttons">
-    <button mat-button (click)="onWorkerScoresClicked()" style="color:#EEEEEE" routerLink="/home">Worker Scores</button>
-    <button mat-button (click)="onFinalDefectsClicked()" style="color:#EEEEEE" routerLink="/sheet">Final Defects</button>
-    <button mat-button style="color:#EEEEEE" (click)="onCrowdtruthMetricsClicked()" routerLink="/sheet">Crowdtruth Metrics</button>
+    <button mat-button (click)="onCrowdtruthClicked()" style="color:#EEEEEE">Crowdtruth Metrics</button>
+    <button mat-button (click)="onFinalDefectsClicked()" style="color:#EEEEEE">Final Defects</button>
   </div>
 </nav>
 
 <div class="container-fluid">
   <div class="row">
     <nav class="col-md-2 d-none d-md-block bg-light sidebar bg-white" style="box-shadow: none">
-      <ng-template [ngIf]="workerScoresClicked">
+      <ng-template [ngIf]="crowdTruthClicked">
         <div class="sidebar-sticky">
           <mat-card>
-            <button mat-flat-button style="width: 100%; font-weight: bold; margin-top: 20px" routerLink="/home" routerLinkActive="active">Correlation Diagrams</button>
-            <button mat-flat-button style="width: 100%; font-weight: bold;" routerLink="/sheet">Tabular Data</button>
-          </mat-card>
-
-          <mat-card class="result" style="margin-top: 10px">
             <mat-card-header>
-              <mat-card-title>Parameters</mat-card-title>
+              <mat-card-title>Crowdtruth</mat-card-title>
             </mat-card-header>
 
             <mat-divider></mat-divider>
 
             <mat-card-content>
-                  <mat-card-subtitle>Algorithms</mat-card-subtitle>
-                  <mat-checkbox
-                    class="example-margin"
-                    [checked]="true"
-                    [(indeterminate)]="indeterminate"
-                    [labelPosition]="labelPosition"
-                    [disabled]="disabled">
-                    CrowdTruth
-                  </mat-checkbox>
+              <button mat-flat-button style="width: 100%; font-weight: bold; margin-top: 20px" (click)="crowdtruthPageChanged(crowdtruthPage.CORRELATIONS_WORKERS)">Worker Scores Correlation</button>
+              <button mat-flat-button style="width: 100%; font-weight: bold;" (click)="crowdtruthPageChanged(crowdtruthPage.TABLE_WORKERS)">Worker Scores Table</button>
+              <!--<button mat-flat-button style="width: 100%; font-weight: bold; margin-top: 20px" (click)="crowdtruthPageChanged(crowdtruthPage.CORRELATIONS_ANNOTATIONS)">Annotation Scores Correlation</button>-->
+              <!--<button mat-flat-button style="width: 100%; font-weight: bold;" (click)="crowdtruthPageChanged(crowdtruthPage.TABLE_ANNOTATIONS)">Annotation Scores Table</button>-->
+              <!--<button mat-flat-button style="width: 100%; font-weight: bold; margin-top: 20px" (click)="crowdtruthPageChanged(crowdtruthPage.CORRELATIONS_MEDIA_UNITS)">Media Unit Scores Correlation</button>-->
+              <!--<button mat-flat-button style="width: 100%; font-weight: bold;" (click)="crowdtruthPageChanged(crowdtruthPage.TABLE_MEDIA_UNITS)">Media Unit Scores Table</button>-->
+              <button mat-flat-button style="width: 100%; font-weight: bold; margin-top: 20px" (click)="crowdtruthPageChanged(crowdtruthPage.TABLE_WORKER_QUALITY)">Worker Quality Score</button>
+              <button mat-flat-button style="width: 100%; font-weight: bold;" (click)="crowdtruthPageChanged(crowdtruthPage.TABLE_ANNOTATION_QUALITY)">Annotation Quality Score</button>
+              <button mat-flat-button style="width: 100%; font-weight: bold;" (click)="crowdtruthPageChanged(crowdtruthPage.TABLE_MEDIA_UNIT_QUALITY)">Media Unit Quality Score</button>
+              <button mat-flat-button style="width: 100%; font-weight: bold;" (click)="crowdtruthPageChanged(crowdtruthPage.TABLE_UNIT_ANNOTATION_SCORES)">Unit Annotation Scores</button>
             </mat-card-content>
+          </mat-card>
+
+          <!--<mat-card class="result" style="margin-top: 10px">-->
+            <!--<mat-card-header>-->
+              <!--<mat-card-title>Parameters</mat-card-title>-->
+            <!--</mat-card-header>-->
 
             <!--<mat-divider></mat-divider>-->
+
             <!--<mat-card-content>-->
-              <!--<mat-card-subtitle>sad</mat-card-subtitle>-->
-              <!--<mat-slider-->
-                <!--style="width:100%"-->
-                <!--[disabled]="disabled"-->
-                <!--[invert]="invert"-->
-                <!--[max]="max"-->
-                <!--[min]="min"-->
-                <!--[step]="step"-->
-                <!--[thumbLabel]="thumbLabel"-->
-                <!--[tickInterval]="tickInterval"-->
-                <!--[(ngModel)]="value"-->
-                <!--[vertical]="vertical">-->
-              <!--</mat-slider>-->
+                  <!--<mat-card-subtitle>Algorithms</mat-card-subtitle>-->
+                  <!--<mat-checkbox-->
+                    <!--class="example-margin"-->
+                    <!--[checked]="true"-->
+                    <!--[(indeterminate)]="indeterminate"-->
+                    <!--[labelPosition]="labelPosition"-->
+                    <!--[disabled]="disabled">-->
+                    <!--CrowdTruth-->
+                  <!--</mat-checkbox>-->
             <!--</mat-card-content>-->
-          </mat-card>
+
+            <!--&lt;!&ndash;<mat-divider></mat-divider>&ndash;&gt;-->
+            <!--&lt;!&ndash;<mat-card-content>&ndash;&gt;-->
+              <!--&lt;!&ndash;<mat-card-subtitle>sad</mat-card-subtitle>&ndash;&gt;-->
+              <!--&lt;!&ndash;<mat-slider&ndash;&gt;-->
+                <!--&lt;!&ndash;style="width:100%"&ndash;&gt;-->
+                <!--&lt;!&ndash;[disabled]="disabled"&ndash;&gt;-->
+                <!--&lt;!&ndash;[invert]="invert"&ndash;&gt;-->
+                <!--&lt;!&ndash;[max]="max"&ndash;&gt;-->
+                <!--&lt;!&ndash;[min]="min"&ndash;&gt;-->
+                <!--&lt;!&ndash;[step]="step"&ndash;&gt;-->
+                <!--&lt;!&ndash;[thumbLabel]="thumbLabel"&ndash;&gt;-->
+                <!--&lt;!&ndash;[tickInterval]="tickInterval"&ndash;&gt;-->
+                <!--&lt;!&ndash;[(ngModel)]="value"&ndash;&gt;-->
+                <!--&lt;!&ndash;[vertical]="vertical">&ndash;&gt;-->
+              <!--&lt;!&ndash;</mat-slider>&ndash;&gt;-->
+            <!--&lt;!&ndash;</mat-card-content>&ndash;&gt;-->
+          <!--</mat-card>-->
         </div>
       </ng-template>
 
       <ng-template [ngIf]="finalDefectsClicked">
         <div class="sidebar-sticky">
-          <button mat-flat-button style="width: 100%; font-weight: bold; margin-top: 20px" routerLink="/sheet">Tabular Data</button>
-          <mat-card class="result">
+          <mat-card>
+          <button mat-flat-button style="width: 100%; font-weight: bold; margin-top: 20px" (click)="finalDefectsPageChanged(finalDefectsPage.TABLE)">Tabular Data</button>
+          </mat-card>
+
+          <mat-card class="result" style="margin-top: 10px">
             <mat-card-content>
-              <div>Algorithm</div>
+              <mat-card-subtitle>Algorithms</mat-card-subtitle>
               <mat-radio-group [(ngModel)]="finalDefectsParameters.type">
                 <div *ngFor="let algoType of algorithmTypes">
                   <mat-radio-button [value]="algoType" (change)="finalDefectsAlgorithmTypeChanged($event)">
@@ -71,21 +89,44 @@
               </mat-radio-group>
             </mat-card-content>
           </mat-card>
-        </div>
-      </ng-template>
 
-      <ng-template [ngIf]="crowdtruthMetricsClicked">
-        <div class="sidebar-sticky">
-          <button mat-flat-button style="width: 100%; font-weight: bold; margin-top: 20px" (click)="onWQSClicked()" routerLink="/sheet">Worker Quality Score</button>
-          <button mat-flat-button style="width: 100%; font-weight: bold; margin-top: 20px" (click)="onAQSClicked()" routerLink="/sheet">Annotation Quality Score</button>
-          <button mat-flat-button style="width: 100%; font-weight: bold; margin-top: 20px" (click)="onUQSClicked()" routerLink="/sheet">Unit Quality Score</button>
-          <button mat-flat-button style="width: 100%; font-weight: bold; margin-top: 20px" (click)="onUASClicked()" routerLink="/sheet">Unit Annotation Score</button>
+          <ng-template [ngIf]="finalDefectsClicked && finalDefectsParameters.type === algorithmType.AdaptiveMajorityVoting">
+            <mat-card class="result" style="margin-top: 10px">
+              <mat-card-header>
+                <mat-card-title>Parameters</mat-card-title>
+              </mat-card-header>
+
+              <mat-divider></mat-divider>
+
+                <mat-card-content>
+                <mat-card-subtitle>Threshold</mat-card-subtitle>
+                  <mat-slider
+                    style="width: 100%"
+                    [disabled]="false"
+                    [invert]="false"
+                    [max]="0.9"
+                    [min]="0.0"
+                    [step]="0.05"
+                    [thumbLabel]="true"
+                    [tickInterval]="false"
+                    [(ngModel)]="adaptiveMajorityVotingParameters.threshold"
+                    [vertical]="vertical"
+                    (input)="onAdaptiveMajorityVotingThresholdParameterChanged($event)">
+                  </mat-slider>
+              </mat-card-content>
+            </mat-card>
+          </ng-template>
         </div>
       </ng-template>
     </nav>
 
     <main role="main" class="col-md-9 ml-sm-auto col-lg-10 px-4">
-      <router-outlet></router-outlet>
+      <ng-template [ngIf]="crowdTruthClicked">
+        <crowdtruth-div></crowdtruth-div>
+      </ng-template>
+      <ng-template [ngIf]="finalDefectsClicked">
+        <app-final-defects></app-final-defects>
+      </ng-template>
     </main>
   </div>
 </div>

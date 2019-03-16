@@ -4,7 +4,7 @@ import { NgModule } from '@angular/core';
 import { AppComponent } from './app.component';
 import {HttpClientModule} from '@angular/common/http';
 import {BrowserAnimationsModule} from '@angular/platform-browser/animations';
-import {WorkerScoresComponent} from './workerScores/workerScores.component';
+import {CorrelationDiagramsComponent} from './correlation-diagrams/correlation-diagrams.component';
 import {
   MatButtonModule,
   MatButtonToggleModule,
@@ -15,16 +15,17 @@ import {
   MatToolbarModule, MatTreeModule
 } from '@angular/material';
 import {FormsModule} from '@angular/forms';
-import {AppRoutingMudule} from './app.routing.module';
 import { FinalDefectsComponent } from './final-defects/final-defects.component';
 import { TabSheetComponent } from './tab-sheet/tab-sheet.component';
+import {CrowdtruthComponent} from './crowdtruth/crowdtruth.component';
 
 @NgModule({
   declarations: [
     AppComponent,
-    WorkerScoresComponent,
+    CorrelationDiagramsComponent,
     FinalDefectsComponent,
-    TabSheetComponent
+    TabSheetComponent,
+    CrowdtruthComponent
   ],
   imports: [
     BrowserModule,
@@ -44,7 +45,6 @@ import { TabSheetComponent } from './tab-sheet/tab-sheet.component';
     MatTreeModule,
     MatRadioModule,
     FormsModule,
-    AppRoutingMudule
   ],
   providers: [],
   bootstrap: [AppComponent]

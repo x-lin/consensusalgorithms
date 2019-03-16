@@ -1,3 +1,7 @@
-<p>
-  final-defects works!
-</p>
+<ng-template [ngIf]="currentPage === finalDefectsPage.TABLE && data !== undefined">
+  <app-tab-sheet [columnsToDisplay]="data.metrics.tableHeaderNames" [displayedColumns]="data.metrics.fieldNames" [data]="data.metrics.data"
+                 [title]="data.metrics.title"></app-tab-sheet>
+
+  <app-tab-sheet [columnsToDisplay]="data.tableHeaderNames" [displayedColumns]="data.fieldNames" [data]="data.data"
+                 [title]="data.title"></app-tab-sheet>
+</ng-template>

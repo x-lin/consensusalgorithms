@@ -1,0 +1,45 @@
+<ng-template [ngIf]="data !== null">
+  <ng-template [ngIf]="currentPage === crowdtruthPage.CORRELATIONS_WORKERS">
+    <workerScores-chart [data]="data.workers.evaluationResultMetrics" [pearsonScores]="data.workers.pearsonScores" [name]="'Worker'"></workerScores-chart>
+  </ng-template>
+  <ng-template [ngIf]="currentPage === crowdtruthPage.TABLE_WORKERS&& data !== undefined">
+    <app-tab-sheet [columnsToDisplay]="data.workers.tableHeaderNames" [displayedColumns]="data.workers.fieldNames" [data]="data.workers.evaluationResultMetrics"
+                   [title]="data.workers.title"></app-tab-sheet>
+  </ng-template>
+
+  <ng-template [ngIf]="currentPage === crowdtruthPage.CORRELATIONS_ANNOTATIONS">
+    <workerScores-chart [data]="data.annotations.evaluationResultMetrics" [pearsonScores]="data.annotations.pearsonScores"  [name]="'Annotation'"></workerScores-chart>
+  </ng-template>
+  <ng-template [ngIf]="currentPage === crowdtruthPage.TABLE_ANNOTATIONS&& data !== undefined">
+    <app-tab-sheet [columnsToDisplay]="data.annotations.tableHeaderNames" [displayedColumns]="data.annotations.fieldNames" [data]="data.annotations.evaluationResultMetrics"
+                   [title]="data.annotations.title"></app-tab-sheet>
+  </ng-template>
+
+  <ng-template [ngIf]="currentPage === crowdtruthPage.CORRELATIONS_MEDIA_UNITS">
+    <workerScores-chart [data]="data.mediaUnits.evaluationResultMetrics" [pearsonScores]="data.mediaUnits.pearsonScores"  [name]="'Media Unit'"></workerScores-chart>
+  </ng-template>
+  <ng-template [ngIf]="currentPage === crowdtruthPage.TABLE_MEDIA_UNITS&& data !== undefined">
+    <app-tab-sheet [columnsToDisplay]="data.mediaUnits.tableHeaderNames" [displayedColumns]="data.mediaUnits.fieldNames" [data]="data.mediaUnits.evaluationResultMetrics"
+                   [title]="data.mediaUnits.title"></app-tab-sheet>
+  </ng-template>
+
+  <ng-template [ngIf]="currentPage === crowdtruthPage.TABLE_WORKER_QUALITY&& data !== undefined">
+    <app-tab-sheet [columnsToDisplay]="data.workerQualityScores.tableHeaderNames" [displayedColumns]="data.workerQualityScores.fieldNames" [data]="data.workerQualityScores.data"
+                   [title]="data.workerQualityScores.title"></app-tab-sheet>
+  </ng-template>
+
+  <ng-template [ngIf]="currentPage === crowdtruthPage.TABLE_ANNOTATION_QUALITY && data !== undefined">
+    <app-tab-sheet [columnsToDisplay]="data.annotationQualityScores.tableHeaderNames" [displayedColumns]="data.annotationQualityScores.fieldNames" [data]="data.annotationQualityScores.data"
+                   [title]="data.annotationQualityScores.title"></app-tab-sheet>
+  </ng-template>
+
+  <ng-template [ngIf]="currentPage === crowdtruthPage.TABLE_MEDIA_UNIT_QUALITY && data !== undefined">
+    <app-tab-sheet [columnsToDisplay]="data.mediaUnitQualityScores.tableHeaderNames" [displayedColumns]="data.mediaUnitQualityScores.fieldNames" [data]="data.mediaUnitQualityScores.data"
+                   [title]="data.mediaUnitQualityScores.title"></app-tab-sheet>
+  </ng-template>
+
+  <ng-template [ngIf]="currentPage === crowdtruthPage.TABLE_UNIT_ANNOTATION_SCORES && data !== undefined">
+    <app-tab-sheet [columnsToDisplay]="data.mediaUnitAnnotationScores.tableHeaderNames" [displayedColumns]="data.mediaUnitAnnotationScores.fieldNames" [data]="data.mediaUnitAnnotationScores.data"
+                   [title]="data.mediaUnitAnnotationScores.title"></app-tab-sheet>
+  </ng-template>
+</ng-template>

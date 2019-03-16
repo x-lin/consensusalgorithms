@@ -20,12 +20,12 @@ import java.util.function.Function;
 /**
  * @author LinX
  */
-public class WorkerQualityAnalyzer {
-    private WorkerQualityAnalyzer() {
+public class QualityAnalyzer {
+    private QualityAnalyzer() {
         //purposely left empty
     }
 
-    private void write( final ImmutableSet<CrowdtruthRunner.SampledWorker> sampledWorkers, final String
+    private void write( final ImmutableSet<CrowdtruthRunner.Sample> samples, final String idKey, final String
             outputFilePath ) {
         final ImmutableMap<String, TrueDefect> trueDefects;
         try {
@@ -34,10 +34,10 @@ public class WorkerQualityAnalyzer {
 
             try (CSVWriter finalDefectsCsv = new CSVWriter( Files.newBufferedWriter( Paths.get(
                     outputFilePath ) ) )) {
-                finalDefectsCsv.writeNext( new String[]{"workerId", "Worker Quality Score (WQS)", "TP", "TN", "FP",
+                finalDefectsCsv.writeNext( new String[]{idKey, "Worker Quality Score (WQS)", "TP", "TN", "FP",
                         "FN", "Precision", "Recall", "F-Measure", "Accuracy"} );
 
-                sampledWorkers.forEach( worker -> {
+                samples.forEach( worker -> {
                     final ImmutableMap<String, FinalDefect> workerFinalDefects = worker.getFinalDefects()
                             .stream().collect( ImmutableMap.toImmutableMap( FinalDefect::getEmeId, Function.identity
                                     () ) );
@@ -51,8 +51,8 @@ public class WorkerQualityAnalyzer {
 
                     final EvaluationResultMetrics metrics = new EvaluationResultMetrics( results );
 
-                    finalDefectsCsv.writeNext( new String[]{String.valueOf( worker.getWorkerId() ), String.valueOf(
-                            worker.getWorkerQuality() ),
+                    finalDefectsCsv.writeNext( new String[]{String.valueOf( worker.getId() ), String.valueOf(
+                            worker.getQuality() ),
                             metrics.getTruePositivesAsString(), metrics.getTrueNegativesAsString(), metrics
                             .getFalsePositivesAsString(), metrics.getFalseNegativesAsString(), metrics
                             .getPrecisionAsString(), metrics.getRecallAsString(), metrics.getFmeasureAsString(),
@@ -65,20 +65,20 @@ public class WorkerQualityAnalyzer {
     }
 
     //TODO ugly code merge with write method
-    public ImmutableSet<WorkerEvaluationResultMetrics> getEvaluationResults( final ImmutableSet<CrowdtruthRunner
-            .SampledWorker> sampledWorkers ) {
+    public ImmutableSet<NamedEvaluationResultMetrics> getEvaluationResults( final ImmutableSet<CrowdtruthRunner
+            .Sample> samples ) {
         final ImmutableMap<String, TrueDefect> trueDefects;
-        final ImmutableSet.Builder<WorkerEvaluationResultMetrics> builder = ImmutableSet.builder();
+        final ImmutableSet.Builder<NamedEvaluationResultMetrics> builder = ImmutableSet.builder();
         try {
             trueDefects = AllTrueDefectsMixin.findAllTrueDefects().stream()
                     .collect( ImmutableMap.toImmutableMap( TrueDefect::getAboutEmEid, Function.identity() ) );
 
-            sampledWorkers.forEach( worker -> {
-                final ImmutableMap<String, FinalDefect> workerFinalDefects = worker.getFinalDefects()
+            samples.forEach( sample -> {
+                final ImmutableMap<String, FinalDefect> finalDefectsPerSample = sample.getFinalDefects()
                         .stream().collect( ImmutableMap.toImmutableMap( FinalDefect::getEmeId, Function.identity
                                 () ) );
                 final Set<EvaluationResult> results = Sets.newHashSet();
-                workerFinalDefects.values().forEach( fd -> {
+                finalDefectsPerSample.values().forEach( fd -> {
                     final EvaluationResult evaluationResult = Optional.ofNullable( trueDefects.get( fd.getEmeId()
                     ) ).map( td -> new EvaluationResult(
                             fd, td ) ).orElseGet( () -> new EvaluationResult( fd ) );
@@ -86,8 +86,8 @@ public class WorkerQualityAnalyzer {
                 } );
 
                 final EvaluationResultMetrics metrics = new EvaluationResultMetrics( results );
-                builder.add( new WorkerEvaluationResultMetrics( metrics, worker.getWorkerId(), worker
-                        .getWorkerQuality() ) );
+                builder.add( new NamedEvaluationResultMetrics( metrics, String.valueOf( sample.getId() ), sample
+                        .getQuality() ) );
             } );
         } catch (IOException | SQLException e) {
             throw new UncheckedException( e );
@@ -95,12 +95,43 @@ public class WorkerQualityAnalyzer {
         return builder.build();
     }
 
-    public static void analyze( final ImmutableSet<CrowdtruthRunner.SampledWorker> defects, final String
-            outputFilePath ) {
-        new WorkerQualityAnalyzer().write( defects, outputFilePath );
+    //TODO ugly code merge with write method
+    public ImmutableSet<NamedEvaluationResultMetrics> getEvaluationResultsForMediaUnits( final
+                                                                                         ImmutableSet<CrowdtruthRunner
+                                                                                                 .Sample> samples ) {
+        final ImmutableMap<String, TrueDefect> trueDefects;
+        final ImmutableSet.Builder<NamedEvaluationResultMetrics> builder = ImmutableSet.builder();
+        try {
+            trueDefects = AllTrueDefectsMixin.findAllTrueDefects().stream()
+                    .collect( ImmutableMap.toImmutableMap( TrueDefect::getAboutEmEid, Function.identity() ) );
+
+            samples.forEach( sample -> {
+                final ImmutableSet<FinalDefect> finalDefectsPerSample = sample.getFinalDefects()
+                        .stream().collect( ImmutableSet.toImmutableSet() );
+                final Set<EvaluationResult> results = Sets.newHashSet();
+                finalDefectsPerSample.forEach( fd -> {
+                    final EvaluationResult evaluationResult = Optional.ofNullable( trueDefects.get( fd.getEmeId()
+                    ) ).map( td -> new EvaluationResult(
+                            fd, td ) ).orElseGet( () -> new EvaluationResult( fd ) );
+                    results.add( evaluationResult );
+                } );
+
+                final EvaluationResultMetrics metrics = new EvaluationResultMetrics( results );
+                builder.add( new NamedEvaluationResultMetrics( metrics, String.valueOf( sample.getId() ), sample
+                        .getQuality() ) );
+            } );
+        } catch (IOException | SQLException e) {
+            throw new UncheckedException( e );
+        }
+        return builder.build();
     }
 
-    public static WorkerQualityAnalyzer create() {
-        return new WorkerQualityAnalyzer();
+    public static void analyze( final ImmutableSet<CrowdtruthRunner.Sample> defects, final String idKey, final String
+            outputFilePath ) {
+        new QualityAnalyzer().write( defects, idKey, outputFilePath );
+    }
+
+    public static QualityAnalyzer create() {
+        return new QualityAnalyzer();
     }
 }

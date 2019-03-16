@@ -6,6 +6,7 @@ import org.jooq.impl.DSL;
 
 import java.sql.Connection;
 import java.util.Objects;
+import java.util.Optional;
 
 /**
  * @author LinX
@@ -14,6 +15,8 @@ public class Eme {
     public static String EME_TABLE = "eme";
 
     public static String EME_ID_COLUMN = "eme_id";
+
+    private static final String OLD_EME_TEXT_COLUMN = "old_eme_text";
 
     public static String EME_TEXT = "eme_text";
 
@@ -31,7 +34,8 @@ public class Eme {
 
     public Eme( final Record record ) {
         this.emeId = record.getValue( EME_ID_COLUMN, String.class );
-        this.emeText = record.getValue( EME_TEXT, String.class );
+        this.emeText = Optional.ofNullable( record.getValue( OLD_EME_TEXT_COLUMN, String.class ) ).filter( t -> !t
+                .equals( "NULL" ) ).orElseGet( () -> record.getValue( EME_TEXT, String.class ) );
         this.emeType = record.getValue( EME_TYPE_COLUMN, EmeType.class );
         this.emeGroupId = record.getValue( EME_GROUP_COLUMN, Integer.class );
     }

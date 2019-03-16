@@ -14,6 +14,7 @@ import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.Arrays;
 import java.util.Map;
+import java.util.Objects;
 import java.util.function.Function;
 import java.util.stream.IntStream;
 
@@ -62,15 +63,33 @@ public class CrowdtruthRunner {
         return calculateFinalDefects( adaptedMetrics, this.emes );
     }
 
-    public ImmutableSet<SampledWorker> getAllWorkerScores() {
+    public ImmutableSet<Sample> getAllWorkerScores() {
         final ImmutableMap<Worker, Double> workerQualityScores = this.metricsScores.getWorkerQualityScores();
         return workerQualityScores.entrySet().stream().map( w -> {
             final int workerId = Integer.valueOf( w.getKey().getId().toString() );
-            return new SampledWorker( workerId, w.getValue(), getFinalDefectForWorker( workerId ) );
+            return new Sample( w.getKey().getId().toString(), w.getValue(), getFinalDefectForWorker( workerId ) );
         } ).collect( ImmutableSet.toImmutableSet() );
     }
 
-    public ImmutableSet<SampledWorker> sampleWorkers( final SamplingType samplingType, final int
+    public ImmutableSet<Sample> getAllAnnotationScores() {
+        final ImmutableMap<Annotation, Double> annotationQualityScores = this.metricsScores
+                .getAnnotationQualityScores();
+        return annotationQualityScores.entrySet().stream().map( w -> {
+            final String name = w.getKey().getName().toString();
+            return new Sample( name, w.getValue(), getFinalDefectForAnnotation( DefectType.fromString( name ) ) );
+        } ).collect( ImmutableSet.toImmutableSet() );
+    }
+
+    public ImmutableSet<Sample> getAllMediaUnitScores() {
+        final ImmutableMap<MediaUnit, Double> mediaUnitQualityScores = this.metricsScores
+                .getMediaUnitQualityScores();
+        return mediaUnitQualityScores.entrySet().stream().map( w -> {
+            final String name = w.getKey().getId().toString();
+            return new Sample( name, w.getValue(), getFinalDefectForMediaUnit( name ) );
+        } ).collect( ImmutableSet.toImmutableSet() );
+    }
+
+    public ImmutableSet<Sample> sampleWorkers( final SamplingType samplingType, final int
             nrWorkers ) {
         final ImmutableMap<Worker, Double> orderedByQuality = Maps.newHashMap( this.metricsScores
                 .getWorkerQualityScores() )
@@ -83,7 +102,8 @@ public class CrowdtruthRunner {
                 .get() )
                 .map( w -> {
                     final int workerId = Integer.valueOf( w.getKey().getId().toString() );
-                    return new SampledWorker( workerId, w.getValue(), getFinalDefectForWorker( workerId ) );
+                    return new Sample( w.getKey().getId().toString(), w.getValue(), getFinalDefectForWorker( workerId
+                    ) );
                 } ).collect( ImmutableSet.toImmutableSet() );
     }
 
@@ -93,6 +113,20 @@ public class CrowdtruthRunner {
 
     public Metrics.MetricsScores getMetricsScores() {
         return this.metricsScores;
+    }
+
+    private ImmutableSet<FinalDefect> getFinalDefectForMediaUnit( final String emeId ) {
+        return this.defectReports.stream().filter( d -> Objects.equals( d.getEmeId(), emeId ) ).map( d ->
+                FinalDefect.builder(
+                        this.emes.get( d.getEmeId() ) ).withAgreementCoeff( 1.0 ).withFinalDefectType( FinalDefectType
+                        .fromDefectType( d.getDefectType() ) ).build() ).collect( ImmutableSet.toImmutableSet() );
+    }
+
+    private ImmutableSet<FinalDefect> getFinalDefectForAnnotation( final DefectType defectType ) {
+        return this.defectReports.stream().filter( d -> Objects.equals( d.getDefectType(), defectType ) ).map( d ->
+                FinalDefect.builder(
+                        this.emes.get( d.getEmeId() ) ).withAgreementCoeff( 1.0 ).withFinalDefectType( FinalDefectType
+                        .fromDefectType( d.getDefectType() ) ).build() ).collect( ImmutableSet.toImmutableSet() );
     }
 
     private ImmutableSet<FinalDefect> getFinalDefectForWorker( final int workerId ) {
@@ -180,26 +214,26 @@ public class CrowdtruthRunner {
         LOWEST
     }
 
-    public static class SampledWorker {
-        private final int workerId;
+    public static class Sample {
+        private final String id;
 
-        private final double workerQuality;
+        private final double quality;
 
         private final ImmutableSet<FinalDefect> finalDefects;
 
-        private SampledWorker( final int workerId, final double workerQuality, final ImmutableSet<FinalDefect>
+        private Sample( final String id, final double quality, final ImmutableSet<FinalDefect>
                 finalDefects ) {
-            this.workerId = workerId;
-            this.workerQuality = workerQuality;
+            this.id = id;
+            this.quality = quality;
             this.finalDefects = finalDefects;
         }
 
-        public int getWorkerId() {
-            return this.workerId;
+        public String getId() {
+            return this.id;
         }
 
-        public double getWorkerQuality() {
-            return this.workerQuality;
+        public double getQuality() {
+            return this.quality;
         }
 
         public ImmutableSet<FinalDefect> getFinalDefects() {
@@ -209,8 +243,8 @@ public class CrowdtruthRunner {
         @Override
         public String toString() {
             return "SampledWorker{" +
-                    "workerId=" + this.workerId +
-                    ", workerQuality=" + this.workerQuality +
+                    "id=" + this.id +
+                    ", quality=" + this.quality +
                     ", finalDefects=" + this.finalDefects +
                     '}';
         }

@@ -1,6 +1,4 @@
-import {Component, OnDestroy, OnInit} from '@angular/core';
-import {DataResult, RestService} from '../rest/rest.service';
-import {Subscription} from 'rxjs';
+import {Component, Input, OnDestroy, OnInit} from '@angular/core';
 
 @Component({
   selector: 'app-tab-sheet',
@@ -9,33 +7,25 @@ import {Subscription} from 'rxjs';
 })
 export class TabSheetComponent implements OnInit, OnDestroy {
 
-  displayedColumns: string[] = [];
-  columnsToDisplay: string[] = this.displayedColumns.slice();
-  data: object[] = [];
-  title = '';
+  @Input() displayedColumns: string[] = [];
+  @Input() columnsToDisplay: string[] = this.displayedColumns.slice();
+  @Input() data: object[] = [];
+  @Input() title = '';
 
-  private sheetSubscription: Subscription;
-
-  constructor(private restService: RestService) { }
+  constructor() { }
 
   ngOnInit() {
-    this.sheetSubscription = this.restService.lastRequestedSubject.subscribe((r: DataResult) => {
-      this.data = r.data.slice().map((d: object) => {
-        const dCopy = Object.assign({}, d);
-        Object.keys(dCopy).forEach(k => {
-          if (!Number.isNaN(Number.parseFloat(dCopy[k])) && !Number.isInteger(dCopy[k])) {
-            dCopy[k] = Number(dCopy[k]).toFixed(3);
-          }
-        });
-        return dCopy;
+    this.data = this.data.slice().map((d: object) => {
+      const dCopy = Object.assign({}, d);
+      Object.keys(dCopy).forEach(k => {
+        if (!Number.isNaN(Number.parseFloat(dCopy[k])) && !Number.isInteger(dCopy[k])) {
+          dCopy[k] = Number(dCopy[k]).toFixed(3);
+        }
       });
-      this.displayedColumns = r.headers.map(h => h.fieldName);
-      this.columnsToDisplay = r.headers.map(h => h.tableHeaderName);
-      this.title = r.title;
+      return dCopy;
     });
   }
 
   ngOnDestroy(): void {
-    this.sheetSubscription.unsubscribe();
   }
 }

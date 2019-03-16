@@ -1,0 +1,41 @@
+  <mat-card style="margin-top: 30px; max-height: 400px; min-height: 400px">
+    <mat-card-header>
+      <mat-card-title>{{name}} Quality ~ F-Measure</mat-card-title>
+      <mat-card-subtitle>Pearson correlation score: {{pearsonScores.qualityFMeasureCorrelation}}</mat-card-subtitle>
+    </mat-card-header>
+    <mat-card-content style="height: 100%; display:block">
+      <div [id]="nameSquashed+'scatterQualityFMeasure'" style="height: 300px;"></div>
+    </mat-card-content>
+  </mat-card>
+
+  <mat-card style="margin-top: 10px; max-height: 400px; min-height: 400px">
+    <mat-card-header>
+      <mat-card-title>{{name}} Quality ~ Recall</mat-card-title>
+      <mat-card-subtitle>Pearson correlation score: {{pearsonScores.qualityPrecisionCorrelation}}</mat-card-subtitle>
+    </mat-card-header>
+    <mat-card-content style="height: 100%; display:block">
+      <div [id]="nameSquashed+'scatterQualityRecall'" style="height: 300px;"></div>
+    </mat-card-content>
+  </mat-card>
+
+  <mat-card style="margin-top: 10px; max-height: 400px; min-height: 400px">
+    <mat-card-header>
+      <mat-card-title>{{name}} Quality ~ Precision</mat-card-title>
+      <mat-card-subtitle>Pearson correlation score: {{pearsonScores.qualityPrecisionCorrelation}}</mat-card-subtitle>
+    </mat-card-header>
+    <mat-card-content style="height: 100%; display:block">
+      <div [id]="nameSquashed+'scatterQualityPrecision'" style="height: 300px;"></div>
+    </mat-card-content>
+  </mat-card>
+
+
+
+  <mat-card style="margin-top: 10px; max-height: 400px; min-height: 400px">
+    <mat-card-header>
+      <mat-card-title>{{name}} Quality ~ Accuracy</mat-card-title>
+      <mat-card-subtitle>Pearson correlation score: {{pearsonScores.qualityAccuracyCorrelation}}</mat-card-subtitle>
+    </mat-card-header>
+    <mat-card-content style="height: 100%; display:block">
+      <div [id]="nameSquashed+'scatterQualityAccuracy'" style="height: 300px;"></div>
+    </mat-card-content>
+  </mat-card>
