@@ -18,6 +18,9 @@ import {FormsModule} from '@angular/forms';
 import { FinalDefectsComponent } from './final-defects/final-defects.component';
 import { TabSheetComponent } from './tab-sheet/tab-sheet.component';
 import {CrowdtruthComponent} from './crowdtruth/crowdtruth.component';
+import {CsvExporterComponent} from './csv-exporter/csv-exporter';
+import {BarChartComponent} from './bar-chart/bar-chart.component';
+import {BoxPlotComponent} from './box-plot/box-plot.component';
 
 @NgModule({
   declarations: [
@@ -25,7 +28,10 @@ import {CrowdtruthComponent} from './crowdtruth/crowdtruth.component';
     CorrelationDiagramsComponent,
     FinalDefectsComponent,
     TabSheetComponent,
-    CrowdtruthComponent
+    CrowdtruthComponent,
+    CsvExporterComponent,
+    BarChartComponent,
+    BoxPlotComponent
   ],
   imports: [
     BrowserModule,

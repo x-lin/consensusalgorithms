@@ -5,6 +5,9 @@ import algorithms.majorityvoting.MajorityVotingRunner;
 import algorithms.majorityvoting.adapted.AdaptiveMajorityVoting;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Sets;
+import com.google.common.collect.Streams;
+import model.FinalDefect;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -13,6 +16,11 @@ import statistic.*;
 
 import java.io.IOException;
 import java.sql.SQLException;
+import java.util.Map;
+import java.util.Optional;
+import java.util.function.Function;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * @author LinX
@@ -66,11 +74,50 @@ public class AlgorithmController {
                 AlgorithmType.CrowdTruth.name(), new EvaluationResultMetrics( FinalDefectAnalyzer.getFinalDefects( this
                         .crowdtruthRunner.getFinalDefects
                                 () ) ),
-                AlgorithmType.AdaptiveMajorityVoting + "t=0.1", new EvaluationResultMetrics( FinalDefectAnalyzer
+                AlgorithmType.AdaptiveMajorityVoting + ";t=0.1", new EvaluationResultMetrics( FinalDefectAnalyzer
                         .getFinalDefects( new AdaptiveMajorityVoting().run( 0.1
                         ) ) ),
-                AlgorithmType.AdaptiveMajorityVoting + "t=0.9", new EvaluationResultMetrics( FinalDefectAnalyzer
+                AlgorithmType.AdaptiveMajorityVoting + ";t=0.9", new EvaluationResultMetrics( FinalDefectAnalyzer
                         .getFinalDefects( new AdaptiveMajorityVoting().run( 0.9
                         ) ) ) );
+    }
+
+    @GetMapping("/all/finalDefects")
+    public ImmutableSet<FinalDefectComparison> getFinalDefectComparison() throws IOException, SQLException {
+        final ImmutableMap<String, EvaluationResult> majorityVotingResults = FinalDefectAnalyzer
+                .getFinalDefects( MajorityVotingRunner.calculateFinalDefects() ).stream().collect(
+                        ImmutableMap.toImmutableMap( EvaluationResult::getEmeId, Function.identity() ));
+
+        final ImmutableMap<String, EvaluationResult> crowdtruthResults = FinalDefectAnalyzer
+                .getFinalDefects( this.crowdtruthRunner.getFinalDefects() ).stream().collect(
+                        ImmutableMap.toImmutableMap( EvaluationResult::getEmeId, Function.identity() ));
+
+        final ImmutableMap<String, EvaluationResult> adaptiveMajorityVotingZeroOneResults = FinalDefectAnalyzer
+                .getFinalDefects( new AdaptiveMajorityVoting().run( 0.1) ).stream().collect(
+                        ImmutableMap.toImmutableMap( EvaluationResult::getEmeId, Function.identity() ));
+
+        final ImmutableMap<String, EvaluationResult> adaptiveMajorityVotingZeroNineResults = FinalDefectAnalyzer
+                .getFinalDefects( new AdaptiveMajorityVoting().run( 0.9) ).stream().collect(
+                        ImmutableMap.toImmutableMap( EvaluationResult::getEmeId, Function.identity() ));
+
+        ImmutableSet<String> allEmes = Streams.concat(majorityVotingResults.keySet().stream(), crowdtruthResults.keySet().stream(),
+                adaptiveMajorityVotingZeroOneResults.keySet().stream(), adaptiveMajorityVotingZeroNineResults.keySet().stream())
+                .collect( ImmutableSet.toImmutableSet() );
+
+        return allEmes.stream().map( e -> {
+            ImmutableMap.Builder<String, EvaluationResult> builder = ImmutableMap.builder();
+            Optional.ofNullable( majorityVotingResults.get( e ) )
+                    .ifPresent(r -> builder.put( AlgorithmType.MajorityVoting.name(), r ) );
+            Optional.ofNullable( crowdtruthResults.get( e ) )
+                    .ifPresent( r -> builder.put( AlgorithmType.CrowdTruth.name(), r ) );
+            Optional.ofNullable( adaptiveMajorityVotingZeroOneResults.get( e ) )
+                    .ifPresent( r -> builder.put( AlgorithmType.AdaptiveMajorityVoting + ";0.1", r) );
+            Optional.ofNullable( adaptiveMajorityVotingZeroNineResults.get( e ) )
+                    .ifPresent( r -> builder.put( AlgorithmType.AdaptiveMajorityVoting + ";0.9", r ) );
+            final ImmutableMap<String, EvaluationResult> results = builder.build();
+            return new FinalDefectComparison( e, results.values().iterator().next().getTrueDefectType(),
+                    results.entrySet().stream().collect( ImmutableMap.toImmutableMap( Map.Entry::getKey,
+                            r -> r.getValue().getFinalDefectType() ) ) );
+        }  ).collect( ImmutableSet.toImmutableSet() );
     }
 }

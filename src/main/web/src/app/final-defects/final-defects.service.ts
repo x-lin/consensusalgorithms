@@ -8,7 +8,11 @@ import {AlgorithmType, DataResult, DataResultHeaders, NamedEvaluationScoresRespo
 export class FinalDefectsService {
   dataSubject = new BehaviorSubject({});
 
+  allMetricsSubject = new BehaviorSubject({});
+
   pageSubject = new BehaviorSubject(FinalDefectsPage.TABLE);
+
+  finalDefectComparisonSubject = new BehaviorSubject({});
 
   finalDefectsParameters = {
     type: AlgorithmType.CrowdTruth
@@ -16,6 +20,8 @@ export class FinalDefectsService {
 
   constructor(private restService: RestService) {
     this.algorithmTypeChanged(this.finalDefectsParameters.type, {});
+    this.getMetricsComparison();
+    this.getFinalDefectsComparison();
   }
 
   pageChanged(newPage: FinalDefectsPage) {
@@ -52,8 +58,51 @@ export class FinalDefectsService {
       });
     });
   }
+
+  getMetricsComparison() {
+    this.restService.getAllMetrics().subscribe(d => {
+      this.allMetricsSubject.next({
+        title: 'Final Defects - Metrics Comparison',
+        fieldNames: ['algorithm', 'precision', 'recall', 'fmeasure', 'accuracy', 'truePositives', 'trueNegatives', 'falsePositives', 'falseNegatives'],
+        tableHeaderNames: ['algorithm', 'precision', 'recall', 'fmeasure', 'accuracy', 'truePositives', 'trueNegatives', 'falsePositives', 'falseNegatives'],
+        data: Object.keys(d).map(key => {
+          d[key].algorithm = key;
+          return d[key];
+        })
+      });
+    });
+  }
+
+  getFinalDefectsComparison() {
+    this.restService.getFinalDefectsComparison().subscribe(d => {
+      const names = ['emeId', 'trueDefectType'];
+      const data = [];
+      d.forEach(entry => {
+        const e = {
+          emeId: entry.emeId,
+          trueDefectType: entry.trueDefectType
+        };
+        Object.keys(entry.finalDefectTypes).forEach(name => {
+          if (!names.includes(name)) {
+            names.push(name);
+          }
+          e[name] = entry.finalDefectTypes[name];
+        });
+        data.push(e);
+      });
+
+      this.finalDefectComparisonSubject.next({
+        title: 'Final Defects - Comparison',
+        fieldNames: names,
+        tableHeaderNames: names,
+        data
+      });
+    });
+  }
 }
 
 export enum FinalDefectsPage {
-  TABLE
+  TABLE,
+  METRICS_COMPARISON,
+  FINAL_DEFECT_COMPARISON
 }

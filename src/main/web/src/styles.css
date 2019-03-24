@@ -6,9 +6,9 @@ body {
   font-size: .875rem;
 }
 
-/*
- * hide trendline
- */
-.tau-chart__layout__sidebar-right__wrap {
-  display: none;
-}
+/*!**/
+ /** hide trendline*/
+ /**!*/
+/*.tau-chart__layout__sidebar-right__wrap {*/
+  /*display: none;*/
+/*}*/

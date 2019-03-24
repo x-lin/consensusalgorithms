@@ -20,6 +20,14 @@ export class FinalDefectsComponent implements OnInit, OnDestroy {
 
   private data;
 
+  private allMetricsSubscription: Subscription;
+
+  private allMetrics;
+
+  private finalDefectsComparisonSubscription: Subscription;
+
+  private finalDefectsComparison;
+
   constructor(private restService: RestService, private finalDefectsService: FinalDefectsService) {
   }
 
@@ -30,15 +38,74 @@ export class FinalDefectsComponent implements OnInit, OnDestroy {
     if (this.dataSubscription !== undefined) {
       this.dataSubscription.unsubscribe();
     }
+    if (this.allMetricsSubscription !== undefined) {
+      this.allMetricsSubscription.unsubscribe();
+    }
+    if (this.finalDefectsComparisonSubscription !== undefined) {
+      this.finalDefectsComparisonSubscription.unsubscribe();
+    }
   }
 
   ngOnInit(): void {
-    this.dataSubscription = this.finalDefectsService.dataSubject.subscribe(r => {
-      this.data = r;
-      this.currentPageSubscription = this.finalDefectsService.pageSubject.subscribe(page => {
-        this.currentPage = page;
+    this.dataSubscription = this.finalDefectsService.dataSubject.subscribe(r => this.data = r );
+    this.allMetricsSubscription = this.finalDefectsService.allMetricsSubject.subscribe(r => this.allMetrics = r );
+    this.finalDefectsComparisonSubscription = this.finalDefectsService.finalDefectComparisonSubject.subscribe(r =>
+      this.finalDefectsComparison = r);
+    this.currentPageSubscription = this.finalDefectsService.pageSubject.subscribe(page => this.currentPage = page );
+  }
+
+  allMetricsForBarChart() {
+    const data = [];
+    this.allMetrics.data.forEach(d => {
+      data.push({
+        type: 'recall',
+        value: d.recall,
+        algorithm: d.algorithm
+      },
+      {
+        type: 'precision',
+        value: d.precision,
+        algorithm: d.algorithm
+      },
+      {
+        type: 'fmeasure',
+        value: d.fmeasure,
+        algorithm: d.algorithm
+      },
+      {
+        type: 'accuracy',
+        value: d.accuracy,
+        algorithm: d.algorithm
       });
     });
+    return data;
+  }
+
+  confusionMatrixForBarChart() {
+    const data = [];
+    this.allMetrics.data.forEach(d => {
+      data.push({
+          type: 'truePositives',
+          value: d.truePositives,
+          algorithm: d.algorithm
+        },
+        {
+          type: 'trueNegatives',
+          value: d.trueNegatives,
+          algorithm: d.algorithm
+        },
+        {
+          type: 'falsePositives',
+          value: d.falsePositives,
+          algorithm: d.algorithm
+        },
+        {
+          type: 'falseNegatives',
+          value: d.falseNegatives,
+          algorithm: d.algorithm
+        });
+    });
+    return data;
   }
 }
 

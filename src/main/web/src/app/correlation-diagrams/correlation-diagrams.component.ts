@@ -31,22 +31,18 @@ export class CorrelationDiagramsComponent implements OnInit, OnDestroy, AfterVie
   }
 
   ngOnDestroy(): void {
-    console.log("ngdestroy");
     this.removeChart(this.chartQualityFMeasure);
     this.removeChart(this.chartQualityPrecision);
     this.removeChart(this.chartQualityRecall);
     this.removeChart(this.chartQualityAccuracy);
-    console.log("ngdestroy done");
   }
 
   ngAfterViewInit(): void {
-    console.log("after view init");
     this.updateCharts(this.data);
   }
 
   ngOnInit(): void {
-    console.log("nginit");
-    this.nameSquashed = this.name.replace(' ', '');
+    this.nameSquashed = this.name.replace(/ /g, '');
   }
 
   updateCharts(data) {

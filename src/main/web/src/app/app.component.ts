@@ -14,6 +14,8 @@ export class AppComponent implements OnInit {
 
   private finalDefectsClicked = false;
 
+  private finalDefectsPageClicked = FinalDefectsPage.TABLE;
+
   private algorithmTypes = Object.keys(AlgorithmType);
 
   private algorithmType = AlgorithmType;
@@ -67,5 +69,6 @@ export class AppComponent implements OnInit {
 
   finalDefectsPageChanged(newPage: FinalDefectsPage) {
     this.finalDefectsService.pageChanged(newPage);
+    this.finalDefectsPageClicked = newPage;
   }
 }

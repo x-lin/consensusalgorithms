@@ -5,3 +5,13 @@
   <app-tab-sheet [columnsToDisplay]="data.tableHeaderNames" [displayedColumns]="data.fieldNames" [data]="data.data"
                  [title]="data.title"></app-tab-sheet>
 </ng-template>
+<ng-template [ngIf]="currentPage === finalDefectsPage.METRICS_COMPARISON && allMetrics !== undefined">
+  <bar-chart [data]="confusionMatrixForBarChart()" [xAxis]="'value'" [yAxis]="'type'" [colorField]="'algorithm'" [name]="'Confusion Matrix Comparison'"></bar-chart>
+  <bar-chart [data]="allMetricsForBarChart()" [xAxis]="'value'" [yAxis]="'type'" [colorField]="'algorithm'" [name]="'Metrics Comparison'"></bar-chart>
+  <app-tab-sheet [columnsToDisplay]="allMetrics.tableHeaderNames" [displayedColumns]="allMetrics.fieldNames" [data]="allMetrics.data"
+                 [title]="allMetrics.title"></app-tab-sheet>
+</ng-template>
+<ng-template [ngIf]="currentPage === finalDefectsPage.FINAL_DEFECT_COMPARISON && finalDefectsComparison !== undefined">
+  <app-tab-sheet [columnsToDisplay]="finalDefectsComparison.tableHeaderNames" [displayedColumns]="finalDefectsComparison.fieldNames" [data]="finalDefectsComparison.data"
+                 [title]="finalDefectsComparison.title"></app-tab-sheet>
+</ng-template>

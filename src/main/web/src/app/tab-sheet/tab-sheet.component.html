@@ -2,6 +2,9 @@
   <mat-card-header>
     <mat-card-title>{{title}}</mat-card-title>
   </mat-card-header>
+  <div style="margin-bottom: 10px">
+    <csv-exporter-button [data]="data" [headers]="displayedColumns" [filename]="title.replace(' ', '_')"></csv-exporter-button>
+  </div>
   <mat-card-content>
     <div class="mat-elevation-z8">
       <table mat-table [dataSource]="data" style="width: 100%">

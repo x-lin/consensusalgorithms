@@ -1,6 +1,6 @@
 import {Injectable} from '@angular/core';
 import {HttpClient} from '@angular/common/http';
-import {BehaviorSubject, Observable, Subject} from 'rxjs';
+import {Observable} from 'rxjs';
 
 export class DataResult {
   data: object[];
@@ -54,6 +54,14 @@ export class RestService {
 
   getMediaUnitEvaluationResult(): Observable<any> {
     return this.http.get(RestService.ENDPOINT + 'algorithms/mediaUnits');
+  }
+
+  getAllMetrics(): Observable<any> {
+    return this.http.get(RestService.ENDPOINT + 'algorithms/all/metrics');
+  }
+
+  getFinalDefectsComparison(): Observable<any> {
+    return this.http.get(RestService.ENDPOINT + 'algorithms/all/finalDefects');
   }
 }
 

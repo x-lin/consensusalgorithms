@@ -74,32 +74,35 @@
       <ng-template [ngIf]="finalDefectsClicked">
         <div class="sidebar-sticky">
           <mat-card>
-          <button mat-flat-button style="width: 100%; font-weight: bold; margin-top: 20px" (click)="finalDefectsPageChanged(finalDefectsPage.TABLE)">Tabular Data</button>
+            <button mat-flat-button style="width: 100%; font-weight: bold; margin-top: 20px" (click)="finalDefectsPageChanged(finalDefectsPage.TABLE)">Tabular Data</button>
+            <button mat-flat-button style="width: 100%; font-weight: bold;" (click)="finalDefectsPageChanged(finalDefectsPage.METRICS_COMPARISON)">Metrics Comparison</button>
+            <button mat-flat-button style="width: 100%; font-weight: bold;" (click)="finalDefectsPageChanged(finalDefectsPage.FINAL_DEFECT_COMPARISON)">Final Defects Comparison</button>
           </mat-card>
 
-          <mat-card class="result" style="margin-top: 10px">
-            <mat-card-content>
-              <mat-card-subtitle>Algorithms</mat-card-subtitle>
-              <mat-radio-group [(ngModel)]="finalDefectsParameters.type">
-                <div *ngFor="let algoType of algorithmTypes">
-                  <mat-radio-button [value]="algoType" (change)="finalDefectsAlgorithmTypeChanged($event)">
-                    {{algoType}}
-                  </mat-radio-button>
-                </div>
-              </mat-radio-group>
-            </mat-card-content>
-          </mat-card>
-
-          <ng-template [ngIf]="finalDefectsClicked && finalDefectsParameters.type === algorithmType.AdaptiveMajorityVoting">
+          <ng-template [ngIf]="finalDefectsPageClicked === finalDefectsPage.TABLE">
             <mat-card class="result" style="margin-top: 10px">
-              <mat-card-header>
-                <mat-card-title>Parameters</mat-card-title>
-              </mat-card-header>
+              <mat-card-content>
+                <mat-card-subtitle>Algorithms</mat-card-subtitle>
+                <mat-radio-group [(ngModel)]="finalDefectsParameters.type">
+                  <div *ngFor="let algoType of algorithmTypes">
+                    <mat-radio-button [value]="algoType" (change)="finalDefectsAlgorithmTypeChanged($event)">
+                      {{algoType}}
+                    </mat-radio-button>
+                  </div>
+                </mat-radio-group>
+              </mat-card-content>
+            </mat-card>
 
-              <mat-divider></mat-divider>
+            <ng-template [ngIf]="finalDefectsClicked && finalDefectsParameters.type === algorithmType.AdaptiveMajorityVoting">
+              <mat-card class="result" style="margin-top: 10px">
+                <mat-card-header>
+                  <mat-card-title>Parameters</mat-card-title>
+                </mat-card-header>
+
+                <mat-divider></mat-divider>
 
                 <mat-card-content>
-                <mat-card-subtitle>Threshold</mat-card-subtitle>
+                  <mat-card-subtitle>Threshold</mat-card-subtitle>
                   <mat-slider
                     style="width: 100%"
                     [disabled]="false"
@@ -113,8 +116,9 @@
                     [vertical]="vertical"
                     (input)="onAdaptiveMajorityVotingThresholdParameterChanged($event)">
                   </mat-slider>
-              </mat-card-content>
-            </mat-card>
+                </mat-card-content>
+              </mat-card>
+          </ng-template>
           </ng-template>
         </div>
       </ng-template>
