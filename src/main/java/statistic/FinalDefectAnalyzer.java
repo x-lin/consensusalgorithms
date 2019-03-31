@@ -7,6 +7,7 @@ import com.opencsv.CSVWriter;
 import model.FinalDefect;
 import model.TrueDefect;
 import org.jooq.lambda.UncheckedException;
+import web.SemesterSettings;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -24,9 +25,10 @@ public class FinalDefectAnalyzer {
         //purposely left empty
     }
 
-    private void write( final ImmutableSet<FinalDefect> defects, final String outputFilePath ) {
+    private void write( final SemesterSettings settings, final ImmutableSet<FinalDefect> defects, final String
+            outputFilePath ) {
         try {
-            final Map<String, EvaluationResult> results = getFinalDefectResults( defects );
+            final Map<String, EvaluationResult> results = getFinalDefectResults( defects, settings );
 
             try (CSVWriter finalDefectsCsv = new CSVWriter( Files.newBufferedWriter( Paths.get(
                     outputFilePath ) ) )) {
@@ -45,9 +47,10 @@ public class FinalDefectAnalyzer {
         }
     }
 
-    private Map<String, EvaluationResult> getFinalDefectResults( final ImmutableSet<FinalDefect> defects ) throws
+    private Map<String, EvaluationResult> getFinalDefectResults( final ImmutableSet<FinalDefect> defects, final
+    SemesterSettings settings ) throws
             IOException, SQLException {
-        final ImmutableMap<String, TrueDefect> trueDefects = AllTrueDefectsMixin.findAllTrueDefects().stream()
+        final ImmutableMap<String, TrueDefect> trueDefects = AllTrueDefectsMixin.findAllTrueDefects( settings ).stream()
                 .collect( ImmutableMap.toImmutableMap( TrueDefect::getAboutEmEid, Function.identity() ) );
 
         final ImmutableMap<String, FinalDefect> finalDefects = defects
@@ -67,12 +70,14 @@ public class FinalDefectAnalyzer {
         return value ? String.valueOf( true ) : "";
     }
 
-    public static void analyze( final ImmutableSet<FinalDefect> defects, final String outputFilePath ) {
-        new FinalDefectAnalyzer().write( defects, outputFilePath );
+    public static void analyze( final SemesterSettings settings, final ImmutableSet<FinalDefect> defects, final
+    String outputFilePath ) {
+        new FinalDefectAnalyzer().write( settings, defects, outputFilePath );
     }
 
-    public static ImmutableSet<EvaluationResult> getFinalDefects( final ImmutableSet<FinalDefect> defects ) throws
+    public static ImmutableSet<EvaluationResult> getFinalDefects( final ImmutableSet<FinalDefect> defects, final
+    SemesterSettings settings ) throws
             IOException, SQLException {
-        return ImmutableSet.copyOf( new FinalDefectAnalyzer().getFinalDefectResults( defects ).values() );
+        return ImmutableSet.copyOf( new FinalDefectAnalyzer().getFinalDefectResults( defects, settings ).values() );
     }
 }

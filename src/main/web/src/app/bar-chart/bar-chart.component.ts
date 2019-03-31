@@ -1,4 +1,4 @@
-import {AfterViewInit, Component, Input, OnDestroy, OnInit} from '@angular/core';
+import {AfterViewInit, Component, Input, OnChanges, OnDestroy, OnInit, SimpleChanges} from '@angular/core';
 import 'taucharts/dist/plugins/legend';
 import 'taucharts/dist/plugins/tooltip';
 import * as taucharts from 'taucharts';
@@ -7,7 +7,7 @@ import * as taucharts from 'taucharts';
   selector: 'bar-chart',
   templateUrl: './bar-chart.component.html'
 })
-export class BarChartComponent implements OnInit, OnDestroy, AfterViewInit {
+export class BarChartComponent implements OnInit, OnDestroy, OnChanges, AfterViewInit {
   @Input() data;
 
   @Input() xAxis;
@@ -36,6 +36,13 @@ export class BarChartComponent implements OnInit, OnDestroy, AfterViewInit {
 
   ngOnInit(): void {
     this.nameSquashed = this.name.replace(/ /g, '');
+  }
+
+  ngOnChanges(changes: SimpleChanges): void {
+    if (this.nameSquashed !== undefined) {
+      console.log("updating bar chart")
+      this.updateCharts();
+    }
   }
 
   updateCharts() {

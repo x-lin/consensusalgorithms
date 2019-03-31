@@ -3,6 +3,7 @@ package model;
 import com.google.common.collect.ImmutableSet;
 import org.jooq.Record;
 import org.jooq.impl.DSL;
+import web.SemesterSettings;
 
 import java.sql.Connection;
 import java.util.Objects;
@@ -32,9 +33,10 @@ public class Eme {
 
     private final Integer emeGroupId;
 
-    public Eme( final Record record ) {
+    public Eme( final Record record, final SemesterSettings settings ) {
         this.emeId = record.getValue( EME_ID_COLUMN, String.class );
-        this.emeText = Optional.ofNullable( record.getValue( OLD_EME_TEXT_COLUMN, String.class ) ).filter( t -> !t
+        this.emeText = Optional.ofNullable( record.getValue( OLD_EME_TEXT_COLUMN, String.class ) ).filter( settings
+                .useOldEmes() ).filter( t -> !t
                 .equals( "NULL" ) ).orElseGet( () -> record.getValue( EME_TEXT, String.class ) );
         this.emeType = record.getValue( EME_TYPE_COLUMN, EmeType.class );
         this.emeGroupId = record.getValue( EME_GROUP_COLUMN, Integer.class );
@@ -93,11 +95,11 @@ public class Eme {
         return new Builder( emeId );
     }
 
-    public static ImmutableSet<Eme> fetchEmes( final Connection connection ) {
+    public static ImmutableSet<Eme> fetchEmes( final Connection connection, final SemesterSettings settings ) {
         final String sql = "select * from " + EME_TABLE;
         return DSL.using( connection )
                 .fetch( sql )
-                .map( Eme::new ).stream().collect( ImmutableSet.toImmutableSet() );
+                .map( r -> new Eme( r, settings ) ).stream().collect( ImmutableSet.toImmutableSet() );
     }
 
     public static class Builder {

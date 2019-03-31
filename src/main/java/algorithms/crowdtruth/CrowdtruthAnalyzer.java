@@ -4,6 +4,7 @@ import algorithms.crowdtruth.CrowdtruthRunner.SamplingType;
 import com.google.common.collect.ImmutableSet;
 import statistic.FinalDefectAnalyzer;
 import statistic.QualityAnalyzer;
+import web.SemesterSettings;
 
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -16,7 +17,7 @@ public class CrowdtruthAnalyzer {
     private static final String ANAYLSIS_ALL_WORKERS_OUT_CSV = "output/crowdtruth/analysis_all_workers.csv";
 
     public static void main( final String[] args ) {
-        final CrowdtruthRunner crowdtruthRunner = CrowdtruthRunner.create();
+        final CrowdtruthRunner crowdtruthRunner = CrowdtruthRunner.create( SemesterSettings.ws2017() );
         runFullAnalysis( crowdtruthRunner );
         runSamplingWorkers( crowdtruthRunner );
         runWorkerAnalysis( crowdtruthRunner );
@@ -24,23 +25,27 @@ public class CrowdtruthAnalyzer {
 
 
     private static void runFullAnalysis( final CrowdtruthRunner crowdtruthRunner ) {
-        FinalDefectAnalyzer.analyze( crowdtruthRunner.getFinalDefects(), ANALYSIS_OUT_CSV );
+        FinalDefectAnalyzer.analyze( crowdtruthRunner.getSemesterSettings(), crowdtruthRunner.getFinalDefects(),
+                ANALYSIS_OUT_CSV );
     }
 
     private static void runWorkerAnalysis( final CrowdtruthRunner crowdtruthRunner ) {
-        QualityAnalyzer.analyze( crowdtruthRunner.getAllWorkerScores(), "workerId", ANAYLSIS_ALL_WORKERS_OUT_CSV );
+        QualityAnalyzer.analyze( crowdtruthRunner.getSemesterSettings(), crowdtruthRunner.getAllWorkerScores(),
+                "workerId", ANAYLSIS_ALL_WORKERS_OUT_CSV );
     }
 
     private static void runSamplingWorkers( final CrowdtruthRunner crowdtruthRunner ) {
         final int nrWorkers = 5;
         final ImmutableSet<Integer> highestQualityWorkerIds = sampleHighestQualityWorkers(
                 crowdtruthRunner, nrWorkers );
-        FinalDefectAnalyzer.analyze( crowdtruthRunner.getFinalDefectsFromWorkers( highestQualityWorkerIds ),
+        FinalDefectAnalyzer.analyze( crowdtruthRunner.getSemesterSettings(), crowdtruthRunner
+                        .getFinalDefectsFromWorkers( highestQualityWorkerIds ),
                 getCsvFilenameAnalysisHighest( nrWorkers ) );
 
         final ImmutableSet<Integer> lowestQualityWorkers = sampleLowestQualityWorkers(
                 crowdtruthRunner, nrWorkers );
-        FinalDefectAnalyzer.analyze( crowdtruthRunner.getFinalDefectsFromWorkers( lowestQualityWorkers ),
+        FinalDefectAnalyzer.analyze( crowdtruthRunner.getSemesterSettings(), crowdtruthRunner
+                        .getFinalDefectsFromWorkers( lowestQualityWorkers ),
                 getCsvFilenameAnalysisLowest( nrWorkers ) );
     }
 
@@ -51,7 +56,8 @@ public class CrowdtruthAnalyzer {
                 SamplingType.HIGHEST, nrWorkers );
         final AtomicInteger counter = new AtomicInteger( 1 );
         sampleHighestWorkers.stream().sorted( ( w1, w2 ) -> Double.valueOf( w2.getQuality() ).compareTo(
-                w1.getQuality() ) ).forEach( w -> FinalDefectAnalyzer.analyze( w.getFinalDefects(),
+                w1.getQuality() ) ).forEach( w -> FinalDefectAnalyzer.analyze( crowdtruthRunner.getSemesterSettings()
+                , w.getFinalDefects(),
                 getCsvFilenameAnalysisSingleHighest( Integer.valueOf( w.getId() ), counter.getAndIncrement() ) ) );
         return sampleHighestWorkers.stream().map( CrowdtruthRunner.Sample::getId ).map( Integer::valueOf ).collect(
                 ImmutableSet
@@ -65,7 +71,8 @@ public class CrowdtruthAnalyzer {
                 SamplingType.LOWEST, nrWorkers );
         final AtomicInteger counter = new AtomicInteger( 1 );
         sampleLowestWorkers.stream().sorted( ( w1, w2 ) -> Double.valueOf( w1.getQuality() ).compareTo(
-                w2.getQuality() ) ).forEach( w -> FinalDefectAnalyzer.analyze( w.getFinalDefects(),
+                w2.getQuality() ) ).forEach( w -> FinalDefectAnalyzer.analyze( crowdtruthRunner.getSemesterSettings()
+                , w.getFinalDefects(),
                 getCsvFilenameAnalysisSingleLowest( Integer.valueOf( w.getId() ), counter.getAndIncrement() ) ) );
         return sampleLowestWorkers.stream().map( CrowdtruthRunner.Sample::getId ).map( Integer::valueOf ).collect(
                 ImmutableSet

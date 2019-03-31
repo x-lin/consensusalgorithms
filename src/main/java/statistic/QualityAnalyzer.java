@@ -8,6 +8,7 @@ import com.opencsv.CSVWriter;
 import model.FinalDefect;
 import model.TrueDefect;
 import org.jooq.lambda.UncheckedException;
+import web.SemesterSettings;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -25,11 +26,12 @@ public class QualityAnalyzer {
         //purposely left empty
     }
 
-    private void write( final ImmutableSet<CrowdtruthRunner.Sample> samples, final String idKey, final String
-            outputFilePath ) {
+    private void write( final SemesterSettings settings, final ImmutableSet<CrowdtruthRunner.Sample> samples, final
+    String idKey, final String
+                                outputFilePath ) {
         final ImmutableMap<String, TrueDefect> trueDefects;
         try {
-            trueDefects = AllTrueDefectsMixin.findAllTrueDefects().stream()
+            trueDefects = AllTrueDefectsMixin.findAllTrueDefects( settings ).stream()
                     .collect( ImmutableMap.toImmutableMap( TrueDefect::getAboutEmEid, Function.identity() ) );
 
             try (CSVWriter finalDefectsCsv = new CSVWriter( Files.newBufferedWriter( Paths.get(
@@ -65,15 +67,17 @@ public class QualityAnalyzer {
     }
 
     //TODO ugly code merge with write method
-    public ImmutableSet<NamedEvaluationResultMetrics> getEvaluationResults( final ImmutableSet<CrowdtruthRunner
+    public ImmutableSet<NamedEvaluationResultMetrics> getEvaluationResults( final SemesterSettings settings, final
+    ImmutableSet<CrowdtruthRunner
             .Sample> samples ) {
         final ImmutableMap<String, TrueDefect> trueDefects;
         final ImmutableSet.Builder<NamedEvaluationResultMetrics> builder = ImmutableSet.builder();
         try {
-            trueDefects = AllTrueDefectsMixin.findAllTrueDefects().stream()
+            trueDefects = AllTrueDefectsMixin.findAllTrueDefects( settings ).stream()
                     .collect( ImmutableMap.toImmutableMap( TrueDefect::getAboutEmEid, Function.identity() ) );
 
             samples.forEach( sample -> {
+                System.err.println( "sample: " + sample );
                 final ImmutableMap<String, FinalDefect> finalDefectsPerSample = sample.getFinalDefects()
                         .stream().collect( ImmutableMap.toImmutableMap( FinalDefect::getEmeId, Function.identity
                                 () ) );
@@ -96,13 +100,14 @@ public class QualityAnalyzer {
     }
 
     //TODO ugly code merge with write method
-    public ImmutableSet<NamedEvaluationResultMetrics> getEvaluationResultsForMediaUnits( final
+    public ImmutableSet<NamedEvaluationResultMetrics> getEvaluationResultsForMediaUnits( final SemesterSettings
+                                                                                                 settings, final
                                                                                          ImmutableSet<CrowdtruthRunner
                                                                                                  .Sample> samples ) {
         final ImmutableMap<String, TrueDefect> trueDefects;
         final ImmutableSet.Builder<NamedEvaluationResultMetrics> builder = ImmutableSet.builder();
         try {
-            trueDefects = AllTrueDefectsMixin.findAllTrueDefects().stream()
+            trueDefects = AllTrueDefectsMixin.findAllTrueDefects( settings ).stream()
                     .collect( ImmutableMap.toImmutableMap( TrueDefect::getAboutEmEid, Function.identity() ) );
 
             samples.forEach( sample -> {
@@ -126,9 +131,10 @@ public class QualityAnalyzer {
         return builder.build();
     }
 
-    public static void analyze( final ImmutableSet<CrowdtruthRunner.Sample> defects, final String idKey, final String
-            outputFilePath ) {
-        new QualityAnalyzer().write( defects, idKey, outputFilePath );
+    public static void analyze( final SemesterSettings settings, final ImmutableSet<CrowdtruthRunner.Sample> defects,
+                                final String idKey, final String
+                                        outputFilePath ) {
+        new QualityAnalyzer().write( settings, defects, idKey, outputFilePath );
     }
 
     public static QualityAnalyzer create() {

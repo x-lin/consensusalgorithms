@@ -1,4 +1,4 @@
-import {AfterViewInit, Component, Input, OnDestroy, OnInit} from '@angular/core';
+import {AfterViewInit, Component, Input, OnChanges, OnDestroy, OnInit, SimpleChanges} from '@angular/core';
 import 'taucharts/dist/plugins/tooltip';
 import 'taucharts/dist/plugins/trendline';
 import * as taucharts from 'taucharts';
@@ -9,7 +9,7 @@ import {Subject, Subscription} from 'rxjs';
   templateUrl: './correlation-diagrams.component.html',
   styleUrls: ['./correlation-diagrams.component.css']
 })
-export class CorrelationDiagramsComponent implements OnInit, OnDestroy, AfterViewInit {
+export class CorrelationDiagramsComponent implements OnInit, OnDestroy, OnChanges, AfterViewInit {
   @Input() data;
 
   @Input() name: string;
@@ -43,6 +43,13 @@ export class CorrelationDiagramsComponent implements OnInit, OnDestroy, AfterVie
 
   ngOnInit(): void {
     this.nameSquashed = this.name.replace(/ /g, '');
+  }
+
+  ngOnChanges(changes: SimpleChanges): void {
+    if (this.nameSquashed !== undefined) {
+      console.log("updating correlation diagrams")
+      this.updateCharts(this.data);
+    }
   }
 
   updateCharts(data) {

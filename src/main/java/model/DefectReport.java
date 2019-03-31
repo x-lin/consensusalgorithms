@@ -2,13 +2,17 @@ package model;
 
 
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Maps;
 import org.jooq.Record;
 import org.jooq.impl.DSL;
 
 import java.sql.Connection;
+import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.function.Predicate;
+import java.util.stream.Collectors;
 
 /**
  * @author LinX
@@ -199,9 +203,25 @@ public class DefectReport {
     public static ImmutableSet<DefectReport> fetchDefectReports( final Connection connection, final
     Predicate<DefectReport> filter ) {
         final String sql = "select * from " + DEFECT_REPORT_TABLE;
-        return DSL.using( connection )
+        final ImmutableSet<DefectReport> defectReports = DSL.using( connection )
                 .fetch( sql )
-                .map( DefectReport::new ).stream().filter( filter ).collect( ImmutableSet.toImmutableSet() );
+                .map( DefectReport::new ).stream().filter( filter ).filter
+                        ( e -> !Objects.equals( e.getEmeId
+                                (), "" ) )
+                .collect( ImmutableSet.toImmutableSet() );
+        final Map<Integer, List<DefectReport>> defectsByWorker = defectReports.stream().collect( Collectors
+                .groupingBy( DefectReport::getWorkerId ) );
+        return defectsByWorker.values().stream().flatMap( r -> {
+            final Map<String, DefectReport> emeAndTaskIds = Maps.newHashMap();
+            r.forEach( d -> emeAndTaskIds.compute( d.emeId, ( k, v ) -> {
+                if (v == null) {
+                    return d;
+                } else {
+                    return v.getTaskId() < d.getTaskId() ? d : v;
+                }
+            } ) );
+            return emeAndTaskIds.values().stream();
+        } ).collect( ImmutableSet.toImmutableSet() );
     }
 
     public static Predicate<DefectReport> workshopFilter( final String... workshops ) {

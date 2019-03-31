@@ -1,6 +1,6 @@
 import {Injectable} from '@angular/core';
 import {BehaviorSubject, Subject} from 'rxjs';
-import {DataResult, DataResultHeaders, NamedEvaluationScoresResponse, RestService} from '../rest/rest.service';
+import {DataResult, DataResultHeaders, NamedEvaluationScoresResponse, RestService, Semester} from '../rest/rest.service';
 
 @Injectable({
   providedIn: 'root'
@@ -10,12 +10,19 @@ export class CrowdtruthService {
 
   crowdtruthPage = new BehaviorSubject(CrowdtruthPage.CORRELATIONS_WORKERS);
 
+  semester = Semester.WS2017;
+
   constructor(private restService: RestService) {
-    this.restService.getWorkerEvaluationResult().subscribe(data => this.crowdtruthEvaluation.next(this.createPageData(data)));
+    this.restService.getWorkerEvaluationResult(this.semester).subscribe(data => this.crowdtruthEvaluation.next(this.createPageData(data)));
   }
 
   pageChanged(newPage: CrowdtruthPage) {
     this.crowdtruthPage.next(newPage);
+  }
+
+  semesterChanged(semester: Semester) {
+    this.semester = semester;
+    this.restService.getWorkerEvaluationResult(semester).subscribe(data => this.crowdtruthEvaluation.next(this.createPageData(data)));
   }
 
   private createCorrelationData(qualityScores, personScores, titleName) {
@@ -105,6 +112,7 @@ export enum CrowdtruthPage {
   CORRELATIONS_ANNOTATIONS,
   CORRELATIONS_MEDIA_UNITS,
   CORRELATIONS_WORKERS,
+  BOX_PLOTS_WORKERS,
   TABLE_WORKERS,
   TABLE_ANNOTATIONS,
   TABLE_MEDIA_UNITS,

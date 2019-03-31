@@ -1,10 +1,13 @@
-<ng-template [ngIf]="data !== null">
+<ng-template [ngIf]="data !== null && data !== undefined">
   <ng-template [ngIf]="currentPage === crowdtruthPage.CORRELATIONS_WORKERS">
     <workerScores-chart [data]="data.workers.evaluationResultMetrics" [pearsonScores]="data.workers.pearsonScores" [name]="'Worker'"></workerScores-chart>
   </ng-template>
   <ng-template [ngIf]="currentPage === crowdtruthPage.TABLE_WORKERS&& data !== undefined">
     <app-tab-sheet [columnsToDisplay]="data.workers.tableHeaderNames" [displayedColumns]="data.workers.fieldNames" [data]="data.workers.evaluationResultMetrics"
                    [title]="data.workers.title"></app-tab-sheet>
+  </ng-template>
+  <ng-template [ngIf]="currentPage === crowdtruthPage.BOX_PLOTS_WORKERS">
+    <box-plot [name]="'Worker Scores'" [data]="boxPlotData" [xAxis]="'type'" [yAxis]="'value'"></box-plot>
   </ng-template>
 
   <ng-template [ngIf]="currentPage === crowdtruthPage.CORRELATIONS_ANNOTATIONS">

@@ -4,7 +4,7 @@ import com.google.common.base.Preconditions;
 import com.google.common.base.Predicates;
 import com.google.common.collect.ImmutableSet;
 import model.*;
-import statistic.FinalDefectAnalyzer;
+import web.SemesterSettings;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -22,33 +22,38 @@ import java.util.stream.Collectors;
 public class MajorityVotingRunner {
     private final ImmutableSet<FinalDefect> finalDefects;
 
-    private MajorityVotingRunner() throws IOException, SQLException {
-        this.finalDefects = getFinalDefects();
+    private final SemesterSettings settings;
+
+    private MajorityVotingRunner( final SemesterSettings settings ) throws IOException, SQLException {
+        this.settings = settings;
+        this.finalDefects = getFinalDefects( settings );
     }
 
-    public static ImmutableSet<FinalDefect> calculateFinalDefects() throws IOException, SQLException {
-        return new MajorityVotingRunner().finalDefects;
+    public static ImmutableSet<FinalDefect> calculateFinalDefects( final SemesterSettings settings ) throws
+            IOException, SQLException {
+        return new MajorityVotingRunner( settings ).finalDefects;
     }
 
-    private static ImmutableSet<FinalDefect> getFinalDefects() throws IOException, SQLException {
+    private static ImmutableSet<FinalDefect> getFinalDefects( final SemesterSettings settings ) throws IOException,
+            SQLException {
         Files.createDirectories( Paths.get( "output/majorityvoting" ) );
 
         try (Connection connection = DatabaseConnector.createConnection()) {
             //calculate based on all defect reports
             final ImmutableSet<DefectReport> defectReports = DefectReport.fetchDefectReports( connection, Predicates
                     .alwaysTrue() );
-            final ImmutableSet<Eme> emes = Eme.fetchEmes( connection );
+            final ImmutableSet<Eme> emes = Eme.fetchEmes( connection, settings );
             final ImmutableSet<FinalDefect> finalDefects = new MajorityVotingAggregator( emes, defectReports )
                     .aggregate();
 
             final ImmutableSet<DefectReport> defectReportsFiltered = DefectReport.fetchDefectReports( connection,
-                    DefectReport.workshopFilter( "WS1", "WS2", "WS3", "WS4" ) );
+                    settings.getDefectReportFilter() );
             final ImmutableSet<FinalDefect> finalDefectsFiltered = new MajorityVotingAggregator( emes,
                     defectReportsFiltered )
                     .aggregate();
 
             //compare with DB table for correctness
-            verifySameResults( finalDefectsFiltered, FinalDefect.fetchFinalDefects( connection ) );
+//            verifySameResults( finalDefectsFiltered, FinalDefect.fetchFinalDefects( connection, settings ) );
 
             return finalDefectsFiltered;
         }

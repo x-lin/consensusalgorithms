@@ -32,36 +32,32 @@ export class RestService {
 
   constructor(private http: HttpClient) { }
 
-  getFinalDefects(algorithmType: AlgorithmType, parameters: any): Observable<any> {
+  getFinalDefects(algorithmType: AlgorithmType, parameters: any, semester: Semester): Observable<any> {
     if (algorithmType === AlgorithmType.CrowdTruth) {
-      return this.http.get(RestService.ENDPOINT + 'algorithms/finalDefects/CrowdTruth');
+      return this.http.get(RestService.ENDPOINT + 'algorithms/finalDefects/CrowdTruth?' + this.getSemesterParam(semester));
     } else if (algorithmType === AlgorithmType.MajorityVoting) {
-      return this.http.get(RestService.ENDPOINT + 'algorithms/finalDefects/MajorityVoting');
+      return this.http.get(RestService.ENDPOINT + 'algorithms/finalDefects/MajorityVoting?' + this.getSemesterParam(semester));
     } else if (algorithmType === AlgorithmType.AdaptiveMajorityVoting) {
-      return this.http.get(RestService.ENDPOINT + 'algorithms/finalDefects/AdaptiveMajorityVoting?threshold=' + parameters.threshold);
+      return this.http.get(RestService.ENDPOINT + 'algorithms/finalDefects/AdaptiveMajorityVoting?threshold=' + parameters.threshold + '&' + this.getSemesterParam(semester));
     } else {
       console.log('Unknown algorithm type', algorithmType);
     }
   }
 
-  getWorkerEvaluationResult(): Observable<any> {
-    return this.http.get(RestService.ENDPOINT + 'algorithms/workers');
+  getWorkerEvaluationResult(semester: Semester): Observable<any> {
+    return this.http.get(RestService.ENDPOINT + 'algorithms/workers?' + this.getSemesterParam(semester));
   }
 
-  getAnnotationEvaluationResult(): Observable<any> {
-    return this.http.get(RestService.ENDPOINT + 'algorithms/annotations');
+  getAllMetrics(semester: Semester): Observable<any> {
+    return this.http.get(RestService.ENDPOINT + 'algorithms/all/metrics?' + this.getSemesterParam(semester));
   }
 
-  getMediaUnitEvaluationResult(): Observable<any> {
-    return this.http.get(RestService.ENDPOINT + 'algorithms/mediaUnits');
+  getFinalDefectsComparison(semester: Semester): Observable<any> {
+    return this.http.get(RestService.ENDPOINT + 'algorithms/all/finalDefects?' + this.getSemesterParam(semester));
   }
 
-  getAllMetrics(): Observable<any> {
-    return this.http.get(RestService.ENDPOINT + 'algorithms/all/metrics');
-  }
-
-  getFinalDefectsComparison(): Observable<any> {
-    return this.http.get(RestService.ENDPOINT + 'algorithms/all/finalDefects');
+  private getSemesterParam(semester: Semester) {
+    return 'semester=' + semester;
   }
 }
 
@@ -86,4 +82,9 @@ export enum AlgorithmType {
   CrowdTruth = 'CrowdTruth',
   MajorityVoting = 'MajorityVoting',
   AdaptiveMajorityVoting = 'AdaptiveMajorityVoting'
+}
+
+export enum Semester {
+  WS2017 = 'WS2017',
+  SS2018 = 'SS2018'
 }

@@ -1,6 +1,6 @@
 import {Injectable} from '@angular/core';
-import {BehaviorSubject, Subject} from 'rxjs';
-import {AlgorithmType, DataResult, DataResultHeaders, NamedEvaluationScoresResponse, RestService} from '../rest/rest.service';
+import {BehaviorSubject} from 'rxjs';
+import {AlgorithmType, RestService, Semester} from '../rest/rest.service';
 
 @Injectable({
   providedIn: 'root'
@@ -18,7 +18,13 @@ export class FinalDefectsService {
     type: AlgorithmType.CrowdTruth
   };
 
+  semester = Semester.WS2017;
+
   constructor(private restService: RestService) {
+    this.refreshData();
+  }
+
+  private refreshData() {
     this.algorithmTypeChanged(this.finalDefectsParameters.type, {});
     this.getMetricsComparison();
     this.getFinalDefectsComparison();
@@ -28,9 +34,14 @@ export class FinalDefectsService {
     this.pageSubject.next(newPage);
   }
 
+  semesterChanged(semester: Semester) {
+    this.semester = semester;
+    this.refreshData();
+  }
+
   algorithmTypeChanged(algorithmType: AlgorithmType, parameters) {
     this.finalDefectsParameters.type = algorithmType;
-    this.restService.getFinalDefects(algorithmType, parameters).subscribe(d => {
+    this.restService.getFinalDefects(algorithmType, parameters, this.semester).subscribe(d => {
       this.dataSubject.next({
         data: d.evaluationResults,
         title: 'Final Defects - ' + algorithmType,
@@ -60,7 +71,7 @@ export class FinalDefectsService {
   }
 
   getMetricsComparison() {
-    this.restService.getAllMetrics().subscribe(d => {
+    this.restService.getAllMetrics(this.semester).subscribe(d => {
       this.allMetricsSubject.next({
         title: 'Final Defects - Metrics Comparison',
         fieldNames: ['algorithm', 'precision', 'recall', 'fmeasure', 'accuracy', 'truePositives', 'trueNegatives', 'falsePositives', 'falseNegatives'],
@@ -74,7 +85,7 @@ export class FinalDefectsService {
   }
 
   getFinalDefectsComparison() {
-    this.restService.getFinalDefectsComparison().subscribe(d => {
+    this.restService.getFinalDefectsComparison(this.semester).subscribe(d => {
       const names = ['emeId', 'trueDefectType'];
       const data = [];
       d.forEach(entry => {

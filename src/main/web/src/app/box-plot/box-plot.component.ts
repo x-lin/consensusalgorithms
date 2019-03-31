@@ -1,4 +1,4 @@
-import {AfterViewInit, Component, Input, OnDestroy, OnInit} from '@angular/core';
+import {AfterViewInit, Component, Input, OnChanges, OnDestroy, OnInit, SimpleChanges} from '@angular/core';
 import 'taucharts/dist/plugins/box-whiskers';
 import 'taucharts/dist/plugins/tooltip';
 import * as taucharts from 'taucharts';
@@ -7,7 +7,7 @@ import * as taucharts from 'taucharts';
   selector: 'box-plot',
   templateUrl: './box-plot.component.html'
 })
-export class BoxPlotComponent implements OnInit, OnDestroy, AfterViewInit {
+export class BoxPlotComponent implements OnInit, OnDestroy, OnChanges, AfterViewInit {
   @Input() data;
 
   @Input() xAxis;
@@ -15,8 +15,6 @@ export class BoxPlotComponent implements OnInit, OnDestroy, AfterViewInit {
   @Input() yAxis;
 
   @Input() name: string;
-
-  @Input() colorField: string;
 
   private chart: taucharts.Chart;
 
@@ -31,17 +29,23 @@ export class BoxPlotComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   ngAfterViewInit(): void {
-    this.updateCharts();
+    this.updateCharts(this.data);
   }
 
   ngOnInit(): void {
     this.nameSquashed = this.name.replace(/ /g, '');
   }
 
-  updateCharts() {
+  ngOnChanges(changes: SimpleChanges): void {
+    if (this.nameSquashed !== undefined) {
+      this.updateCharts(this.data);
+    }
+  }
+
+  updateCharts(data) {
     this.removeChart(this.chart);
-    this.chart = new taucharts.Chart(this.createConfig());
-    this.chart.renderTo('#bar' + this.nameSquashed);
+    this.chart = new taucharts.Chart(this.createConfig(data, this.xAxis, this.yAxis));
+    this.chart.renderTo('#box' + this.nameSquashed);
   }
 
 
@@ -51,14 +55,17 @@ export class BoxPlotComponent implements OnInit, OnDestroy, AfterViewInit {
     }
   }
 
-  private createConfig(): any {
+  private createConfig(payload: any, xAxis, yAxis): any {
     return {
-      data: this.data,
-      type: 'horizontalBar',
-      x: this.xAxis,
-      y: this.yAxis,
-      color: this.colorField,
-      plugins: [taucharts.api.plugins.get('legend')(), taucharts.api.plugins.get('tooltip')()]
+      data: payload,
+      guide: {
+        x: {min: 0, max: 1, nice: false},
+        y: {min: 0, max: 1, nice: false}
+      },
+      type: 'scatterplot',
+      x: xAxis,
+      y: yAxis,
+      plugins: [taucharts.api.plugins.get('tooltip')(), taucharts.api.plugins.get('box-whiskers')()]
     };
   }
 }

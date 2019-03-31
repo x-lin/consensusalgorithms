@@ -6,6 +6,7 @@ import com.google.common.collect.Maps;
 import com.opencsv.CSVWriter;
 import model.*;
 import org.jooq.lambda.UncheckedException;
+import web.SemesterSettings;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -42,17 +43,23 @@ public class CrowdtruthRunner {
 
     private final ImmutableMap<String, Eme> emes;
 
-    private CrowdtruthRunner() {
+    private final SemesterSettings semesterSettings;
+
+    private CrowdtruthRunner( final SemesterSettings semesterSettings ) {
+        this.semesterSettings = semesterSettings;
         try (Connection c = DatabaseConnector.createConnection()) {
-            this.defectReports = DefectReport.fetchDefectReports( c, DefectReport.workshopFilter
-                    ( "WS1", "WS2", "WS3", "WS4" ) );
+            this.defectReports = DefectReport.fetchDefectReports( c, semesterSettings.getDefectReportFilter() );
             this.metricsScores = getMetricsScores( this.defectReports );
-            this.emes = Eme.fetchEmes( c ).stream().collect( ImmutableMap
+            this.emes = Eme.fetchEmes( c, semesterSettings ).stream().collect( ImmutableMap
                     .toImmutableMap( Eme::getEmeId, Function.identity() ) );
             this.finalDefects = getFinalDefects( this.metricsScores, this.emes );
         } catch (SQLException | IOException e) {
             throw new UncheckedException( e );
         }
+    }
+
+    public SemesterSettings getSemesterSettings() {
+        return this.semesterSettings;
     }
 
     public ImmutableSet<FinalDefect> getFinalDefectsFromWorkers( final ImmutableSet<Integer> workerIds ) {
@@ -115,6 +122,7 @@ public class CrowdtruthRunner {
         return this.metricsScores;
     }
 
+
     private ImmutableSet<FinalDefect> getFinalDefectForMediaUnit( final String emeId ) {
         return this.defectReports.stream().filter( d -> Objects.equals( d.getEmeId(), emeId ) ).map( d ->
                 FinalDefect.builder(
@@ -135,8 +143,8 @@ public class CrowdtruthRunner {
                 .fromDefectType( d.getDefectType() ) ).build() ).collect( ImmutableSet.toImmutableSet() );
     }
 
-    public static CrowdtruthRunner create() {
-        return new CrowdtruthRunner();
+    public static CrowdtruthRunner create( final SemesterSettings settings ) {
+        return new CrowdtruthRunner( settings );
     }
 
     private static ImmutableSet<FinalDefect> getFinalDefects( final Metrics.MetricsScores metricsScores, final

@@ -28,6 +28,10 @@ export class FinalDefectsComponent implements OnInit, OnDestroy {
 
   private finalDefectsComparison;
 
+  private confusionMatrixForBarChart;
+
+  private allMetricsForBarChart;
+
   constructor(private restService: RestService, private finalDefectsService: FinalDefectsService) {
   }
 
@@ -48,15 +52,21 @@ export class FinalDefectsComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     this.dataSubscription = this.finalDefectsService.dataSubject.subscribe(r => this.data = r );
-    this.allMetricsSubscription = this.finalDefectsService.allMetricsSubject.subscribe(r => this.allMetrics = r );
+    this.allMetricsSubscription = this.finalDefectsService.allMetricsSubject.subscribe(r => {
+      this.allMetrics = r;
+      if (this.allMetrics !== null) {
+        this.allMetricsForBarChart = this.getAllMetricsForBarChart(this.allMetrics);
+        this.confusionMatrixForBarChart = this.getConfusionMatrixForBarChart(this.allMetrics);
+      }
+    } );
     this.finalDefectsComparisonSubscription = this.finalDefectsService.finalDefectComparisonSubject.subscribe(r =>
       this.finalDefectsComparison = r);
     this.currentPageSubscription = this.finalDefectsService.pageSubject.subscribe(page => this.currentPage = page );
   }
 
-  allMetricsForBarChart() {
+  getAllMetricsForBarChart(allMetrics) {
     const data = [];
-    this.allMetrics.data.forEach(d => {
+    allMetrics.data.forEach(d => {
       data.push({
         type: 'recall',
         value: d.recall,
@@ -81,9 +91,9 @@ export class FinalDefectsComponent implements OnInit, OnDestroy {
     return data;
   }
 
-  confusionMatrixForBarChart() {
+  getConfusionMatrixForBarChart(allMetrics) {
     const data = [];
-    this.allMetrics.data.forEach(d => {
+    allMetrics.data.forEach(d => {
       data.push({
           type: 'truePositives',
           value: d.truePositives,

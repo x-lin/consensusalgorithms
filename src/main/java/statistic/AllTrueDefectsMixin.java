@@ -10,6 +10,7 @@ import com.opencsv.CSVWriter;
 import model.DatabaseConnector;
 import model.Eme;
 import model.TrueDefect;
+import web.SemesterSettings;
 
 import java.io.IOException;
 import java.io.Reader;
@@ -35,7 +36,7 @@ public class AllTrueDefectsMixin {
 
     private final ImmutableSet<TrueDefect> allTrueDefects;
 
-    public AllTrueDefectsMixin() throws IOException, SQLException {
+    public AllTrueDefectsMixin( final SemesterSettings settings ) throws IOException, SQLException {
         Files.createDirectories( Paths.get( "output" ) );
 
         try (Connection connection = DatabaseConnector.createConnection()) {
@@ -49,7 +50,7 @@ public class AllTrueDefectsMixin {
             trueDefectsByEme.values().forEach( e -> e.removeIf( s -> s.getAboutEmEid().equals( "NA" ) ) );
             trueDefectsByEme.values().removeIf( Set::isEmpty );
 
-            final ImmutableMap<String, Eme> emes = Eme.fetchEmes( connection ).stream().collect( ImmutableMap
+            final ImmutableMap<String, Eme> emes = Eme.fetchEmes( connection, settings ).stream().collect( ImmutableMap
                     .toImmutableMap( Eme::getEmeId, Function.identity() ) );
             try (CSVWriter allTrueDefects = new CSVWriter( Files.newBufferedWriter( Paths.get(
                     ALL_TRUE_DEFECTS_OUT_CSV ) ) )) {
@@ -70,8 +71,9 @@ public class AllTrueDefectsMixin {
         return this.allTrueDefects;
     }
 
-    public static ImmutableSet<TrueDefect> findAllTrueDefects() throws IOException, SQLException {
-        return new AllTrueDefectsMixin().getAllTrueDefects();
+    public static ImmutableSet<TrueDefect> findAllTrueDefects( final SemesterSettings settings ) throws IOException,
+            SQLException {
+        return new AllTrueDefectsMixin( settings ).getAllTrueDefects();
     }
 
     private static void addAdditionalTrueDefects( final Map<String, Set<TrueDefect>> trueDefectsByEme, final

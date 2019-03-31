@@ -7,6 +7,7 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Maps;
 import com.google.common.util.concurrent.AtomicDouble;
 import model.*;
+import web.SemesterSettings;
 
 import java.io.IOException;
 import java.math.BigDecimal;
@@ -26,12 +27,14 @@ import java.util.stream.Collectors;
  * @author LinX
  */
 public class AdaptiveMajorityVoting {
-    public ImmutableSet<FinalDefect> run( final double threshold ) throws IOException, SQLException {
+
+    public ImmutableSet<FinalDefect> run( final double threshold, final SemesterSettings settings )
+            throws IOException, SQLException {
         try (Connection connection = DatabaseConnector.createConnection()) {
-            final ImmutableSet<Eme> emes = Eme.fetchEmes( connection );
+            final ImmutableSet<Eme> emes = Eme.fetchEmes( connection, settings );
 
             final Set<DefectReport> defectReportsFiltered = DefectReport.fetchDefectReports( connection,
-                    DefectReport.workshopFilter( "WS1", "WS2", "WS3", "WS4" ) );
+                    settings.getDefectReportFilter() );
 
             ImmutableSet<FinalDefect> finalDefectsFiltered;
             final Map<WorkerId, List<DefectReport>> initialDefectReportsPerWorker = defectReportsFiltered.stream()
@@ -83,6 +86,7 @@ public class AdaptiveMajorityVoting {
     }
 
     public static void main( final String[] args ) throws IOException, SQLException {
-        final ImmutableSet<FinalDefect> finalDefects = new AdaptiveMajorityVoting().run( 0.6 );
+        final ImmutableSet<FinalDefect> finalDefects = new AdaptiveMajorityVoting().run( 0.6, SemesterSettings.ws2017
+                () );
     }
 }

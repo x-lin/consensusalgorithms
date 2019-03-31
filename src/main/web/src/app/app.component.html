@@ -1,8 +1,19 @@
 <nav class="navbar navbar-dark fixed-top bg-dark flex-md-nowrap p-0 shadow">
-  <a class="navbar-brand col-sm-3 col-md-2 mr-0" href="#"></a>
   <div class="navbar-buttons">
-    <button mat-button (click)="onCrowdtruthClicked()" style="color:#EEEEEE">Crowdtruth Metrics</button>
-    <button mat-button (click)="onFinalDefectsClicked()" style="color:#EEEEEE">Final Defects</button>
+    <button mat-button
+            [ngStyle]="showStyle(activeSemester === semesterType.WS2017)"
+            (click)="activeSemesterChanged(semesterType.WS2017)">
+      WS2017
+    </button>
+    <button mat-button
+            [ngStyle]="showStyle(activeSemester === semesterType.SS2018)"
+            (click)="activeSemesterChanged(semesterType.SS2018)">
+      SS2018
+    </button>
+  </div>
+  <div class="navbar-buttons">
+    <button mat-button (click)="onCrowdtruthClicked()" [ngStyle]="showStyle(crowdTruthClicked)">Crowdtruth Metrics</button>
+    <button mat-button (click)="onFinalDefectsClicked()" [ngStyle]="showStyle(finalDefectsClicked)">Final Defects</button>
   </div>
 </nav>
 
@@ -20,7 +31,9 @@
 
             <mat-card-content>
               <button mat-flat-button style="width: 100%; font-weight: bold; margin-top: 20px" (click)="crowdtruthPageChanged(crowdtruthPage.CORRELATIONS_WORKERS)">Worker Scores Correlation</button>
+              <button mat-flat-button style="width: 100%; font-weight: bold;" (click)="crowdtruthPageChanged(crowdtruthPage.BOX_PLOTS_WORKERS)">Worker Scores Box Plorts</button>
               <button mat-flat-button style="width: 100%; font-weight: bold;" (click)="crowdtruthPageChanged(crowdtruthPage.TABLE_WORKERS)">Worker Scores Table</button>
+
               <!--<button mat-flat-button style="width: 100%; font-weight: bold; margin-top: 20px" (click)="crowdtruthPageChanged(crowdtruthPage.CORRELATIONS_ANNOTATIONS)">Annotation Scores Correlation</button>-->
               <!--<button mat-flat-button style="width: 100%; font-weight: bold;" (click)="crowdtruthPageChanged(crowdtruthPage.TABLE_ANNOTATIONS)">Annotation Scores Table</button>-->
               <!--<button mat-flat-button style="width: 100%; font-weight: bold; margin-top: 20px" (click)="crowdtruthPageChanged(crowdtruthPage.CORRELATIONS_MEDIA_UNITS)">Media Unit Scores Correlation</button>-->

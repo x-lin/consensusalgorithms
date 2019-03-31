@@ -21,7 +21,9 @@ export class CrowdtruthComponent implements OnInit, OnDestroy {
 
   private data;
 
-  constructor(private restService: RestService, private crowdtruthService: CrowdtruthService) {
+  private boxPlotData;
+
+  constructor(private crowdtruthService: CrowdtruthService) {
   }
 
   ngOnDestroy(): void {
@@ -36,9 +38,35 @@ export class CrowdtruthComponent implements OnInit, OnDestroy {
   ngOnInit(): void {
     this.crowdtruthEvaluationSubscription = this.crowdtruthService.crowdtruthEvaluation.subscribe(r => {
       this.data = r;
+      if (r !== null) {
+        this.boxPlotData = this.workerScoresBoxPlotData(r);
+      }
       this.currentPageSubscription = this.crowdtruthService.crowdtruthPage.subscribe(page => {
         this.currentPage = page;
       });
     });
+  }
+
+  workerScoresBoxPlotData(data) {
+    const d = [];
+    data.workers.evaluationResultMetrics.forEach(m => {
+      d.push({
+        type: 'worker quality',
+        value: m.quality
+      }, {
+        type: 'fmeasure',
+        value: m.fmeasure
+      }, {
+        type: 'precision',
+          value: m.precision
+      }, {
+        type: 'recall',
+        value: m.recall
+      }, {
+        type: 'accuracy',
+        value: m.accuracy
+      });
+    });
+    return d;
   }
 }

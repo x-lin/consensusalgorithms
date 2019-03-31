@@ -1,5 +1,5 @@
 import {Component, OnInit} from '@angular/core';
-import {AlgorithmType, RestService} from './rest/rest.service';
+import {AlgorithmType, RestService, Semester} from './rest/rest.service';
 import {MatRadioChange} from '@angular/material';
 import {CrowdtruthPage, CrowdtruthService} from './crowdtruth/crowdtruth.service';
 import {FinalDefectsPage, FinalDefectsService} from './final-defects/final-defects.service';
@@ -16,6 +16,8 @@ export class AppComponent implements OnInit {
 
   private finalDefectsPageClicked = FinalDefectsPage.TABLE;
 
+  private activeSemester = Semester.WS2017;
+
   private algorithmTypes = Object.keys(AlgorithmType);
 
   private algorithmType = AlgorithmType;
@@ -23,6 +25,8 @@ export class AppComponent implements OnInit {
   private crowdtruthPage = CrowdtruthPage;
 
   private finalDefectsPage = FinalDefectsPage;
+
+  private semesterType = Semester;
 
   private finalDefectsParameters = {
     type: AlgorithmType.CrowdTruth,
@@ -32,7 +36,16 @@ export class AppComponent implements OnInit {
     threshold: 0
   };
 
-  constructor(private restService: RestService, private crowdtruthService: CrowdtruthService, private finalDefectsService: FinalDefectsService) {
+  constructor(
+    private crowdtruthService: CrowdtruthService, private finalDefectsService: FinalDefectsService) {
+  }
+
+  private activeButtonStyle = {'color': '#333333', 'background-color': '#FFFFFF'};
+
+  private inactiveButtonStyle = {'color': '#EEEEEE'};
+
+  private showStyle(active: boolean) {
+    return active ? this.activeButtonStyle : this.inactiveButtonStyle;
   }
 
   onCrowdtruthClicked() {
@@ -71,4 +84,11 @@ export class AppComponent implements OnInit {
     this.finalDefectsService.pageChanged(newPage);
     this.finalDefectsPageClicked = newPage;
   }
+
+  activeSemesterChanged(semester: Semester) {
+    this.activeSemester = semester;
+    this.finalDefectsService.semesterChanged(semester);
+    this.crowdtruthService.semesterChanged(semester);
+  }
 }
+
