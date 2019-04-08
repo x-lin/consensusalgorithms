@@ -23,21 +23,22 @@ public class MediaUnit implements Comparable<MediaUnit> {
 
     private final Set<Worker> workers = Sets.newHashSet();
 
-    public MediaUnit( MediaUnitId id, Set<MediaUnitAnnotationId> availableAnnotations ) {
+    public MediaUnit( final MediaUnitId id, final Set<MediaUnitAnnotationId> availableAnnotations ) {
         this.id = id;
         this.availableAnnotations = ImmutableBiMap.copyOf( Maps.toMap( availableAnnotations, a -> new
                 MediaUnitAnnotation( a,
                 id ) ) );
     }
 
-    public void annotate( Worker worker, MediaUnitAnnotationId mediaUnitAnnotationId, boolean chosen ) {
+    public void annotate( final Worker worker, final MediaUnitAnnotationId mediaUnitAnnotationId,
+            final boolean chosen ) {
         Preconditions.checkArgument( this.availableAnnotations.keySet().contains( mediaUnitAnnotationId ), "Unknown " +
                 "mediaUnitAnnotation" +
                 " %s" +
                 " for " +
                 "media unit %s.", mediaUnitAnnotationId, this.id );
-        MediaUnitAnnotation mediaUnitAnnotation = this.availableAnnotations.get( mediaUnitAnnotationId );
-        AnnotationResult result = AnnotationResult.create( chosen );
+        final MediaUnitAnnotation mediaUnitAnnotation = this.availableAnnotations.get( mediaUnitAnnotationId );
+        final AnnotationResult result = AnnotationResult.create( chosen );
         worker.annotate( this, mediaUnitAnnotation, result );
         mediaUnitAnnotation.addWorkerAnnotationResult( worker, result );
         this.workers.add( worker );
@@ -57,13 +58,12 @@ public class MediaUnit implements Comparable<MediaUnit> {
         return this.id;
     }
 
-    public boolean hasAnnotation( MediaUnitAnnotationId mediaUnitAnnotationId ) {
+    public boolean hasAnnotation( final MediaUnitAnnotationId mediaUnitAnnotationId ) {
         return this.availableAnnotations.keySet().stream().anyMatch( a -> Objects.equals( mediaUnitAnnotationId
-                .getName(), a
-                .getName() ) );
+                .getName(), a.getName() ) );
     }
 
-    public ResultVector getMediaUnitVectorExcludingWorker( Worker worker ) {
+    public ResultVector getMediaUnitVectorExcludingWorker( final Worker worker ) {
         return new ResultVector( getMediaVector().getResult().entrySet().stream().collect
                 ( ImmutableMap
                         .toImmutableMap( Map.Entry::getKey, e -> getAggregatedAnnotationResult( e.getKey(), e
@@ -71,9 +71,9 @@ public class MediaUnit implements Comparable<MediaUnit> {
                                 worker ) ) ) );
     }
 
-    private AggregatedAnnotationResult getAggregatedAnnotationResult( MediaUnitAnnotation mediaUnitAnnotation,
-                                                                      Result result, Worker
-                                                                              filteredWorker ) {
+    private AggregatedAnnotationResult getAggregatedAnnotationResult( final MediaUnitAnnotation mediaUnitAnnotation,
+            final Result result, final Worker
+            filteredWorker ) {
         return new AggregatedAnnotationResult( result.getScore() - filteredWorker
                 .getWorkerVector( this ).getAnnotationResults().getResult( mediaUnitAnnotation ).getScore() );
     }
@@ -88,7 +88,7 @@ public class MediaUnit implements Comparable<MediaUnit> {
     }
 
     @Override
-    public int compareTo( MediaUnit o ) {
+    public int compareTo( final MediaUnit o ) {
         return this.id.toString().compareTo( o.getId().toString() );
     }
 }

@@ -1,5 +1,6 @@
 package statistic;
 
+import algorithms.AggregationAlgorithm;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Maps;
@@ -7,7 +8,6 @@ import com.opencsv.CSVWriter;
 import model.FinalDefect;
 import model.TrueDefect;
 import org.jooq.lambda.UncheckedException;
-import web.SemesterSettings;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -21,40 +21,44 @@ import java.util.function.Function;
  * @author LinX
  */
 public class FinalDefectAnalyzer {
-    private FinalDefectAnalyzer() {
-        //purposely left empty
+    private final AggregationAlgorithm algorithm;
+
+    private FinalDefectAnalyzer( final AggregationAlgorithm algorithm ) {
+        this.algorithm = algorithm;
     }
 
-    private void write( final SemesterSettings settings, final ImmutableSet<FinalDefect> defects, final String
-            outputFilePath ) {
+    private void write( final String outputFilePath ) {
         try {
-            final Map<String, EvaluationResult> results = getFinalDefectResults( defects, settings );
+            final Map<String, EvaluationResult> results = getFinalDefectResults();
 
             try (CSVWriter finalDefectsCsv = new CSVWriter( Files.newBufferedWriter( Paths.get(
                     outputFilePath ) ) )) {
                 finalDefectsCsv.writeNext( new String[]{"emeId", "emeText", "agreementCoeff",
                         "finalDefectType", "trueDefectType", "trueDefectId", "isTruePositive",
                         "isTrueNegative", "isFalsePositive", "isFalseNegative"} );
-                results.values().forEach( r -> finalDefectsCsv.writeNext( new
-                        String[]{r.getEmeId(), r.getEmeText(), r
-                        .getAgreementCoefficient(), r.getFinalDefectType().name(), r.getTrueDefectType().name(), r
-                        .getTrueDefectId(), writeAsStringIfTrue( r.isTruePositive()
-                ), writeAsStringIfTrue( r.isTrueNegative() ), writeAsStringIfTrue( r.isFalsePositive() ),
-                        writeAsStringIfTrue( r.isFalseNegative() )} ) );
+                results.values().forEach( r -> finalDefectsCsv.writeNext(
+                        new String[]{r.getEmeId(), r.getEmeText(), r.getAgreementCoefficient(),
+                                r.getFinalDefectType().name(), r.getTrueDefectType().name(), r.getTrueDefectId(),
+                                writeAsStringIfTrue( r.isTruePositive() ), writeAsStringIfTrue( r.isTrueNegative() ),
+                                writeAsStringIfTrue( r.isFalsePositive() ),
+                                writeAsStringIfTrue( r.isFalseNegative() )} ) );
             }
         } catch (IOException | SQLException e) {
             throw new UncheckedException( e );
         }
     }
 
-    private Map<String, EvaluationResult> getFinalDefectResults( final ImmutableSet<FinalDefect> defects, final
-    SemesterSettings settings ) throws
+    private Map<String, EvaluationResult> getFinalDefectResults() throws
             IOException, SQLException {
-        final ImmutableMap<String, TrueDefect> trueDefects = AllTrueDefectsMixin.findAllTrueDefects( settings ).stream()
-                .collect( ImmutableMap.toImmutableMap( TrueDefect::getAboutEmEid, Function.identity() ) );
+        final ImmutableMap<String, TrueDefect> trueDefects = AllTrueDefectsMixin.findAllTrueDefects(
+                this.algorithm.getSettings() ).stream()
+                                                                                .collect( ImmutableMap.toImmutableMap(
+                                                                                        TrueDefect::getAboutEmEid,
+                                                                                        Function.identity() ) );
 
-        final ImmutableMap<String, FinalDefect> finalDefects = defects
-                .stream().collect( ImmutableMap.toImmutableMap( FinalDefect::getEmeId, Function.identity() ) );
+        final ImmutableMap<String, FinalDefect> finalDefects = this.algorithm.getFinalDefects()
+                                                                             .stream().collect(
+                        ImmutableMap.toImmutableMap( FinalDefect::getEmeId, Function.identity() ) );
         final Map<String, EvaluationResult> results = Maps.newHashMap();
 
         finalDefects.values().forEach( fd -> {
@@ -70,14 +74,12 @@ public class FinalDefectAnalyzer {
         return value ? String.valueOf( true ) : "";
     }
 
-    public static void analyze( final SemesterSettings settings, final ImmutableSet<FinalDefect> defects, final
-    String outputFilePath ) {
-        new FinalDefectAnalyzer().write( settings, defects, outputFilePath );
+    public static void analyze( final AggregationAlgorithm algorithm, final String outputFilePath ) {
+        new FinalDefectAnalyzer( algorithm ).write( outputFilePath );
     }
 
-    public static ImmutableSet<EvaluationResult> getFinalDefects( final ImmutableSet<FinalDefect> defects, final
-    SemesterSettings settings ) throws
+    public static ImmutableSet<EvaluationResult> getFinalDefects( final AggregationAlgorithm algorithm ) throws
             IOException, SQLException {
-        return ImmutableSet.copyOf( new FinalDefectAnalyzer().getFinalDefectResults( defects, settings ).values() );
+        return ImmutableSet.copyOf( new FinalDefectAnalyzer( algorithm ).getFinalDefectResults().values() );
     }
 }

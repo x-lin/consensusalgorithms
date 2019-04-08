@@ -32,11 +32,10 @@ public class PearsonScores {
 
     private double calculatePearsonCorrelation( final Set<NamedEvaluationResultMetrics> metrics, final
     Function<EvaluationResultMetrics, Double> fetcher ) {
-        System.err.println( "metrics: " + metrics );
         return new PearsonsCorrelation().correlation( metrics.stream().mapToDouble(
                 NamedEvaluationResultMetrics::getQuality ).toArray(),
                 metrics.stream().mapToDouble( r -> fetcher.apply( r.getMetrics() ) )
-                        .toArray() );
+                       .toArray() );
     }
 
     public double getQualityFMeasureCorrelation() {

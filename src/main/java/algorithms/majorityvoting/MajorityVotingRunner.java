@@ -1,61 +1,59 @@
 package algorithms.majorityvoting;
 
+import algorithms.AggregationAlgorithm;
+import algorithms.crowdtruth.WorkerId;
 import com.google.common.base.Preconditions;
-import com.google.common.base.Predicates;
 import com.google.common.collect.ImmutableSet;
 import model.*;
+import utils.UncheckedSQLException;
 import web.SemesterSettings;
 
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.Optional;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 /**
  * @author LinX
  */
-public class MajorityVotingRunner {
+public class MajorityVotingRunner implements AggregationAlgorithm {
     private final ImmutableSet<FinalDefect> finalDefects;
 
     private final SemesterSettings settings;
 
-    private MajorityVotingRunner( final SemesterSettings settings ) throws IOException, SQLException {
+    protected MajorityVotingRunner( final SemesterSettings settings,
+            final Function<WorkerId, WorkerQuality> workerQuality ) {
         this.settings = settings;
-        this.finalDefects = getFinalDefects( settings );
+        this.finalDefects = getFinalDefects( this.settings, workerQuality );
     }
 
-    public static ImmutableSet<FinalDefect> calculateFinalDefects( final SemesterSettings settings ) throws
-            IOException, SQLException {
-        return new MajorityVotingRunner( settings ).finalDefects;
+    @Override
+    public ImmutableSet<FinalDefect> getFinalDefects() {
+        return this.finalDefects;
     }
 
-    private static ImmutableSet<FinalDefect> getFinalDefects( final SemesterSettings settings ) throws IOException,
-            SQLException {
-        Files.createDirectories( Paths.get( "output/majorityvoting" ) );
+    @Override
+    public SemesterSettings getSettings() {
+        return this.settings;
+    }
 
+    private static ImmutableSet<FinalDefect> getFinalDefects( final SemesterSettings settings,
+            final Function<WorkerId, WorkerQuality> workerQuality ) {
         try (Connection connection = DatabaseConnector.createConnection()) {
             //calculate based on all defect reports
-            final ImmutableSet<DefectReport> defectReports = DefectReport.fetchDefectReports( connection, Predicates
-                    .alwaysTrue() );
             final ImmutableSet<Eme> emes = Eme.fetchEmes( connection, settings );
-            final ImmutableSet<FinalDefect> finalDefects = new MajorityVotingAggregator( emes, defectReports )
-                    .aggregate();
-
             final ImmutableSet<DefectReport> defectReportsFiltered = DefectReport.fetchDefectReports( connection,
                     settings.getDefectReportFilter() );
-            final ImmutableSet<FinalDefect> finalDefectsFiltered = new MajorityVotingAggregator( emes,
-                    defectReportsFiltered )
-                    .aggregate();
 
             //compare with DB table for correctness
 //            verifySameResults( finalDefectsFiltered, FinalDefect.fetchFinalDefects( connection, settings ) );
 
-            return finalDefectsFiltered;
+            return new MajorityVotingAggregator( emes, defectReportsFiltered, workerQuality ).aggregate();
+        } catch (final SQLException e) {
+            throw new UncheckedSQLException( e );
         }
     }
 
@@ -66,10 +64,12 @@ public class MajorityVotingRunner {
 
         dbFinalDefects.forEach( db -> {
             final FinalDefect calculated = Optional.ofNullable( calculatedUnmatched.remove( db.getEmeId() ) )
-                    .orElseThrow( () -> new
-                            NoSuchElementException( "No defect with eme " + db.getEmeId() + " found in calculated " +
-                            "final " +
-                            "defects." ) );
+                                                   .orElseThrow( () -> new
+                                                           NoSuchElementException(
+                                                           "No defect with eme " + db.getEmeId() +
+                                                                   " found in calculated " +
+                                                                   "final " +
+                                                                   "defects." ) );
             Preconditions.checkArgument( calculated.getAgreementCoeff() == db.getAgreementCoeff(), "Agreement " +
                     "coefficient for eme " + db.getEmeId() + " doesn't match. Expected '%s', but was '%s'.", db
                     .getAgreementCoeff(), calculated.getAgreementCoeff() );
@@ -90,4 +90,12 @@ public class MajorityVotingRunner {
                 calculatedUnmatchedWithDefect.size(), calculatedUnmatchedWithDefect );
     }
 
+    public static MajorityVotingRunner create( final SemesterSettings settings ) {
+        return new MajorityVotingRunner( settings, MajorityVotingAggregator.PERFECT_WORKER_QUALITY );
+    }
+
+    public static MajorityVotingRunner create(
+            final SemesterSettings settings, final Function<WorkerId, WorkerQuality> workerQualityFunction ) {
+        return new MajorityVotingRunner( settings, workerQualityFunction );
+    }
 }

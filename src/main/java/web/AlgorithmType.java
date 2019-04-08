@@ -6,5 +6,7 @@ package web;
 public enum AlgorithmType {
     CrowdTruth,
     MajorityVoting,
-    AdaptiveMajorityVoting
+    AdaptiveMajorityVoting,
+    MajorityVotingWithQualificationReport,
+    MajorityVotingWithExperienceQuestionnaire
 }
