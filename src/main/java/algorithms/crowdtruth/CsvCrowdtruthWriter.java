@@ -44,7 +44,8 @@ public class CsvCrowdtruthWriter {
     }
 
     private static void runWorkerAnalysis( final CrowdtruthRunner crowdtruthRunner ) {
-        QualityAnalyzer.analyze( crowdtruthRunner.getSettings(), crowdtruthRunner.getAllWorkerScores(),
+        QualityAnalyzer.create().writeConfusionMatrix( crowdtruthRunner.getSettings(),
+                crowdtruthRunner.getAllWorkerScores(),
                 "workerId", ANAYLSIS_ALL_WORKERS_OUT_CSV );
     }
 

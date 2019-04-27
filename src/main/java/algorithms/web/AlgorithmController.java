@@ -55,13 +55,13 @@ public class AlgorithmController {
     public CrowdtruthScores workers(
             @RequestParam(value = "semester", defaultValue = "WS2017") final Semester semester ) {
         final CrowdtruthRunner crowdtruthRunner = this.crowdtruthRunners.get( semester );
-        final ImmutableSet<ArtifactWithConfusionMatrix> workerScores = QualityAnalyzer.create().getEvaluationResults(
+        final ImmutableSet<ArtifactWithConfusionMatrix> workerScores = QualityAnalyzer.create().getConfusionMatrix(
                 crowdtruthRunner.getSettings(), crowdtruthRunner.getAllWorkerScores() );
         final ImmutableSet<ArtifactWithConfusionMatrix> annotationScores =
-                QualityAnalyzer.create().getEvaluationResults( crowdtruthRunner.getSettings(),
+                QualityAnalyzer.create().getConfusionMatrix( crowdtruthRunner.getSettings(),
                         crowdtruthRunner.getAllAnnotationScores() );
         final ImmutableSet<ArtifactWithConfusionMatrix> mediaUnitScores =
-                QualityAnalyzer.create().getEvaluationResultsForMediaUnits( crowdtruthRunner.getSettings(),
+                QualityAnalyzer.create().getConfusionMatrix( crowdtruthRunner.getSettings(),
                         crowdtruthRunner.getAllMediaUnitScores() );
         return new CrowdtruthScores( workerScores, new PearsonScores( workerScores ),
                 annotationScores, new PearsonScores( annotationScores ),

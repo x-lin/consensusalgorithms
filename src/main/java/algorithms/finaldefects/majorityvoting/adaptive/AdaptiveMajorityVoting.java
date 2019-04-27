@@ -55,9 +55,7 @@ public class AdaptiveMajorityVoting implements FinalDefectAggregationAlgorithm {
                              defectReportsPerWorker::remove );
 
             lowestAgreement.set(
-                    Collections.min( agreement.values().isEmpty() ?
-                            ImmutableSet.of( 0.0 ) :
-                            agreement.values() ) ); //TODO  correct?
+                    Collections.min( agreement.values().isEmpty() ? ImmutableSet.of( 0.0 ) : agreement.values() ) );
         }
         return aggregate( emes, new DefectReports( defectReportsPerWorker.values().stream().flatMap(
                 Collection::stream ).collect( ImmutableSet.toImmutableSet() ) ) );
