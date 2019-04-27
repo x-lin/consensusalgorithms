@@ -1,5 +1,6 @@
-package algorithms.finaldefects;
+package algorithms.finaldefects.crowdtruth;
 
+import algorithms.finaldefects.SemesterSettings;
 import model.DefectReport;
 
 /**

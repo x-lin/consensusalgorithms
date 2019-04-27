@@ -5,14 +5,21 @@ import algorithms.finaldefects.SemesterSettings;
 import com.google.common.collect.ImmutableSet;
 import org.jooq.Record;
 import org.jooq.impl.DSL;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import utils.UncheckedSQLException;
 
 import java.sql.Connection;
+import java.sql.SQLException;
 import java.util.Objects;
+import java.util.Optional;
 
 /**
  * @author LinX
  */
 public class Participant {
+    private static final Logger LOG = LoggerFactory.getLogger( Participant.class );
+
     public static final String PARTICIPANT_TABLE = "participant";
 
     public static final String NAME_COLUMN = "name";
@@ -27,7 +34,7 @@ public class Participant {
 
     private final String name;
 
-    private final String workerId;
+    private final TaskWorkerId workerId;
 
     private final int workshopId;
 
@@ -37,7 +44,7 @@ public class Participant {
 
     public Participant( final Record record ) {
         this.name = record.getValue( NAME_COLUMN, String.class );
-        this.workerId = record.getValue( WORKER_ID_COLUMN, String.class );
+        this.workerId = new TaskWorkerId( record.getValue( WORKER_ID_COLUMN, String.class ) );
         this.workshopId = record.getValue( WORKSHOP_ID_COLUMN, Integer.class );
         this.participantId = record.getValue( PARTICIPANT_ID_COLUMN, String.class );
         this.createdAt = record.getValue( CREATED_AT_COLUMN, String.class );
@@ -47,7 +54,7 @@ public class Participant {
         return this.name;
     }
 
-    public String getWorkerId() {
+    public TaskWorkerId getWorkerId() {
         return this.workerId;
     }
 
@@ -95,13 +102,26 @@ public class Participant {
                 '}';
     }
 
-    public static ImmutableSet<Participant> fetchParticipants( final Connection connection,
-            final SemesterSettings settings ) {
+    public static ImmutableSet<Participant> fetchParticipants( final SemesterSettings settings ) {
         final String sql = "select * from " + PARTICIPANT_TABLE;
-        return DSL.using( connection )
-                  .fetch( sql )
-                  .map( Participant::new ).stream().filter(
-                        p -> p.createdAt.startsWith( settings.getSemester() == Semester.WS2017 ? "2017" : "2018" ) )
-                  .collect( ImmutableSet.toImmutableSet() );
+        try (Connection connection = DatabaseConnector.createConnection()) {
+            return DSL.using( connection )
+                      .fetch( sql )
+                      .map( Participant::createValidParticipant ).stream().filter( Optional::isPresent ).map(
+                            Optional::get ).filter(
+                            p -> p.createdAt.startsWith( settings.getSemester() == Semester.WS2017 ? "2017" : "2018" ) )
+                      .collect( ImmutableSet.toImmutableSet() );
+        } catch (final SQLException e) {
+            throw new UncheckedSQLException( e );
+        }
+    }
+
+    private static Optional<Participant> createValidParticipant( final Record record ) {
+        try {
+            return Optional.of( new Participant( record ) );
+        } catch (final NumberFormatException e) {
+            LOG.warn( "Participant is not a valid worker. Problem: {}.", e.getMessage() );
+            return Optional.empty();
+        }
     }
 }

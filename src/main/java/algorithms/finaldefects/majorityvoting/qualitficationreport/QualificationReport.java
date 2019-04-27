@@ -1,9 +1,9 @@
-package model;
+package algorithms.finaldefects.majorityvoting.qualitficationreport;
 
-import algorithms.crowdtruth.WorkerId;
 import com.google.common.collect.ImmutableMap;
 import com.opencsv.CSVReader;
 import com.opencsv.CSVReaderBuilder;
+import model.TaskWorkerId;
 
 import java.io.IOException;
 import java.io.Reader;
@@ -18,16 +18,16 @@ import java.util.Objects;
 public class QualificationReport {
     private static final String CSV_FILE_PATH = "src/main/resources/additions/qualificationReports.csv";
 
-    private final WorkerId workerId;
+    private final TaskWorkerId workerId;
 
     private final ImmutableMap<Integer, Boolean> results;
 
-    public QualificationReport( final WorkerId workerId, final ImmutableMap<Integer, Boolean> results ) {
+    public QualificationReport( final TaskWorkerId workerId, final ImmutableMap<Integer, Boolean> results ) {
         this.workerId = workerId;
         this.results = results;
     }
 
-    public WorkerId getWorkerId() {
+    public TaskWorkerId getWorkerId() {
         return this.workerId;
     }
 
@@ -73,12 +73,12 @@ public class QualificationReport {
                 '}';
     }
 
-    public static ImmutableMap<WorkerId, QualificationReport> fetchQualificationReports() {
+    public static ImmutableMap<TaskWorkerId, QualificationReport> fetchQualificationReports() {
         try (Reader reader = Files.newBufferedReader( Paths.get( CSV_FILE_PATH ) );
              CSVReader csvReader = new CSVReaderBuilder( reader ).withSkipLines( 1 ).build()) {
             return csvReader.readAll().stream().collect(
-                    ImmutableMap.toImmutableMap( l -> new WorkerId( l[7] ),
-                            l -> new QualificationReport( new WorkerId( l[7] ), getResults( l ) ) ) );
+                    ImmutableMap.toImmutableMap( l -> new TaskWorkerId( l[7] ),
+                            l -> new QualificationReport( new TaskWorkerId( l[7] ), getResults( l ) ) ) );
         } catch (final IOException e) {
             throw new UncheckedIOException( e );
         }

@@ -1,6 +1,8 @@
-package algorithms.finaldefects;
+package algorithms.finaldefects.majorityvoting.basic;
 
-import algorithms.crowdtruth.WorkerId;
+import algorithms.finaldefects.FinalDefectAggregationAlgorithm;
+import algorithms.finaldefects.SemesterSettings;
+import algorithms.finaldefects.WorkerQuality;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
 import model.*;
@@ -24,7 +26,7 @@ import java.util.stream.Collectors;
 public class MajorityVotingAlgorithm implements FinalDefectAggregationAlgorithm {
     private static final int ROUNDING_ACCURACY = 4;
 
-    static final Function<WorkerId, WorkerQuality>
+    public static final Function<TaskWorkerId, WorkerQuality>
             PERFECT_WORKER_QUALITY = w -> new WorkerQuality( 1 );
 
     private ImmutableMap<EmeAndScenarioId, FinalDefect> finalDefects;
@@ -35,12 +37,12 @@ public class MajorityVotingAlgorithm implements FinalDefectAggregationAlgorithm 
 
     private final DefectReports defectReports;
 
-    private final Function<WorkerId, WorkerQuality>
+    private final Function<TaskWorkerId, WorkerQuality>
             workerQuality;
 
     private MajorityVotingAlgorithm( final SemesterSettings settings,
             final Emes emes, final DefectReports defectReports,
-            final Function<WorkerId, WorkerQuality> workerQuality ) {
+            final Function<TaskWorkerId, WorkerQuality> workerQuality ) {
         this.settings = settings;
         this.emes = emes;
         this.defectReports = defectReports;
@@ -67,7 +69,7 @@ public class MajorityVotingAlgorithm implements FinalDefectAggregationAlgorithm 
     }
 
     private FinalDefect getFinalDefectForEmeAndScenario( final EmeAndScenarioId emeAndScenarioId,
-            final Collection<DefectReport> defectReports, final Function<WorkerId, WorkerQuality> workerQuality ) {
+            final Collection<DefectReport> defectReports, final Function<TaskWorkerId, WorkerQuality> workerQuality ) {
         final ImmutableMap<DefectType, AgreementCoefficient> coefficientsByDefectType = calculateScoreByDefectType(
                 defectReports, workerQuality );
         return calculateFinalDefect(
@@ -75,7 +77,7 @@ public class MajorityVotingAlgorithm implements FinalDefectAggregationAlgorithm 
     }
 
     private static ImmutableMap<DefectType, AgreementCoefficient> calculateScoreByDefectType(
-            final Collection<DefectReport> defectReports, final Function<WorkerId, WorkerQuality> workerQuality ) {
+            final Collection<DefectReport> defectReports, final Function<TaskWorkerId, WorkerQuality> workerQuality ) {
         final Map<DefectType, List<DefectReport>> defectsForEachType = defectReports.stream().collect(
                 Collectors.groupingBy( DefectReport::getDefectType ) );
         return ImmutableMap.copyOf( Maps.transformValues( defectsForEachType,
@@ -83,14 +85,11 @@ public class MajorityVotingAlgorithm implements FinalDefectAggregationAlgorithm 
     }
 
     private static AgreementCoefficient calculateAgreementCoefficient(
-            final Function<WorkerId, WorkerQuality> workerQuality, final int nrOfReports,
+            final Function<TaskWorkerId, WorkerQuality> workerQuality, final int nrOfReports,
             final List<DefectReport> defectReports ) {
         final double coefficient = BigDecimal.valueOf(
                 defectReports.stream()
-                             .map( r -> {
-                                 final WorkerId workerId = new WorkerId( String.valueOf( r.getWorkerId() ) );
-                                 return workerQuality.apply( workerId );
-                             } )
+                             .map( r -> workerQuality.apply( r.getWorkerId() ) )
                              .reduce( 0.0, ( oq, q ) -> oq + q.toDouble(), ( q1, q2 ) -> q1 + q2 ) )
                                              .divide( BigDecimal.valueOf( nrOfReports ), ROUNDING_ACCURACY,
                                                      RoundingMode.HALF_UP ).doubleValue();
@@ -123,12 +122,12 @@ public class MajorityVotingAlgorithm implements FinalDefectAggregationAlgorithm 
     }
 
     public static MajorityVotingAlgorithm create( final SemesterSettings settings,
-            final Function<WorkerId, WorkerQuality> workerQuality ) {
+            final Function<TaskWorkerId, WorkerQuality> workerQuality ) {
         return create( settings, Emes.fetchFromDb( settings ), DefectReports.fetchFromDb( settings ), workerQuality );
     }
 
     public static MajorityVotingAlgorithm create( final SemesterSettings settings, final Emes emes,
-            final DefectReports defectReports, final Function<WorkerId, WorkerQuality> workerQuality ) {
+            final DefectReports defectReports, final Function<TaskWorkerId, WorkerQuality> workerQuality ) {
         return new MajorityVotingAlgorithm( settings, emes, defectReports, workerQuality );
     }
 }

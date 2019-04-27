@@ -1,4 +1,4 @@
-package algorithms.finaldefects;
+package algorithms.finaldefects.crowdtruth;
 
 import com.google.common.collect.ImmutableSet;
 import model.DefectReport;

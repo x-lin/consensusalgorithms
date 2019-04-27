@@ -1,6 +1,11 @@
 package web;
 
 import algorithms.finaldefects.*;
+import algorithms.finaldefects.crowdtruth.CrowdtruthRunner;
+import algorithms.finaldefects.majorityvoting.adaptive.AdaptiveMajorityVoting;
+import algorithms.finaldefects.majorityvoting.basic.MajorityVotingAlgorithm;
+import algorithms.finaldefects.majorityvoting.experiencequestionnaire.MajorityVotingWithExperienceQuestionnaire;
+import algorithms.finaldefects.majorityvoting.qualitficationreport.MajorityVotingWithQualificationReport;
 import com.google.common.collect.ImmutableBiMap;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;

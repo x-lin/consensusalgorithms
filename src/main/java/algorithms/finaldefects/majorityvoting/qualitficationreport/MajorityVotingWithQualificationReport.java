@@ -1,11 +1,12 @@
-package algorithms.finaldefects;
+package algorithms.finaldefects.majorityvoting.qualitficationreport;
 
-import algorithms.crowdtruth.WorkerId;
+import algorithms.finaldefects.*;
+import algorithms.finaldefects.majorityvoting.basic.MajorityVotingAlgorithm;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableMap;
 import model.EmeAndScenarioId;
 import model.FinalDefect;
-import model.QualificationReport;
+import model.TaskWorkerId;
 
 import java.util.Optional;
 
@@ -18,7 +19,7 @@ public class MajorityVotingWithQualificationReport implements FinalDefectAggrega
     private MajorityVotingWithQualificationReport( final SemesterSettings settings,
             final WorkerQualityInfluence influence, final double alpha ) {
         this.majorityVoting = MajorityVotingAlgorithm.create( settings, wid -> {
-            final ImmutableMap<WorkerId, QualificationReport> qualificationReports =
+            final ImmutableMap<TaskWorkerId, QualificationReport> qualificationReports =
                     QualificationReport.fetchQualificationReports();
             final WorkerQuality averageWorkerQuality = getAverageWorkerQuality( influence, alpha,
                     qualificationReports );
@@ -39,7 +40,7 @@ public class MajorityVotingWithQualificationReport implements FinalDefectAggrega
     }
 
     private static WorkerQuality getAverageWorkerQuality( final WorkerQualityInfluence influence, final double alpha,
-            final ImmutableMap<WorkerId, QualificationReport> qualificationReports ) {
+            final ImmutableMap<TaskWorkerId, QualificationReport> qualificationReports ) {
         final double averageNrResults = qualificationReports.values().stream().map( QualificationReport::getNrResults )
                                                             .count() / (double) qualificationReports.size();
         final double averageFalseResults = qualificationReports.values().stream().map(

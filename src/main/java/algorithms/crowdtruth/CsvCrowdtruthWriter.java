@@ -1,10 +1,10 @@
 package algorithms.crowdtruth;
 
-import algorithms.finaldefects.AbstractCrowdtruthAggregation.SamplingType;
-import algorithms.finaldefects.CrowdtruthFilteredWorkersAggregation;
-import algorithms.finaldefects.CrowdtruthRunner;
 import algorithms.finaldefects.FinalDefectCsvWriter;
 import algorithms.finaldefects.SemesterSettings;
+import algorithms.finaldefects.crowdtruth.AbstractCrowdtruthAggregation.SamplingType;
+import algorithms.finaldefects.crowdtruth.CrowdtruthFilteredWorkersAggregation;
+import algorithms.finaldefects.crowdtruth.CrowdtruthRunner;
 import com.google.common.collect.ImmutableSet;
 import com.opencsv.CSVWriter;
 import model.TaskWorkerId;

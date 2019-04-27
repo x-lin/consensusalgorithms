@@ -1,7 +1,9 @@
-package algorithms.finaldefects;
+package algorithms.finaldefects.crowdtruth;
 
 import algorithms.crowdtruth.*;
 import algorithms.crowdtruth.CrowdtruthMetrics.MetricsScores;
+import algorithms.finaldefects.FinalDefectAggregationAlgorithm;
+import algorithms.finaldefects.SemesterSettings;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Maps;

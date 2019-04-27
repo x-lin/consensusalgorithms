@@ -1,7 +1,7 @@
 package statistic;
 
-import algorithms.finaldefects.CrowdtruthRunner;
 import algorithms.finaldefects.SemesterSettings;
+import algorithms.finaldefects.crowdtruth.CrowdtruthRunner;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
@@ -74,7 +74,6 @@ public class QualityAnalyzer {
         trueDefects = AllTrueDefectsMixin.findAllTrueDefects( settings );
 
         samples.forEach( sample -> {
-            System.err.println( "sample: " + sample );
             final Set<FinalDefectResult> results = Sets.newHashSet();
             sample.getFinalDefects().forEach( fd -> {
                 final FinalDefectResult finalDefectResult = Optional.ofNullable( trueDefects.get( fd.getEmeId()

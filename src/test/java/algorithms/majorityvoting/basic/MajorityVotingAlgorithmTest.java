@@ -1,5 +1,7 @@
-package algorithms.finaldefects;
+package algorithms.majorityvoting.basic;
 
+import algorithms.finaldefects.SemesterSettings;
+import algorithms.finaldefects.majorityvoting.basic.MajorityVotingAlgorithm;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableBiMap;
 import com.google.common.collect.ImmutableMap;
