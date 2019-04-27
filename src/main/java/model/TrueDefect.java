@@ -37,9 +37,9 @@ public class TrueDefect {
 
     private final String aboutModelElement;
 
-    private final String aboutEmEid;
+    private final EmeId aboutEmEid;
 
-    private final String scenario;
+    private final ScenarioId scenario;
 
     private final String aboutMeType;
 
@@ -53,17 +53,17 @@ public class TrueDefect {
         this.id = record.getValue( ID_COLUMN, Integer.class );
         this.codeTd = record.getValue( CODE_TD_COLUMN, String.class );
         this.aboutModelElement = record.getValue( ABOUT_MODEL_ELEMENT_COLUMN, String.class );
-        this.aboutEmEid = record.getValue( ABOUT_EM_EID_COLUMN, String.class );
-        this.scenario = record.getValue( SCENARIO_COLUMN, String.class );
+        this.aboutEmEid = new EmeId( record.getValue( ABOUT_EM_EID_COLUMN, String.class ) );
+        this.scenario = new ScenarioId( record.getValue( SCENARIO_COLUMN, String.class ) );
         this.aboutMeType = record.getValue( ABOUT_ME_TYPE_COLUMN, String.class );
         this.defectType = DefectType.fromString( record.getValue( DEFECT_TYPE_COLUMN, String.class ).trim() );
         this.defectSeverity = record.getValue( DEFECT_SEVERITY_COLUMN, String.class );
         this.description = record.getValue( DESCRIPTION_COLUMN, String.class );
     }
 
-    private TrueDefect( final int id, final String codeTd, final String aboutModelElement, final String aboutEmEid,
-                        final String scenario, final String aboutMeType, final DefectType defectType, final String
-                                defectSeverity, final String description ) {
+    private TrueDefect( final int id, final String codeTd, final String aboutModelElement, final EmeId aboutEmEid,
+            final ScenarioId scenario, final String aboutMeType, final DefectType defectType, final String
+            defectSeverity, final String description ) {
         this.id = id;
         this.codeTd = codeTd;
         this.aboutModelElement = aboutModelElement;
@@ -87,11 +87,11 @@ public class TrueDefect {
         return this.aboutModelElement;
     }
 
-    public String getAboutEmEid() {
+    public EmeId getAboutEmEid() {
         return this.aboutEmEid;
     }
 
-    public String getScenario() {
+    public ScenarioId getScenario() {
         return this.scenario;
     }
 
@@ -111,15 +111,19 @@ public class TrueDefect {
         return this.description;
     }
 
-    public TrueDefect replaceEmeId( final String newEmeId ) {
+    public TrueDefect replaceEmeId( final EmeId newEmeId ) {
         return new TrueDefect( getId(), getCodeTd(), getAboutModelElement(), newEmeId, getScenario(), getAboutMeType
                 (), getDefectType(), getDefectSeverity(), getDescription() );
     }
 
     @Override
     public boolean equals( final Object o ) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
         final TrueDefect that = (TrueDefect) o;
         return this.id == that.id &&
                 Objects.equals( this.codeTd, that.codeTd ) &&
@@ -156,7 +160,7 @@ public class TrueDefect {
     public static ImmutableSet<TrueDefect> fetchTrueDefects( final Connection connection ) {
         final String sql = "select * from " + TRUE_DEFECT_TABLE;
         return DSL.using( connection )
-                .fetch( sql )
-                .map( TrueDefect::new ).stream().collect( ImmutableSet.toImmutableSet() );
+                  .fetch( sql )
+                  .map( TrueDefect::new ).stream().collect( ImmutableSet.toImmutableSet() );
     }
 }

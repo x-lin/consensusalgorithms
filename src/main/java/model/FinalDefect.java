@@ -1,11 +1,13 @@
 package model;
 
+import algorithms.finaldefects.SemesterSettings;
 import com.google.common.collect.ImmutableSet;
 import org.jooq.Record;
 import org.jooq.impl.DSL;
-import web.SemesterSettings;
+import utils.UncheckedSQLException;
 
 import java.sql.Connection;
+import java.sql.SQLException;
 import java.util.Objects;
 
 /**
@@ -24,21 +26,21 @@ public class FinalDefect {
 
     public static final String FINAL_DEFECT_TYPE_COLUMN = "final_defect_type";
 
-    private final String emeId;
+    private final EmeId emeId;
 
     private final String emeText;
 
-    private final String scenarioId;
+    private final ScenarioId scenarioId;
 
-    private final Double agreementCoeff;
+    private final AgreementCoefficient agreementCoeff;
 
     private final FinalDefectType finalDefectType;
 
     public FinalDefect( final Record record ) {
-        this.emeId = record.getValue( EME_ID_COLUMN, String.class );
+        this.emeId = new EmeId( record.getValue( EME_ID_COLUMN, String.class ) );
         this.emeText = record.getValue( EME_TEXT_COLUMN, String.class );
-        this.scenarioId = record.getValue( SCENARIO_ID, String.class );
-        this.agreementCoeff = record.getValue( AGREEMENT_COEFF_COLUMN, Double.class );
+        this.scenarioId = new ScenarioId( record.getValue( SCENARIO_ID, String.class ) );
+        this.agreementCoeff = new AgreementCoefficient( record.getValue( AGREEMENT_COEFF_COLUMN, Double.class ) );
         this.finalDefectType = record.getValue( FINAL_DEFECT_TYPE_COLUMN, FinalDefectType.class );
     }
 
@@ -50,7 +52,7 @@ public class FinalDefect {
         this.finalDefectType = builder.finalDefectType;
     }
 
-    public String getEmeId() {
+    public EmeId getEmeId() {
         return this.emeId;
     }
 
@@ -58,28 +60,36 @@ public class FinalDefect {
         return this.emeText;
     }
 
-    public String getScenarioId() {
+    public ScenarioId getScenarioId() {
         return this.scenarioId;
     }
 
-    public double getAgreementCoeff() {
+    public AgreementCoefficient getAgreementCoeff() {
         return this.agreementCoeff;
+    }
+
+    public EmeAndScenarioId getEmeAndScenarioId() {
+        return new EmeAndScenarioId( this.emeId, this.scenarioId );
     }
 
     public FinalDefectType getFinalDefectType() {
         return this.finalDefectType;
     }
 
-    public static Builder builder( final Eme eme ) {
-        return new Builder( eme );
+    public static Builder builder( final Emes emes, final EmeAndScenarioId emeAndScenarioId ) {
+        return new Builder( emes.get( emeAndScenarioId.getEmeId() ), emeAndScenarioId.getScenarioId() );
     }
 
     @Override
     public boolean equals( final Object o ) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
         final FinalDefect that = (FinalDefect) o;
-        return this.scenarioId == that.scenarioId &&
+        return Objects.equals( this.scenarioId, that.scenarioId ) &&
                 Objects.equals( this.emeId, that.emeId ) &&
                 Objects.equals( this.emeText, that.emeText ) &&
                 Objects.equals( this.agreementCoeff, that.agreementCoeff ) &&
@@ -102,40 +112,36 @@ public class FinalDefect {
                 '}';
     }
 
-
-    public static ImmutableSet<FinalDefect> fetchFinalDefects( final Connection connection, final SemesterSettings
-            settings ) {
-        final String sql = "select * from " + FINAL_DEFECT_TABLE + " where filter_code='" + settings
-                .getFinalDefectFilterCode() + "'";
-        return DSL.using( connection )
-                .fetch( sql )
-                .map( FinalDefect::new ).stream().collect( ImmutableSet.toImmutableSet() );
+    public static ImmutableSet<FinalDefect> fetchFinalDefects( final SemesterSettings settings ) {
+        try (Connection connection = DatabaseConnector.createConnection()) {
+            final String sql = "select * from " + FINAL_DEFECT_TABLE + " where filter_code='" + settings
+                    .getFinalDefectFilterCode() + "'";
+            return DSL.using( connection )
+                      .fetch( sql )
+                      .map( FinalDefect::new ).stream().collect( ImmutableSet.toImmutableSet() );
+        } catch (final SQLException e) {
+            throw new UncheckedSQLException( e );
+        }
     }
 
     public static class Builder {
-        private final String emeId;
+        private final EmeId emeId;
 
         private final String emeText;
 
-        private String scenarioId;
+        private final ScenarioId scenarioId;
 
-        private double agreementCoeff;
+        private AgreementCoefficient agreementCoeff = AgreementCoefficient.ZERO;
 
         private FinalDefectType finalDefectType;
 
-        private Builder( final Eme eme ) {
+        private Builder( final Eme eme, final ScenarioId scenarioId ) {
             this.emeId = eme.getEmeId();
             this.emeText = eme.getEmeText();
-        }
-
-
-        public Builder withScenarioId( final String scenarioId ) {
             this.scenarioId = scenarioId;
-            return this;
         }
 
-
-        public Builder withAgreementCoeff( final double agreementCoeff ) {
+        public Builder withAgreementCoeff( final AgreementCoefficient agreementCoeff ) {
             this.agreementCoeff = agreementCoeff;
             return this;
         }
@@ -149,7 +155,7 @@ public class FinalDefect {
             return this.finalDefectType;
         }
 
-        public double getAgreementCoeff() {
+        public AgreementCoefficient getAgreementCoeff() {
             return this.agreementCoeff;
         }
 

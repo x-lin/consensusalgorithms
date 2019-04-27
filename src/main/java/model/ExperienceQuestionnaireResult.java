@@ -1,13 +1,15 @@
 package model;
 
 import algorithms.crowdtruth.WorkerId;
+import algorithms.finaldefects.Semester;
+import algorithms.finaldefects.SemesterSettings;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.opencsv.CSVReader;
 import com.opencsv.CSVReaderBuilder;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import utils.UncheckedSQLException;
-import web.Semester;
-import web.SemesterSettings;
 
 import java.io.IOException;
 import java.io.Reader;
@@ -22,6 +24,8 @@ import java.util.*;
  * @author LinX
  */
 public class ExperienceQuestionnaireResult {
+    private static final Logger LOG = LoggerFactory.getLogger( ExperienceQuestionnaireResult.class );
+
     private static final ImmutableMap<Semester, String> CSV_FILE_PATHS = ImmutableMap.of(
             Semester.WS2017, "src/main/resources/additions/experienceQuestionnaireWS17.csv",
             Semester.SS2018, "src/main/resources/additions/experienceQuestionnaireSS18.csv" );
@@ -172,12 +176,9 @@ public class ExperienceQuestionnaireResult {
                                                                                                                                       c ) ) )
                                                                 .findFirst().orElse( null ) ) );
         if (participant == null) {
-            System.err.println( "Participant from questionnaire " + name + " could not be matched to workerId!" );
+            LOG.warn( "Participant from questionnaire {} could not be matched to workerId!", name );
         }
-//        else {
-//            System.out.println(
-//                    "Participant from questionnaire " + name + " matched to db participant " + participant );
-//        }
+
         return Optional.ofNullable( participant );
     }
 

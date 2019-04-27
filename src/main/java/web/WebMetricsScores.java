@@ -17,7 +17,7 @@ public class WebMetricsScores {
 
     private final ImmutableMap<MediaUnitAnnotationId, Double> mediaUnitAnnotationScores;
 
-    WebMetricsScores( final Metrics.MetricsScores scores ) {
+    WebMetricsScores( final CrowdtruthMetrics.MetricsScores scores ) {
         this.annotationQualityScores = scores.getAnnotationQualityScores().entrySet().stream().collect( ImmutableMap
                 .toImmutableMap( e -> e.getKey().getName(), Map.Entry::getValue ) );
         this.workerQualityScores = scores.getWorkerQualityScores().entrySet().stream().collect( ImmutableMap

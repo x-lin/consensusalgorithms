@@ -61,13 +61,13 @@ export class RestService {
   }
 }
 
-export class NamedEvaluationScoresResponse {
+export class ArtifactWithConfusionMatrixResponse {
   id: number;
   quality: number;
-  metrics: NamedEvaluationScoresMetrics;
+  confusionMatrix: ConfusionMatrix;
 }
 
-export class NamedEvaluationScoresMetrics {
+export class ConfusionMatrix {
   fmeasure: number;
   recall: number;
   precision: number;

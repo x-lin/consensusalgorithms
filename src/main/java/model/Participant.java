@@ -1,10 +1,10 @@
 package model;
 
+import algorithms.finaldefects.Semester;
+import algorithms.finaldefects.SemesterSettings;
 import com.google.common.collect.ImmutableSet;
 import org.jooq.Record;
 import org.jooq.impl.DSL;
-import web.Semester;
-import web.SemesterSettings;
 
 import java.sql.Connection;
 import java.util.Objects;

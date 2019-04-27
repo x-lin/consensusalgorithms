@@ -38,16 +38,16 @@ export class FinalDefectsService {
     this.semester = semester;
     this.refreshData();
   }
-
+ 
   algorithmTypeChanged(algorithmType: AlgorithmType, parameters) {
     this.finalDefectsParameters.type = algorithmType;
     this.restService.getFinalDefects(algorithmType, parameters, this.semester).subscribe(d => {
       this.dataSubject.next({
-        data: d.evaluationResults,
+        data: d.finalDefectResults,
         title: 'Final Defects - ' + algorithmType,
-        fieldNames: ['emeId', 'agreementCoefficient', 'finalDefectType', 'trueDefectType', 'emeText', 'trueDefectId',
+        fieldNames: ['emeId', 'scenarioId', 'agreementCoefficient', 'finalDefectType', 'trueDefectType', 'emeText', 'trueDefectId',
           'truePositive', 'trueNegative', 'falsePositive', 'falseNegative'],
-        tableHeaderNames: ['emeId', 'agreementCoefficient', 'finalDefectType', 'trueDefectType', 'emeText', 'trueDefectId',
+        tableHeaderNames: ['emeId', 'scenarioId', 'agreementCoefficient', 'finalDefectType', 'trueDefectType', 'emeText', 'trueDefectId',
           'truePositive', 'trueNegative', 'falsePositive', 'falseNegative'],
         algorithmType: this.finalDefectsParameters.type,
         metrics: {
@@ -55,15 +55,15 @@ export class FinalDefectsService {
             fieldNames: ['nrEmes', 'fmeasure', 'precision', 'recall', 'accuracy', 'truePositives', 'trueNegatives', 'falsePositives', 'falseNegatives'],
             tableHeaderNames: ['nrEmes', 'fmeasure', 'precision', 'recall', 'accuracy', 'truePositives', 'trueNegatives', 'falsePositives', 'falseNegatives'],
             data: [{
-              nrEmes: d.evaluationResults.length,
-              fmeasure: d.metrics.fmeasure,
-              precision: d.metrics.precision,
-              recall: d.metrics.recall,
-              accuracy: d.metrics.accuracy,
-              truePositives: d.metrics.truePositives,
-              trueNegatives: d.metrics.trueNegatives,
-              falsePositives: d.metrics.falsePositives,
-              falseNegatives: d.metrics.falseNegatives
+              nrEmes: d.finalDefectResults.length,
+              fmeasure: d.confusionMatrix.fmeasure,
+              precision: d.confusionMatrix.precision,
+              recall: d.confusionMatrix.recall,
+              accuracy: d.confusionMatrix.accuracy,
+              truePositives: d.confusionMatrix.truePositives,
+              trueNegatives: d.confusionMatrix.trueNegatives,
+              falsePositives: d.confusionMatrix.falsePositives,
+              falseNegatives: d.confusionMatrix.falseNegatives
             }]
           }
       });
@@ -86,12 +86,13 @@ export class FinalDefectsService {
 
   getFinalDefectsComparison() {
     this.restService.getFinalDefectsComparison(this.semester).subscribe(d => {
-      const names = ['emeId', 'trueDefectType'];
+      const names = ['emeId', 'scenarioId', 'trueDefectType'];
       const data = [];
       d.forEach(entry => {
         const e = {
           emeId: entry.emeId,
-          trueDefectType: entry.trueDefectType
+          trueDefectType: entry.trueDefectType,
+          scenarioId: entry.scenarioId
         };
         Object.keys(entry.finalDefectTypes).forEach(name => {
           if (!names.includes(name)) {

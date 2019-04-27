@@ -1,25 +1,18 @@
 package web;
 
-import algorithms.crowdtruth.CrowdtruthRunner;
-import algorithms.majorityvoting.MajorityVotingRunner;
-import algorithms.majorityvoting.MajorityVotingWithExperienceQuestionnaire;
-import algorithms.majorityvoting.MajorityVotingWithQualificationReport;
-import algorithms.majorityvoting.WorkerQualityInfluence;
-import algorithms.majorityvoting.adapted.AdaptiveMajorityVoting;
+import algorithms.finaldefects.*;
+import com.google.common.collect.ImmutableBiMap;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Streams;
+import com.google.common.collect.Maps;
+import model.EmeAndScenarioId;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import statistic.*;
 
-import java.io.IOException;
-import java.sql.SQLException;
 import java.util.Map;
-import java.util.Optional;
-import java.util.function.Function;
 
 /**
  * @author LinX
@@ -33,210 +26,105 @@ public class AlgorithmController {
 
     @GetMapping("/finalDefects/CrowdTruth")
     public WebFinalDefects crowdtruthFinalDefects(
-            @RequestParam(value = "semester", defaultValue = "WS2017") final Semester semester ) throws
-            IOException,
-            SQLException {
-        return new WebFinalDefects( FinalDefectAnalyzer.getFinalDefects( this.crowdtruthRunners.get( semester ) ) );
+            @RequestParam(value = "semester", defaultValue = "WS2017") final Semester semester ) {
+        return new WebFinalDefects(
+                FinalDefectAnalyzer.getFinalDefects( this.crowdtruthRunners.get( semester ) ).values() );
     }
 
     @GetMapping("/finalDefects/MajorityVoting")
     public WebFinalDefects majorityVotingFinalDefects(
-            @RequestParam(value = "semester", defaultValue = "WS2017") final Semester semester ) throws IOException,
-            SQLException {
+            @RequestParam(value = "semester", defaultValue = "WS2017") final Semester semester ) {
         return new WebFinalDefects( FinalDefectAnalyzer
-                .getFinalDefects( MajorityVotingRunner.create( SemesterSettings.get( semester ) ) ) );
+                .getFinalDefects( MajorityVotingAlgorithm.create( SemesterSettings.get( semester ) ) ).values() );
     }
 
     @GetMapping("/finalDefects/AdaptiveMajorityVoting")
     public WebFinalDefects crowdtruthFinalDefects(
             @RequestParam(value = "threshold") final double threshold,
-            @RequestParam(value = "semester", defaultValue = "WS2017") final Semester semester ) throws IOException,
-            SQLException {
+            @RequestParam(value = "semester", defaultValue = "WS2017") final Semester semester ) {
         return new WebFinalDefects( FinalDefectAnalyzer.getFinalDefects(
-                new AdaptiveMajorityVoting( threshold, SemesterSettings.get( semester ) ) ) );
+                new AdaptiveMajorityVoting( threshold, SemesterSettings.get( semester ) ) ).values() );
     }
 
     @GetMapping("/workers")
-    public CrowdtruthEvaluation workers(
-            @RequestParam(value = "semester", defaultValue = "WS2017") final Semester semester ) throws IOException,
-            SQLException {
+    public CrowdtruthScores workers(
+            @RequestParam(value = "semester", defaultValue = "WS2017") final Semester semester ) {
         final CrowdtruthRunner crowdtruthRunner = this.crowdtruthRunners.get( semester );
-        final ImmutableSet<NamedEvaluationResultMetrics> workerScores = QualityAnalyzer.create().getEvaluationResults(
+        final ImmutableSet<ArtifactWithConfusionMatrix> workerScores = QualityAnalyzer.create().getEvaluationResults(
                 crowdtruthRunner.getSettings(), crowdtruthRunner.getAllWorkerScores() );
-        final ImmutableSet<NamedEvaluationResultMetrics> annotationScores =
+        final ImmutableSet<ArtifactWithConfusionMatrix> annotationScores =
                 QualityAnalyzer.create().getEvaluationResults( crowdtruthRunner.getSettings(),
                         crowdtruthRunner.getAllAnnotationScores() );
-        final ImmutableSet<NamedEvaluationResultMetrics> mediaUnitScores =
+        final ImmutableSet<ArtifactWithConfusionMatrix> mediaUnitScores =
                 QualityAnalyzer.create().getEvaluationResultsForMediaUnits( crowdtruthRunner.getSettings(),
                         crowdtruthRunner.getAllMediaUnitScores() );
-        return new CrowdtruthEvaluation( workerScores, new PearsonScores( workerScores ),
+        return new CrowdtruthScores( workerScores, new PearsonScores( workerScores ),
                 annotationScores, new PearsonScores( annotationScores ),
                 mediaUnitScores, new PearsonScores( mediaUnitScores ),
                 new WebMetricsScores( crowdtruthRunner.getMetricsScores() ) );
     }
 
     @GetMapping("/all/metrics")
-    public ImmutableMap<String, EvaluationResultMetrics> getAllMetrics(
-            @RequestParam(value = "semester", defaultValue = "WS2017") final Semester semester ) throws IOException,
-            SQLException {
-        final ImmutableMap.Builder<String, EvaluationResultMetrics> builder =
-                ImmutableMap.builder();
-        final SemesterSettings settings = SemesterSettings.get( semester );
-        builder
-                .put( AlgorithmType.MajorityVoting.name(), new EvaluationResultMetrics(
-                        FinalDefectAnalyzer.getFinalDefects(
-                                MajorityVotingRunner.create( settings ) ) ) ) //
-                .put( AlgorithmType.CrowdTruth.name(), new EvaluationResultMetrics(
-                        FinalDefectAnalyzer.getFinalDefects( this.crowdtruthRunners.get( semester ) ) ) )
-                .put( AlgorithmType.AdaptiveMajorityVoting + ";t=0.1",
-                        new EvaluationResultMetrics( FinalDefectAnalyzer
-                                .getFinalDefects( new AdaptiveMajorityVoting( 0.1, settings ) ) ) )
-                .put( AlgorithmType.AdaptiveMajorityVoting + ";t=0.9",
-                        new EvaluationResultMetrics( FinalDefectAnalyzer
-                                .getFinalDefects( new AdaptiveMajorityVoting( 0.9, settings ) ) ) )
-                .put( AlgorithmType.MajorityVotingWithExperienceQuestionnaire + ";exp;alpha=0.1",
-                        new EvaluationResultMetrics(
-                                FinalDefectAnalyzer
-                                        .getFinalDefects( MajorityVotingWithExperienceQuestionnaire
-                                                .create( settings, WorkerQualityInfluence.EXPONENTIAL, 0.1 ) ) ) )
-                .put( AlgorithmType.MajorityVotingWithExperienceQuestionnaire + ";exp;alpha=0.5",
-                        new EvaluationResultMetrics(
-                                FinalDefectAnalyzer
-                                        .getFinalDefects( MajorityVotingWithExperienceQuestionnaire
-                                                .create( settings, WorkerQualityInfluence.EXPONENTIAL, 0.5 ) ) ) )
-                .put( AlgorithmType.MajorityVotingWithExperienceQuestionnaire + ";linear",
-                        new EvaluationResultMetrics(
-                                FinalDefectAnalyzer
-                                        .getFinalDefects( MajorityVotingWithExperienceQuestionnaire
-                                                .create( settings, WorkerQualityInfluence.LINEAR, 0.1 ) ) ) );
-        if (semester == Semester.SS2018) {
-            builder.put( AlgorithmType.MajorityVotingWithQualificationReport + ";exp;alpha=0.1",
-                    new EvaluationResultMetrics(
-                            FinalDefectAnalyzer.getFinalDefects( MajorityVotingWithQualificationReport
-                                    .create( settings, WorkerQualityInfluence.EXPONENTIAL, 0.1 ) ) ) )
-                   .put( AlgorithmType.MajorityVotingWithQualificationReport + ";exp;alpha=0.5",
-                           new EvaluationResultMetrics(
-                                   FinalDefectAnalyzer.getFinalDefects( MajorityVotingWithQualificationReport
-                                           .create( settings, WorkerQualityInfluence.EXPONENTIAL, 0.5 ) ) ) )
-                   .put( AlgorithmType.MajorityVotingWithQualificationReport + ";linear",
-                           new EvaluationResultMetrics(
-                                   FinalDefectAnalyzer.getFinalDefects( MajorityVotingWithQualificationReport
-                                           .create( settings, WorkerQualityInfluence.LINEAR, 0.1 ) ) ) );
-        }
-        return builder.build();
+    public Map<String, ConfusionMatrix> getAllMetrics(
+            @RequestParam(value = "semester", defaultValue = "WS2017") final Semester semester ) {
+        final ImmutableMap<String, FinalDefectAggregationAlgorithm> finalDefects =
+                calculateFinalDefectsForAllAlgorithms( semester );
+        return Maps.transformValues( finalDefects,
+                a -> new ConfusionMatrix( FinalDefectAnalyzer.getFinalDefects( a ).values() ) );
     }
 
     @GetMapping("/all/finalDefects")
     public ImmutableSet<FinalDefectComparison> getFinalDefectComparison(
-            @RequestParam(value = "semester", defaultValue = "WS2017") final Semester semester ) throws IOException,
-            SQLException {
-        final SemesterSettings settings = SemesterSettings.get( semester );
-        final ImmutableMap<String, EvaluationResult> majorityVotingResults = FinalDefectAnalyzer
-                .getFinalDefects( MajorityVotingRunner.create( SemesterSettings
-                        .get( semester
-                        ) ) )
-                .stream().collect(
-                        ImmutableMap.toImmutableMap( EvaluationResult::getEmeId, Function.identity() ) );
+            @RequestParam(value = "semester", defaultValue = "WS2017") final Semester semester ) {
+        final ImmutableMap<String, FinalDefectAggregationAlgorithm> finalDefects =
+                calculateFinalDefectsForAllAlgorithms( semester );
 
-        final ImmutableMap<String, EvaluationResult> crowdtruthResults = FinalDefectAnalyzer
-                .getFinalDefects( this.crowdtruthRunners.get( semester ) ).stream().collect(
-                        ImmutableMap.toImmutableMap( EvaluationResult::getEmeId, Function.identity() ) );
+        final Map<String, ImmutableBiMap<EmeAndScenarioId, FinalDefectResult>> finalDefectResults =
+                Maps.transformValues( finalDefects, FinalDefectAnalyzer::getFinalDefects );
 
-        final ImmutableMap<String, EvaluationResult> adaptiveMajorityVotingZeroOneResults = FinalDefectAnalyzer
-                .getFinalDefects( new AdaptiveMajorityVoting( 0.1, settings )
-                ).stream().collect(
-                        ImmutableMap.toImmutableMap( EvaluationResult::getEmeId, Function.identity() ) );
+        final Map<EmeAndScenarioId, Map<String, FinalDefectResult>> defectReportsByEme = Maps.newHashMap();
 
-        final ImmutableMap<String, EvaluationResult> adaptiveMajorityVotingZeroNineResults = FinalDefectAnalyzer
-                .getFinalDefects( new AdaptiveMajorityVoting( 0.1, settings )
-                ).stream().collect(
-                        ImmutableMap.toImmutableMap( EvaluationResult::getEmeId, Function.identity() ) );
+        finalDefectResults.forEach( ( algo, results ) -> results.forEach(
+                ( id, result ) -> defectReportsByEme.computeIfAbsent( id, i -> Maps.newHashMap() )
+                                                    .put( algo, result ) ) );
 
-        final ImmutableMap<String, EvaluationResult> majorityVotingWithExpQualificationReportsAlphaZeroOne =
-                semester == Semester.WS2017 ? ImmutableMap.of() :
-                        FinalDefectAnalyzer
-                                .getFinalDefects( MajorityVotingWithQualificationReport
-                                        .create( settings, WorkerQualityInfluence.EXPONENTIAL, 0.1 )
-                                ).stream().collect(
-                                ImmutableMap.toImmutableMap( EvaluationResult::getEmeId, Function.identity() ) );
-
-        final ImmutableMap<String, EvaluationResult> majorityVotingWithExpQualificationReportsAlphaZeroFive =
-                semester == Semester.WS2017 ? ImmutableMap.of() :
-                        FinalDefectAnalyzer
-                                .getFinalDefects( MajorityVotingWithQualificationReport
-                                        .create( settings, WorkerQualityInfluence.EXPONENTIAL, 0.5 )
-                                ).stream().collect(
-                                ImmutableMap.toImmutableMap( EvaluationResult::getEmeId, Function.identity() ) );
-
-        final ImmutableMap<String, EvaluationResult> majorityVotingWithLinearQualificationReports =
-                semester == Semester.WS2017 ? ImmutableMap.of() :
-                        FinalDefectAnalyzer
-                                .getFinalDefects( MajorityVotingWithQualificationReport
-                                        .create( settings, WorkerQualityInfluence.LINEAR, 0.5 ) //alpha irrelevant
-                                ).stream().collect(
-                                ImmutableMap.toImmutableMap( EvaluationResult::getEmeId, Function.identity() ) );
-
-        final ImmutableMap<String, EvaluationResult> majorityVotingWithQuestionnaireExpAlphaZeroFive =
-                FinalDefectAnalyzer
-                        .getFinalDefects( MajorityVotingWithExperienceQuestionnaire
-                                .create( settings, WorkerQualityInfluence.EXPONENTIAL, 0.5 )
-                        ).stream().collect(
-                        ImmutableMap.toImmutableMap( EvaluationResult::getEmeId, Function.identity() ) );
-
-        final ImmutableMap<String, EvaluationResult> majorityVotingWithQuestionnaireExpAlphaZeroOne =
-                FinalDefectAnalyzer
-                        .getFinalDefects( MajorityVotingWithExperienceQuestionnaire
-                                .create( settings, WorkerQualityInfluence.EXPONENTIAL, 0.1 )
-                        ).stream().collect(
-                        ImmutableMap.toImmutableMap( EvaluationResult::getEmeId, Function.identity() ) );
-
-        final ImmutableMap<String, EvaluationResult> majorityVotingWithQuestionnaireLinear =
-                FinalDefectAnalyzer
-                        .getFinalDefects( MajorityVotingWithExperienceQuestionnaire
-                                .create( settings, WorkerQualityInfluence.LINEAR, 0.5 )
-                        ).stream().collect(
-                        ImmutableMap.toImmutableMap( EvaluationResult::getEmeId, Function.identity() ) );
-
-        final ImmutableSet<String> allEmes = Streams.concat( majorityVotingResults.keySet().stream(),
-                crowdtruthResults.keySet().stream(),
-                adaptiveMajorityVotingZeroOneResults.keySet().stream(),
-                adaptiveMajorityVotingZeroNineResults.keySet
-                        ().stream(), majorityVotingWithExpQualificationReportsAlphaZeroOne.keySet().stream(),
-                majorityVotingWithExpQualificationReportsAlphaZeroFive.keySet().stream(),
-                majorityVotingWithLinearQualificationReports.keySet().stream(),
-                majorityVotingWithQuestionnaireExpAlphaZeroFive.keySet().stream(),
-                majorityVotingWithQuestionnaireExpAlphaZeroOne.keySet().stream(),
-                majorityVotingWithQuestionnaireLinear.keySet().stream() ).collect(
+        return defectReportsByEme.entrySet().stream().map(
+                e -> new FinalDefectComparison( e.getKey().getEmeId().toString(), e.getKey().getScenarioId().toString(),
+                        e.getValue().values().iterator().next().getTrueDefectType(),
+                        Maps.transformValues( e.getValue(), FinalDefectResult::getFinalDefectType ) ) ).collect(
                 ImmutableSet.toImmutableSet() );
+    }
 
-        return allEmes.stream().map( e -> {
-            ImmutableMap.Builder<String, EvaluationResult> builder = ImmutableMap.builder();
-            Optional.ofNullable( majorityVotingResults.get( e ) )
-                    .ifPresent( r -> builder.put( AlgorithmType.MajorityVoting.name(), r ) );
-            Optional.ofNullable( crowdtruthResults.get( e ) )
-                    .ifPresent( r -> builder.put( AlgorithmType.CrowdTruth.name(), r ) );
-            Optional.ofNullable( adaptiveMajorityVotingZeroOneResults.get( e ) )
-                    .ifPresent( r -> builder.put( AlgorithmType.AdaptiveMajorityVoting + ";0.1", r ) );
-            Optional.ofNullable( adaptiveMajorityVotingZeroNineResults.get( e ) )
-                    .ifPresent( r -> builder.put( AlgorithmType.AdaptiveMajorityVoting + ";0.9", r ) );
-            Optional.ofNullable( majorityVotingWithExpQualificationReportsAlphaZeroOne.get( e ) ).ifPresent(
-                    r -> builder.put( AlgorithmType.MajorityVotingWithQualificationReport + ";exp;alpha=0.1", r ) );
-            Optional.ofNullable( majorityVotingWithExpQualificationReportsAlphaZeroFive.get( e ) ).ifPresent(
-                    r -> builder.put( AlgorithmType.MajorityVotingWithQualificationReport + ";exp;alpha=0.5", r ) );
-            Optional.ofNullable( majorityVotingWithLinearQualificationReports.get( e ) ).ifPresent(
-                    r -> builder.put( AlgorithmType.MajorityVotingWithQualificationReport + ";linear", r ) );
-            Optional.ofNullable( majorityVotingWithQuestionnaireExpAlphaZeroFive.get( e ) ).ifPresent(
-                    r -> builder.put( AlgorithmType.MajorityVotingWithExperienceQuestionnaire + ";exp;alpha=0.5", r ) );
-            Optional.ofNullable( majorityVotingWithQuestionnaireExpAlphaZeroOne.get( e ) ).ifPresent(
-                    r -> builder.put( AlgorithmType.MajorityVotingWithExperienceQuestionnaire + ";exp;alpha0.1", r ) );
-            Optional.ofNullable( majorityVotingWithQuestionnaireExpAlphaZeroFive.get( e ) ).ifPresent(
-                    r -> builder.put( AlgorithmType.MajorityVotingWithExperienceQuestionnaire + ";linear", r ) );
-            final ImmutableMap<String, EvaluationResult> results = builder.build();
-            return new FinalDefectComparison( e, results.values().iterator().next().getTrueDefectType(),
-                    results.entrySet().stream()
-                           .collect( ImmutableMap.toImmutableMap( Map.Entry::getKey,
-                                   r -> r.getValue()
-                                         .getFinalDefectType() ) ) );
-        } ).collect( ImmutableSet.toImmutableSet() );
+    private ImmutableMap<String, FinalDefectAggregationAlgorithm> calculateFinalDefectsForAllAlgorithms(
+            final Semester semester ) {
+        final SemesterSettings settings = SemesterSettings.get( semester );
+        final ImmutableMap.Builder<String, FinalDefectAggregationAlgorithm> builder = ImmutableMap.builder();
+        builder
+                .put( AlgorithmType.MajorityVoting.name(), MajorityVotingAlgorithm.create( settings ) ) //
+                .put( AlgorithmType.CrowdTruth.name(), this.crowdtruthRunners.get( semester ) )
+                .put( AlgorithmType.AdaptiveMajorityVoting + ";t=0.1", new AdaptiveMajorityVoting( 0.1, settings ) )
+                .put( AlgorithmType.AdaptiveMajorityVoting + ";t=0.9", new AdaptiveMajorityVoting( 0.9, settings ) )
+                .put( AlgorithmType.MajorityVotingWithExperienceQuestionnaire + ";exp;alpha=0.1",
+                        MajorityVotingWithExperienceQuestionnaire
+                                .create( settings, WorkerQualityInfluence.EXPONENTIAL, 0.1 ) )
+                .put( AlgorithmType.MajorityVotingWithExperienceQuestionnaire + ";exp;alpha=0.5",
+                        MajorityVotingWithExperienceQuestionnaire
+                                .create( settings, WorkerQualityInfluence.EXPONENTIAL, 0.5 ) )
+                .put( AlgorithmType.MajorityVotingWithExperienceQuestionnaire + ";linear",
+                        MajorityVotingWithExperienceQuestionnaire
+                                .create( settings, WorkerQualityInfluence.LINEAR, 0.1 ) );
+
+        if (semester == Semester.SS2018) {
+            builder.put( AlgorithmType.MajorityVotingWithQualificationReport + ";exp;alpha=0.1",
+                    MajorityVotingWithQualificationReport
+                            .create( settings, WorkerQualityInfluence.EXPONENTIAL, 0.1 ) )
+                   .put( AlgorithmType.MajorityVotingWithQualificationReport + ";exp;alpha=0.5",
+                           MajorityVotingWithQualificationReport
+                                   .create( settings, WorkerQualityInfluence.EXPONENTIAL, 0.5 ) )
+                   .put( AlgorithmType.MajorityVotingWithQualificationReport + ";linear",
+                           MajorityVotingWithQualificationReport
+                                   .create( settings, WorkerQualityInfluence.LINEAR, 0.1 ) );
+        }
+        return builder.build();
     }
 }

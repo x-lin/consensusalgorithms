@@ -1,12 +1,13 @@
 package model;
 
-import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Maps;
 import com.opencsv.CSVReader;
 import com.opencsv.CSVReaderBuilder;
 import org.jooq.Record;
 import org.jooq.impl.DSL;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import utils.UncheckedSQLException;
 
 import java.io.IOException;
 import java.io.Reader;
@@ -14,10 +15,8 @@ import java.io.UncheckedIOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.sql.Connection;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Set;
+import java.sql.SQLException;
+import java.util.*;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
@@ -25,6 +24,8 @@ import java.util.stream.Collectors;
  * @author LinX
  */
 public class DefectReport {
+    private static final Logger LOG = LoggerFactory.getLogger( DefectReport.class );
+
     public static final String DEFECT_REPORT_TABLE = "defect_report";
 
     public static final String ID_COLUMN = "id";
@@ -61,9 +62,9 @@ public class DefectReport {
 
     private final int taskId;
 
-    private final int workerId;
+    private final TaskWorkerId workerId;
 
-    private final String emeId;
+    private final EmeId emeId;
 
     private final DefectType defectType;
 
@@ -77,22 +78,22 @@ public class DefectReport {
 
     private final Integer workshopId;
 
-    private final String scenarioId;
+    private final ScenarioId scenarioId;
 
     public DefectReport( final Record record ) {
         this.id = record.getValue( ID_COLUMN, Integer.class );
         this.defectReportCode = record.getValue( DEFECT_REPORT_CODE_COLUMN, String.class );
         this.workshopCode = record.getValue( WORKSHOP_CODE_COLUMN, String.class );
         this.taskId = record.getValue( TASK_ID_COLUMN, Integer.class );
-        this.workerId = record.getValue( WORKER_ID_COLUMN, Integer.class );
-        this.emeId = record.getValue( EME_ID_COLUMN, String.class );
+        this.workerId = new TaskWorkerId( record.getValue( WORKER_ID_COLUMN, Integer.class ) );
+        this.emeId = new EmeId( record.getValue( EME_ID_COLUMN, String.class ) );
         this.defectType = DefectType.fromString( record.getValue( DEFECT_TYPE_COLUMN, String.class ) );
         this.defectDescription = record.getValue( DEFECT_DESCRIPTION_COLUMN, String.class );
         this.synDefectDescription = record.getValue( SYN_DEFECT_DESCRIPTION_COLUMN, String.class );
         this.synLabel = record.getValue( SYN_LABEL_COLUMN, String.class );
         this.taskInstanceId = record.getValue( TASK_INSTANCE_ID_COLUMN, Integer.class );
         this.workshopId = record.getValue( WORKSHOP_ID_COLUMN, Integer.class );
-        this.scenarioId = record.getValue( SCENARIO_ID_COLUMN, String.class );
+        this.scenarioId = new ScenarioId( record.getValue( SCENARIO_ID_COLUMN, String.class ) );
     }
 
     private DefectReport( final Builder builder ) {
@@ -127,11 +128,11 @@ public class DefectReport {
         return this.taskId;
     }
 
-    public int getWorkerId() {
+    public TaskWorkerId getWorkerId() {
         return this.workerId;
     }
 
-    public String getEmeId() {
+    public EmeId getEmeId() {
         return this.emeId;
     }
 
@@ -159,8 +160,12 @@ public class DefectReport {
         return this.workshopId;
     }
 
-    public String getScenarioId() {
+    public ScenarioId getScenarioId() {
         return this.scenarioId;
+    }
+
+    public EmeAndScenarioId getEmeAndScenarioId() {
+        return new EmeAndScenarioId( this.emeId, this.scenarioId );
     }
 
     @Override
@@ -190,7 +195,7 @@ public class DefectReport {
     public int hashCode() {
         return Objects.hash( this.id, this.defectReportCode, this.workshopCode, this.taskId, this.workerId, this
                 .emeId, this.defectType, this.defectDescription, this.synDefectDescription, this.synLabel, this
-                .taskInstanceId, this.workshopId );
+                .taskInstanceId, this.workshopId, this.scenarioId );
     }
 
     @Override
@@ -202,6 +207,7 @@ public class DefectReport {
                 ", taskId=" + this.taskId +
                 ", workerId=" + this.workerId +
                 ", emeId='" + this.emeId + '\'' +
+                ", scenarioId='" + this.scenarioId + '\'' +
                 ", defectType='" + this.defectType + '\'' +
                 ", defectDescription='" + this.defectDescription + '\'' +
                 ", synDefectDescription='" + this.synDefectDescription + '\'' +
@@ -211,64 +217,68 @@ public class DefectReport {
                 '}';
     }
 
-    public DefectReport replaceScenarioId( final String id ) {
+    public DefectReport replaceScenarioId( final ScenarioId id ) {
         return DefectReport.builder( this.id ).withDefectType( this.defectType ).withEmeId( this.emeId )
                            .withDefectDescription( this.defectDescription ).withTaskId( this.taskId )
                            .withTaskInstanceId( this.taskInstanceId ).withWorkerId( this.workerId ).withWorkshopCode(
-                        this.workshopCode ).withWorkerId( this.workshopId ).withEmeId( this.emeId ).withScenarioId( id )
+                        this.workshopCode ).withWorkshopId( this.workshopId ).withEmeId( this.emeId ).withScenarioId(
+                        id )
                            .build();
     }
 
-//    public static ImmutableSet<DefectReport> fetchDefectReports( final Connection connection, final
-//    Predicate<DefectReport> filter ) {
-//        final String sql = "select * from " + DEFECT_REPORT_TABLE;
-//        final ImmutableSet<DefectReport> defectReports = DSL.using( connection )
-//                                                            .fetch( sql )
-//                                                            .map( DefectReport::new ).stream().filter( filter ).filter
-//                        ( e -> !Objects.equals( e.getEmeId
-//                                (), "" ) )
-//                                                            .collect( ImmutableSet.toImmutableSet() );
-//        final Map<Integer, List<DefectReport>> defectsByWorker = defectReports.stream().collect( Collectors
-//                .groupingBy( DefectReport::getWorkerId ) );
-//        final ImmutableMap<String, String> additionalDefectReportsFromCsv = getAdditionalDefectReportsFromCsv();
-//        additionalDefectReportsFromCsv.values().forEach( d -> System.err.println( "scenario " + d ) );
-//        return defectsByWorker.values().stream().flatMap( Collection::stream ).map(
-//                r -> r.getScenarioId() == null ?
-//                        r.replaceScenarioId( additionalDefectReportsFromCsv.get( r.getDefectReportCode() ) ) : r )
-//                              .collect( ImmutableSet.toImmutableSet() );
-//    }
+    public static ImmutableSet<DefectReport> fetchDefectReports( final Predicate<DefectReport> filter ) {
+        try (Connection connection = DatabaseConnector.createConnection()) {
+            final String sql = "select * from " + DEFECT_REPORT_TABLE;
+            final ImmutableSet<DefectReport> defectReports = DSL.using( connection )
+                                                                .fetch( sql )
+                                                                .map( DefectReport::new ).stream().filter( filter )
+                                                                .filter
+                                                                        ( e -> !Objects
+                                                                                .equals( e.getEmeId(), EmeId.EMPTY ) )
+                                                                .collect( ImmutableSet.toImmutableSet() );
+            final ImmutableSet<DefectReport> additionalDefectReportsFromCsv = getDefectReportsFromCsv();
 
-    public static ImmutableSet<DefectReport> fetchDefectReports( final Connection connection, final
-    Predicate<DefectReport> filter ) {
-        final String sql = "select * from " + DEFECT_REPORT_TABLE;
-        final ImmutableSet<DefectReport> defectReports = DSL.using( connection )
-                                                            .fetch( sql )
-                                                            .map( DefectReport::new ).stream().filter( filter ).filter
-                        ( e -> !Objects.equals( e.getEmeId
-                                (), "" ) )
-                                                            .collect( ImmutableSet.toImmutableSet() );
-        final Map<Integer, List<DefectReport>> defectsByWorker = defectReports.stream().collect( Collectors
-                .groupingBy( DefectReport::getWorkerId ) );
-        return defectsByWorker.values().stream().flatMap( r -> {
-            final Map<String, DefectReport> emeAndTaskIds = Maps.newHashMap();
-            r.forEach( d -> emeAndTaskIds.compute( d.emeId, ( k, v ) -> {
-                if (v == null) {
-                    return d;
-                }
-                else {
-                    return v.getTaskId() < d.getTaskId() ? d : v;
-                }
-            } ) );
-            return emeAndTaskIds.values().stream();
-        } ).collect( ImmutableSet.toImmutableSet() );
+            final Map<TaskWorkerId, List<DefectReport>> defectsByWorker = defectReports.stream().collect( Collectors
+                    .groupingBy( DefectReport::getWorkerId ) );
+            return defectsByWorker.values().stream().flatMap( Collection::stream ).map(
+                    r -> r.getScenarioId().toString() == null ?
+                            r.replaceScenarioId( getScenarioIdOrThrow( additionalDefectReportsFromCsv, r ) ) :
+                            r ).collect( ImmutableSet.toImmutableSet() );
+        } catch (final SQLException e) {
+            throw new UncheckedSQLException( e );
+        }
     }
 
-    private static ImmutableMap<String, String> getAdditionalDefectReportsFromCsv() {
+    private static ScenarioId getScenarioIdOrThrow(
+            final ImmutableSet<DefectReport> additionalDefectReportsFromCsv,
+            final DefectReport report ) {
+        final ImmutableSet<DefectReport> matches = additionalDefectReportsFromCsv.stream().filter(
+                r -> r.getDefectReportCode().contains( String.valueOf( report.getTaskId() ) ) &&
+                        Objects.equals( r.getWorkerId(), report.getWorkerId() ) ).collect(
+                ImmutableSet.toImmutableSet() );
+        if (matches.isEmpty()) {
+            throw new NoSuchElementException( "Scenario id not known for defect " + report );
+        }
+        else if (matches.size() > 1) {
+            throw new IllegalArgumentException(
+                    "More than one CSV defect report " + matches + " matching for defect " + report );
+        }
+        else {
+            return matches.iterator().next().getScenarioId();
+        }
+    }
+
+    private static ImmutableSet<DefectReport> getDefectReportsFromCsv() {
         try (Reader reader = Files.newBufferedReader(
                 Paths.get( "src/main/resources/additions/defectReportsSS18.csv" ) );
              CSVReader csvReader = new CSVReaderBuilder( reader ).withSkipLines( 1 ).build()) {
-            return csvReader.readAll().stream().collect(
-                    ImmutableMap.toImmutableMap( l -> l[1], l -> l[11] ) );
+            return csvReader.readAll().stream().map( r -> DefectReport.builder( Integer.parseInt( r[0] ) ).withEmeId(
+                    new EmeId( r[12] ) ).withScenarioId( new ScenarioId( r[11] ) ).withWorkerId(
+                    new TaskWorkerId( r[7] ) )
+                                                                      .withDefectType( DefectType.fromString( r[14] ) )
+                                                                      .withDefectReportCode( r[1] )
+                                                                      .build() ).collect(
+                    ImmutableSet.toImmutableSet() );
         } catch (final IOException e) {
             throw new UncheckedIOException( e );
         }
@@ -292,9 +302,9 @@ public class DefectReport {
 
         private int taskId;
 
-        private int workerId;
+        private TaskWorkerId workerId;
 
-        private String emeId;
+        private EmeId emeId;
 
         private DefectType defectType;
 
@@ -308,7 +318,7 @@ public class DefectReport {
 
         private Integer workshopId;
 
-        private String scenarioId;
+        private ScenarioId scenarioId;
 
         private Builder( final int id ) {
             this.id = id;
@@ -329,12 +339,12 @@ public class DefectReport {
             return this;
         }
 
-        public Builder withWorkerId( final int workerId ) {
+        public Builder withWorkerId( final TaskWorkerId workerId ) {
             this.workerId = workerId;
             return this;
         }
 
-        public Builder withEmeId( final String emeId ) {
+        public Builder withEmeId( final EmeId emeId ) {
             this.emeId = emeId;
             return this;
         }
@@ -369,7 +379,7 @@ public class DefectReport {
             return this;
         }
 
-        public Builder withScenarioId( final String scenarioId ) {
+        public Builder withScenarioId( final ScenarioId scenarioId ) {
             this.scenarioId = scenarioId;
             return this;
         }

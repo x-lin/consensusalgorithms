@@ -1,13 +1,15 @@
 package model;
 
-import com.google.common.collect.ImmutableSet;
+import algorithms.finaldefects.SemesterSettings;
 import org.jooq.Record;
 import org.jooq.impl.DSL;
-import web.SemesterSettings;
+import utils.UncheckedSQLException;
 
 import java.sql.Connection;
+import java.sql.SQLException;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.stream.Stream;
 
 /**
  * @author LinX
@@ -25,7 +27,7 @@ public class Eme {
 
     public static String EME_GROUP_COLUMN = "eme_group";
 
-    private final String emeId;
+    private final EmeId emeId;
 
     private final String emeText;
 
@@ -34,7 +36,7 @@ public class Eme {
     private final Integer emeGroupId;
 
     public Eme( final Record record, final SemesterSettings settings ) {
-        this.emeId = record.getValue( EME_ID_COLUMN, String.class );
+        this.emeId = new EmeId( record.getValue( EME_ID_COLUMN, String.class ) );
         this.emeText = Optional.ofNullable( record.getValue( OLD_EME_TEXT_COLUMN, String.class ) ).filter( settings
                 .useOldEmes() ).filter( t -> !t
                 .equals( "NULL" ) ).orElseGet( () -> record.getValue( EME_TEXT, String.class ) );
@@ -49,7 +51,7 @@ public class Eme {
         this.emeGroupId = builder.emeGroupId;
     }
 
-    public String getEmeId() {
+    public EmeId getEmeId() {
         return this.emeId;
     }
 
@@ -67,10 +69,14 @@ public class Eme {
 
     @Override
     public boolean equals( final Object o ) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
         final Eme eme = (Eme) o;
-        return this.emeGroupId == eme.emeGroupId &&
+        return Objects.equals( this.emeGroupId, eme.emeGroupId ) &&
                 Objects.equals( this.emeId, eme.emeId ) &&
                 Objects.equals( this.emeText, eme.emeText ) &&
                 this.emeType == eme.emeType;
@@ -91,19 +97,21 @@ public class Eme {
                 '}';
     }
 
-    public static Builder builder( final String emeId ) {
+    public static Builder builder( final EmeId emeId ) {
         return new Builder( emeId );
     }
 
-    public static ImmutableSet<Eme> fetchEmes( final Connection connection, final SemesterSettings settings ) {
-        final String sql = "select * from " + EME_TABLE;
-        return DSL.using( connection )
-                .fetch( sql )
-                .map( r -> new Eme( r, settings ) ).stream().collect( ImmutableSet.toImmutableSet() );
+    public static Stream<Eme> fetchEmes( final SemesterSettings settings ) {
+        try (Connection connection = DatabaseConnector.createConnection()) {
+            final String sql = "select * from " + EME_TABLE;
+            return DSL.using( connection ).fetch( sql ).map( r -> new Eme( r, settings ) ).stream();
+        } catch (final SQLException e) {
+            throw new UncheckedSQLException( e );
+        }
     }
 
     public static class Builder {
-        private final String emeId;
+        private final EmeId emeId;
 
         private String emeText;
 
@@ -111,7 +119,7 @@ public class Eme {
 
         private Integer emeGroupId;
 
-        private Builder( final String emeId ) {
+        private Builder( final EmeId emeId ) {
             this.emeId = emeId;
         }
 

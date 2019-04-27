@@ -15,35 +15,28 @@ import java.util.function.Function;
  * @author LinX
  */
 public class CrowdtruthData {
-    private final String mediaUnitId;
+    private final MediaUnitId mediaUnitId;
 
-    private final String id;
+    private final WorkerId workerId;
 
-    private final String workerId;
+    private final AnnotationName chosenAnnotation;
 
-    private final String chosenAnnotation;
-
-    public CrowdtruthData( String mediaUnitId, String id, String workerId, String
-            chosenAnnotation ) {
+    public CrowdtruthData( final MediaUnitId mediaUnitId, final WorkerId workerId,
+            final AnnotationName chosenAnnotation ) {
         this.mediaUnitId = mediaUnitId;
-        this.id = id;
         this.workerId = workerId;
         this.chosenAnnotation = chosenAnnotation;
     }
 
-    public String getMediaUnitId() {
+    public MediaUnitId getMediaUnitId() {
         return this.mediaUnitId;
     }
 
-    public String getId() {
-        return this.id;
-    }
-
-    public String getWorkerId() {
+    public WorkerId getWorkerId() {
         return this.workerId;
     }
 
-    public String getChosenAnnotation() {
+    public AnnotationName getChosenAnnotation() {
         return this.chosenAnnotation;
     }
 
@@ -51,36 +44,36 @@ public class CrowdtruthData {
     public String toString() {
         return "CrowdtruthData{" +
                 "mediaUnitId='" + this.mediaUnitId + '\'' +
-                ", id='" + this.id + '\'' +
                 ", workerId='" + this.workerId + '\'' +
                 ", chosenAnnotation='" + this.chosenAnnotation + '\'' +
                 '}';
     }
 
-    public static ImmutableSet<MediaUnit> annotate( Collection<CrowdtruthData> data, String...
+    public static ImmutableSet<MediaUnit> annotate( final Collection<CrowdtruthData> data, final AnnotationName...
             allAnnotationNames ) {
-        Map<MediaUnitId, Map<WorkerId, Set<MediaUnitAnnotationId>>> knownAnnotations = Maps.newHashMap();
-        Set<MediaUnit> mediaUnits = Sets.newHashSet();
+        final Map<MediaUnitId, Map<WorkerId, Set<MediaUnitAnnotationId>>> knownAnnotations = Maps.newHashMap();
+        final Set<MediaUnit> mediaUnits = Sets.newHashSet();
         data.forEach( d -> {
-            MediaUnitId mediaUnitId = new MediaUnitId( d.getMediaUnitId() );
-            Map<WorkerId, Set<MediaUnitAnnotationId>> workers = knownAnnotations.computeIfAbsent( mediaUnitId, u ->
-                    Maps.newHashMap() );
-            Set<MediaUnitAnnotationId> annotations = workers.computeIfAbsent( new WorkerId( d.getWorkerId() ), a -> Sets
-                    .newHashSet() );
-            annotations.add( new MediaUnitAnnotationId( d.getChosenAnnotation(), mediaUnitId ) );
+            final Map<WorkerId, Set<MediaUnitAnnotationId>> workers = knownAnnotations.computeIfAbsent(
+                    d.getMediaUnitId(),
+                    u ->
+                            Maps.newHashMap() );
+            final Set<MediaUnitAnnotationId> annotations = workers.computeIfAbsent( d.getWorkerId(),
+                    a -> Sets.newHashSet() );
+            annotations.add( new MediaUnitAnnotationId( d.getChosenAnnotation(), d.getMediaUnitId() ) );
         } );
 
-        Map<WorkerId, Worker> workers = knownAnnotations.values().stream().flatMap( a -> a.keySet().stream() )
-                .distinct().collect( ImmutableMap.toImmutableMap( Function.identity(), Worker::new ) );
+        final Map<WorkerId, Worker> workers = knownAnnotations.values().stream().flatMap( a -> a.keySet().stream() )
+                                                              .distinct().collect(
+                        ImmutableMap.toImmutableMap( Function.identity(), Worker::new ) );
 
         knownAnnotations.forEach( ( mediaUnitId, workerAnnotations ) -> {
-            ImmutableSet<MediaUnitAnnotationId> allAnnotations = Arrays.stream(
-                    allAnnotationNames )
-                    .map( a -> new MediaUnitAnnotationId( String.valueOf( a ), mediaUnitId ) )
-                    .collect( ImmutableSet.toImmutableSet() );
-            MediaUnit mediaUnit = new MediaUnit( mediaUnitId, allAnnotationNames.length > 0 ? allAnnotations :
+            final ImmutableSet<MediaUnitAnnotationId> allAnnotations = Arrays.stream(
+                    allAnnotationNames ).map( a -> new MediaUnitAnnotationId( a, mediaUnitId ) )
+                                                                             .collect( ImmutableSet.toImmutableSet() );
+            final MediaUnit mediaUnit = new MediaUnit( mediaUnitId, allAnnotationNames.length > 0 ? allAnnotations :
                     workerAnnotations.values()
-                            .stream().flatMap( Collection::stream ).collect( ImmutableSet.toImmutableSet() ) );
+                                     .stream().flatMap( Collection::stream ).collect( ImmutableSet.toImmutableSet() ) );
             mediaUnits.add( mediaUnit );
             workerAnnotations.forEach( (( workerId, annotationIds ) -> {
                 annotationIds.forEach( mediaUnitAnnotationId -> mediaUnit.annotate( workers.get( workerId ),

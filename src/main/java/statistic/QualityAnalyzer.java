@@ -1,19 +1,20 @@
 package statistic;
 
-import algorithms.crowdtruth.CrowdtruthRunner;
+import algorithms.finaldefects.CrowdtruthRunner;
+import algorithms.finaldefects.SemesterSettings;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
 import com.opencsv.CSVWriter;
+import model.EmeAndScenarioId;
+import model.EmeId;
 import model.FinalDefect;
 import model.TrueDefect;
 import org.jooq.lambda.UncheckedException;
-import web.SemesterSettings;
 
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.sql.SQLException;
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.Function;
@@ -28,11 +29,10 @@ public class QualityAnalyzer {
 
     private void write( final SemesterSettings settings, final ImmutableSet<CrowdtruthRunner.Sample> samples, final
     String idKey, final String
-                                outputFilePath ) {
-        final ImmutableMap<String, TrueDefect> trueDefects;
+            outputFilePath ) {
+        final ImmutableMap<EmeId, TrueDefect> trueDefects;
         try {
-            trueDefects = AllTrueDefectsMixin.findAllTrueDefects( settings ).stream()
-                    .collect( ImmutableMap.toImmutableMap( TrueDefect::getAboutEmEid, Function.identity() ) );
+            trueDefects = AllTrueDefectsMixin.findAllTrueDefects( settings );
 
             try (CSVWriter finalDefectsCsv = new CSVWriter( Files.newBufferedWriter( Paths.get(
                     outputFilePath ) ) )) {
@@ -40,18 +40,18 @@ public class QualityAnalyzer {
                         "FN", "Precision", "Recall", "F-Measure", "Accuracy"} );
 
                 samples.forEach( worker -> {
-                    final ImmutableMap<String, FinalDefect> workerFinalDefects = worker.getFinalDefects()
-                            .stream().collect( ImmutableMap.toImmutableMap( FinalDefect::getEmeId, Function.identity
-                                    () ) );
-                    final Set<EvaluationResult> results = Sets.newHashSet();
+                    final ImmutableMap<EmeAndScenarioId, FinalDefect> workerFinalDefects =
+                            worker.getFinalDefects().stream().collect( ImmutableMap
+                                    .toImmutableMap( FinalDefect::getEmeAndScenarioId, Function.identity() ) );
+                    final Set<FinalDefectResult> results = Sets.newHashSet();
                     workerFinalDefects.values().forEach( fd -> {
-                        final EvaluationResult evaluationResult = Optional.ofNullable( trueDefects.get( fd.getEmeId()
-                        ) ).map( td -> new EvaluationResult(
-                                fd, td ) ).orElseGet( () -> new EvaluationResult( fd ) );
-                        results.add( evaluationResult );
+                        final FinalDefectResult finalDefectResult = Optional.ofNullable( trueDefects.get( fd.getEmeId()
+                        ) ).map( td -> new FinalDefectResult(
+                                fd, td ) ).orElseGet( () -> new FinalDefectResult( fd ) );
+                        results.add( finalDefectResult );
                     } );
 
-                    final EvaluationResultMetrics metrics = new EvaluationResultMetrics( results );
+                    final ConfusionMatrix metrics = new ConfusionMatrix( results );
 
                     finalDefectsCsv.writeNext( new String[]{String.valueOf( worker.getId() ), String.valueOf(
                             worker.getQuality() ),
@@ -61,79 +61,60 @@ public class QualityAnalyzer {
                             metrics.getAccuracyAsString()} );
                 } );
             }
-        } catch (IOException | SQLException e) {
+        } catch (final IOException e) {
             throw new UncheckedException( e );
         }
     }
 
     //TODO ugly code merge with write method
-    public ImmutableSet<NamedEvaluationResultMetrics> getEvaluationResults( final SemesterSettings settings, final
-    ImmutableSet<CrowdtruthRunner
-            .Sample> samples ) {
-        final ImmutableMap<String, TrueDefect> trueDefects;
-        final ImmutableSet.Builder<NamedEvaluationResultMetrics> builder = ImmutableSet.builder();
-        try {
-            trueDefects = AllTrueDefectsMixin.findAllTrueDefects( settings ).stream()
-                    .collect( ImmutableMap.toImmutableMap( TrueDefect::getAboutEmEid, Function.identity() ) );
+    public ImmutableSet<ArtifactWithConfusionMatrix> getEvaluationResults( final SemesterSettings settings, final
+    ImmutableSet<CrowdtruthRunner.Sample> samples ) {
+        final ImmutableMap<EmeId, TrueDefect> trueDefects;
+        final ImmutableSet.Builder<ArtifactWithConfusionMatrix> builder = ImmutableSet.builder();
+        trueDefects = AllTrueDefectsMixin.findAllTrueDefects( settings );
 
-            samples.forEach( sample -> {
-                System.err.println( "sample: " + sample );
-                final ImmutableMap<String, FinalDefect> finalDefectsPerSample = sample.getFinalDefects()
-                        .stream().collect( ImmutableMap.toImmutableMap( FinalDefect::getEmeId, Function.identity
-                                () ) );
-                final Set<EvaluationResult> results = Sets.newHashSet();
-                finalDefectsPerSample.values().forEach( fd -> {
-                    final EvaluationResult evaluationResult = Optional.ofNullable( trueDefects.get( fd.getEmeId()
-                    ) ).map( td -> new EvaluationResult(
-                            fd, td ) ).orElseGet( () -> new EvaluationResult( fd ) );
-                    results.add( evaluationResult );
-                } );
-
-                final EvaluationResultMetrics metrics = new EvaluationResultMetrics( results );
-                builder.add( new NamedEvaluationResultMetrics( metrics, String.valueOf( sample.getId() ), sample
-                        .getQuality() ) );
+        samples.forEach( sample -> {
+            System.err.println( "sample: " + sample );
+            final Set<FinalDefectResult> results = Sets.newHashSet();
+            sample.getFinalDefects().forEach( fd -> {
+                final FinalDefectResult finalDefectResult = Optional.ofNullable( trueDefects.get( fd.getEmeId()
+                ) ).map( td -> new FinalDefectResult( fd, td ) ).orElseGet( () -> new FinalDefectResult( fd ) );
+                results.add( finalDefectResult );
             } );
-        } catch (IOException | SQLException e) {
-            throw new UncheckedException( e );
-        }
+
+            final ConfusionMatrix metrics = new ConfusionMatrix( results );
+            builder.add( new ArtifactWithConfusionMatrix( metrics, sample.getId(), sample.getQuality() ) );
+        } );
         return builder.build();
     }
 
     //TODO ugly code merge with write method
-    public ImmutableSet<NamedEvaluationResultMetrics> getEvaluationResultsForMediaUnits( final SemesterSettings
-                                                                                                 settings, final
-                                                                                         ImmutableSet<CrowdtruthRunner
-                                                                                                 .Sample> samples ) {
-        final ImmutableMap<String, TrueDefect> trueDefects;
-        final ImmutableSet.Builder<NamedEvaluationResultMetrics> builder = ImmutableSet.builder();
-        try {
-            trueDefects = AllTrueDefectsMixin.findAllTrueDefects( settings ).stream()
-                    .collect( ImmutableMap.toImmutableMap( TrueDefect::getAboutEmEid, Function.identity() ) );
+    public ImmutableSet<ArtifactWithConfusionMatrix> getEvaluationResultsForMediaUnits( final SemesterSettings
+            settings, final ImmutableSet<CrowdtruthRunner.Sample> samples ) {
+        final ImmutableMap<EmeId, TrueDefect> trueDefects;
+        final ImmutableSet.Builder<ArtifactWithConfusionMatrix> builder = ImmutableSet.builder();
+        trueDefects = AllTrueDefectsMixin.findAllTrueDefects( settings );
 
-            samples.forEach( sample -> {
-                final ImmutableSet<FinalDefect> finalDefectsPerSample = sample.getFinalDefects()
-                        .stream().collect( ImmutableSet.toImmutableSet() );
-                final Set<EvaluationResult> results = Sets.newHashSet();
-                finalDefectsPerSample.forEach( fd -> {
-                    final EvaluationResult evaluationResult = Optional.ofNullable( trueDefects.get( fd.getEmeId()
-                    ) ).map( td -> new EvaluationResult(
-                            fd, td ) ).orElseGet( () -> new EvaluationResult( fd ) );
-                    results.add( evaluationResult );
-                } );
-
-                final EvaluationResultMetrics metrics = new EvaluationResultMetrics( results );
-                builder.add( new NamedEvaluationResultMetrics( metrics, String.valueOf( sample.getId() ), sample
-                        .getQuality() ) );
+        samples.forEach( sample -> {
+            final ImmutableSet<FinalDefect> finalDefectsPerSample = sample.getFinalDefects();
+            final Set<FinalDefectResult> results = Sets.newHashSet();
+            finalDefectsPerSample.forEach( fd -> {
+                final FinalDefectResult finalDefectResult = Optional.ofNullable( trueDefects.get( fd.getEmeId()
+                ) ).map( td -> new FinalDefectResult(
+                        fd, td ) ).orElseGet( () -> new FinalDefectResult( fd ) );
+                results.add( finalDefectResult );
             } );
-        } catch (IOException | SQLException e) {
-            throw new UncheckedException( e );
-        }
+
+            final ConfusionMatrix metrics = new ConfusionMatrix( results );
+            builder.add( new ArtifactWithConfusionMatrix( metrics, String.valueOf( sample.getId() ), sample
+                    .getQuality() ) );
+        } );
         return builder.build();
     }
 
     public static void analyze( final SemesterSettings settings, final ImmutableSet<CrowdtruthRunner.Sample> defects,
-                                final String idKey, final String
-                                        outputFilePath ) {
+            final String idKey, final String
+            outputFilePath ) {
         new QualityAnalyzer().write( settings, defects, idKey, outputFilePath );
     }
 

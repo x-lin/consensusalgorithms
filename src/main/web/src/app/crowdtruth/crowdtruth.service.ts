@@ -1,6 +1,6 @@
 import {Injectable} from '@angular/core';
 import {BehaviorSubject, Subject} from 'rxjs';
-import {DataResult, DataResultHeaders, NamedEvaluationScoresResponse, RestService, Semester} from '../rest/rest.service';
+import {DataResult, DataResultHeaders, ArtifactWithConfusionMatrixResponse, RestService, Semester} from '../rest/rest.service';
 
 @Injectable({
   providedIn: 'root'
@@ -39,9 +39,9 @@ export class CrowdtruthService {
 
   private createPageData(data) {
     return {
-      workers: this.createCorrelationData(this.flattenNamedEvaluationScoresResponse(data.workerScores), data.workerPearsonScores, 'Worker Scores'),
-      annotations: this.createCorrelationData(this.flattenNamedEvaluationScoresResponse(data.annotationScores), data.annotationPearsonScores, 'Annotation Scores'),
-      mediaUnits: this.createCorrelationData(this.flattenNamedEvaluationScoresResponse(data.mediaUnitScores), data.mediaUnitPearsonScores, 'Media Unit Scores'),
+      workers: this.createCorrelationData(this.flattenArtifactWithConfusionMatrixResponse(data.workerScores), data.workerPearsonScores, 'Worker Scores'),
+      annotations: this.createCorrelationData(this.flattenArtifactWithConfusionMatrixResponse(data.annotationScores), data.annotationPearsonScores, 'Annotation Scores'),
+      mediaUnits: this.createCorrelationData(this.flattenArtifactWithConfusionMatrixResponse(data.mediaUnitScores), data.mediaUnitPearsonScores, 'Media Unit Scores'),
       annotationQualityScores: {
         fieldNames: ['annotationName', 'qualityScore'],
         tableHeaderNames: ['annotationName', 'qualityScore'],
@@ -90,19 +90,19 @@ export class CrowdtruthService {
     };
   }
 
-  private flattenNamedEvaluationScoresResponse(data: object[]) {
-    return data.map((d: NamedEvaluationScoresResponse) => {
+  private flattenArtifactWithConfusionMatrixResponse(data: object[]) {
+    return data.map((d: ArtifactWithConfusionMatrixResponse) => {
       return {
         id: d.id,
         quality: d.quality,
-        fmeasure: d.metrics.fmeasure,
-        recall: d.metrics.recall,
-        precision: d.metrics.precision,
-        accuracy: d.metrics.accuracy,
-        truePositives: d.metrics.truePositives,
-        trueNegatives: d.metrics.trueNegatives,
-        falsePositives: d.metrics.falsePositives,
-        falseNegatives: d.metrics.falseNegatives
+        fmeasure: d.confusionMatrix.fmeasure,
+        recall: d.confusionMatrix.recall,
+        precision: d.confusionMatrix.precision,
+        accuracy: d.confusionMatrix.accuracy,
+        truePositives: d.confusionMatrix.truePositives,
+        trueNegatives: d.confusionMatrix.trueNegatives,
+        falsePositives: d.confusionMatrix.falsePositives,
+        falseNegatives: d.confusionMatrix.falseNegatives
       };
     });
   }

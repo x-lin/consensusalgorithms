@@ -1,28 +1,27 @@
 package web;
 
 import com.google.common.collect.ImmutableSet;
-import statistic.EvaluationResult;
-import statistic.EvaluationResultMetrics;
+import statistic.ConfusionMatrix;
+import statistic.FinalDefectResult;
 
 /**
  * @author LinX
  */
 public class WebFinalDefects {
-    private final EvaluationResultMetrics metrics;
+    private final ConfusionMatrix confusionMatrix;
 
-    private final ImmutableSet<EvaluationResult> evaluationResults;
+    private final ImmutableSet<FinalDefectResult> finalDefectResults;
 
-    public WebFinalDefects( final ImmutableSet<EvaluationResult>
-                                    evaluationResults ) {
-        this.evaluationResults = evaluationResults;
-        this.metrics = new EvaluationResultMetrics( evaluationResults );
+    public WebFinalDefects( final ImmutableSet<FinalDefectResult> finalDefectResults ) {
+        this.finalDefectResults = finalDefectResults;
+        this.confusionMatrix = new ConfusionMatrix( finalDefectResults );
     }
 
-    public EvaluationResultMetrics getMetrics() {
-        return this.metrics;
+    public ConfusionMatrix getConfusionMatrix() {
+        return this.confusionMatrix;
     }
 
-    public ImmutableSet<EvaluationResult> getEvaluationResults() {
-        return this.evaluationResults;
+    public ImmutableSet<FinalDefectResult> getFinalDefectResults() {
+        return this.finalDefectResults;
     }
 }

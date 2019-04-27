@@ -1,8 +1,8 @@
 package web;
 
 import org.apache.commons.math3.stat.correlation.PearsonsCorrelation;
-import statistic.EvaluationResultMetrics;
-import statistic.NamedEvaluationResultMetrics;
+import statistic.ArtifactWithConfusionMatrix;
+import statistic.ConfusionMatrix;
 
 import java.util.Set;
 import java.util.function.Function;
@@ -19,22 +19,22 @@ public class PearsonScores {
 
     private final double qualityRecallCorrelation;
 
-    public PearsonScores( final Set<NamedEvaluationResultMetrics> metrics ) {
+    public PearsonScores( final Set<ArtifactWithConfusionMatrix> metrics ) {
         this.qualityFMeasureCorrelation = calculatePearsonCorrelation( metrics,
-                EvaluationResultMetrics::getFmeasure );
+                ConfusionMatrix::getFmeasure );
         this.qualityPrecisionCorrelation = calculatePearsonCorrelation( metrics,
-                EvaluationResultMetrics::getPrecision );
+                ConfusionMatrix::getPrecision );
         this.qualityAccuracyCorrelation = calculatePearsonCorrelation( metrics,
-                EvaluationResultMetrics::getAccuracy );
+                ConfusionMatrix::getAccuracy );
         this.qualityRecallCorrelation = calculatePearsonCorrelation( metrics,
-                EvaluationResultMetrics::getRecall );
+                ConfusionMatrix::getRecall );
     }
 
-    private double calculatePearsonCorrelation( final Set<NamedEvaluationResultMetrics> metrics, final
-    Function<EvaluationResultMetrics, Double> fetcher ) {
+    private double calculatePearsonCorrelation( final Set<ArtifactWithConfusionMatrix> metrics, final
+    Function<ConfusionMatrix, Double> fetcher ) {
         return new PearsonsCorrelation().correlation( metrics.stream().mapToDouble(
-                NamedEvaluationResultMetrics::getQuality ).toArray(),
-                metrics.stream().mapToDouble( r -> fetcher.apply( r.getMetrics() ) )
+                ArtifactWithConfusionMatrix::getQuality ).toArray(),
+                metrics.stream().mapToDouble( r -> fetcher.apply( r.getConfusionMatrix() ) )
                        .toArray() );
     }
 

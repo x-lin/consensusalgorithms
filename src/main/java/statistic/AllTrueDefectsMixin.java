@@ -1,5 +1,6 @@
 package statistic;
 
+import algorithms.finaldefects.SemesterSettings;
 import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
@@ -8,12 +9,14 @@ import com.opencsv.CSVReader;
 import com.opencsv.CSVReaderBuilder;
 import com.opencsv.CSVWriter;
 import model.DatabaseConnector;
-import model.Eme;
+import model.EmeId;
+import model.Emes;
 import model.TrueDefect;
-import web.SemesterSettings;
+import utils.UncheckedSQLException;
 
 import java.io.IOException;
 import java.io.Reader;
+import java.io.UncheckedIOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.sql.Connection;
@@ -36,34 +39,40 @@ public class AllTrueDefectsMixin {
 
     private final ImmutableSet<TrueDefect> allTrueDefects;
 
-    public AllTrueDefectsMixin( final SemesterSettings settings ) throws IOException, SQLException {
-        Files.createDirectories( Paths.get( "output" ) );
+    public AllTrueDefectsMixin( final SemesterSettings settings ) {
 
         try (Connection connection = DatabaseConnector.createConnection()) {
-            final Map<String, Set<TrueDefect>> trueDefectsByEme = TrueDefect.fetchTrueDefects( connection ).stream()
-                    .collect( Collectors.groupingBy( TrueDefect::getAboutEmEid, Collectors.toSet() ) );
+            Files.createDirectories( Paths.get( "output" ) );
+            final Map<EmeId, Set<TrueDefect>> trueDefectsByEme = TrueDefect.fetchTrueDefects( connection ).stream()
+                                                                           .collect( Collectors.groupingBy(
+                                                                                   TrueDefect::getAboutEmEid,
+                                                                                   Collectors.toSet() ) );
 
             try (Reader reader = Files.newBufferedReader( Paths.get( ADDITIONAL_TRUE_DEFECTS_IN_CSV ) ); CSVReader
                     additionalTdReader = new CSVReaderBuilder( reader ).withSkipLines( 1 ).build()) {
                 additionalTdReader.readAll().forEach( l -> addAdditionalTrueDefects( trueDefectsByEme, l ) );
             }
-            trueDefectsByEme.values().forEach( e -> e.removeIf( s -> s.getAboutEmEid().equals( "NA" ) ) );
+            trueDefectsByEme.values().forEach( e -> e.removeIf( s -> s.getAboutEmEid().toString().equals( "NA" ) ) );
             trueDefectsByEme.values().removeIf( Set::isEmpty );
 
-            final ImmutableMap<String, Eme> emes = Eme.fetchEmes( connection, settings ).stream().collect( ImmutableMap
-                    .toImmutableMap( Eme::getEmeId, Function.identity() ) );
+            final Emes emes = Emes.fetchFromDb( settings );
             try (CSVWriter allTrueDefects = new CSVWriter( Files.newBufferedWriter( Paths.get(
                     ALL_TRUE_DEFECTS_OUT_CSV ) ) )) {
                 allTrueDefects.writeNext( new String[]{"about_em_eid", "eme_text", "code_td", "scenario", "defect_type",
                         "description"} );
                 trueDefectsByEme.values().stream().flatMap( Collection::stream ).forEach( td -> allTrueDefects
-                        .writeNext( new String[]{td.getAboutEmEid(), emes.get( td.getAboutEmEid() ).getEmeText(), td
-                                .getCodeTd(), td.getScenario(), td
+                        .writeNext( new String[]{td.getAboutEmEid().toString(), emes.get(
+                                td.getAboutEmEid() ).getEmeText(), td
+                                .getCodeTd(), td.getScenario().toString(), td
                                 .getDefectType().name(), td.getDescription()} ) );
             }
 
             this.allTrueDefects = trueDefectsByEme.values().stream().flatMap( Collection::stream ).collect( ImmutableSet
                     .toImmutableSet() );
+        } catch (final IOException e) {
+            throw new UncheckedIOException( e );
+        } catch (final SQLException e) {
+            throw new UncheckedSQLException( e );
         }
     }
 
@@ -71,18 +80,19 @@ public class AllTrueDefectsMixin {
         return this.allTrueDefects;
     }
 
-    public static ImmutableSet<TrueDefect> findAllTrueDefects( final SemesterSettings settings ) throws IOException,
-            SQLException {
-        return new AllTrueDefectsMixin( settings ).getAllTrueDefects();
+    public static ImmutableMap<EmeId, TrueDefect> findAllTrueDefects( final SemesterSettings settings ) {
+        return new AllTrueDefectsMixin( settings ).getAllTrueDefects().stream().collect( ImmutableMap.toImmutableMap(
+                TrueDefect::getAboutEmEid,
+                Function.identity() ) );
     }
 
-    private static void addAdditionalTrueDefects( final Map<String, Set<TrueDefect>> trueDefectsByEme, final
+    private static void addAdditionalTrueDefects( final Map<EmeId, Set<TrueDefect>> trueDefectsByEme, final
     String[] csvLine ) {
         final AdditionalTrueDefectForEme additionalTrueDefectForEme = new AdditionalTrueDefectForEme(
                 csvLine[1], Stream.of( csvLine[3],
                 csvLine[5] ).filter( Objects::nonNull ).collect( ImmutableSet.toImmutableSet() ), csvLine
                 [7] );
-        final String emeId = additionalTrueDefectForEme.getEmeId();
+        final EmeId emeId = additionalTrueDefectForEme.getEmeId();
         final Set<TrueDefect> trueDefectsOfEme = trueDefectsByEme.computeIfAbsent(
                 emeId, d -> Sets.newHashSet() );
         additionalTrueDefectForEme.getSynonymousEmeIds().stream().flatMap( synonym -> trueDefectsByEme
@@ -101,24 +111,25 @@ public class AllTrueDefectsMixin {
     }
 
     private static class AdditionalTrueDefectForEme {
-        private final String emeId;
+        private final EmeId emeId;
 
-        private final Set<String> synonymousEmeIds;
+        private final ImmutableSet<EmeId> synonymousEmeIds;
 
         private final String manualMatchTrueDefectId;
 
         public AdditionalTrueDefectForEme( final String emeId, final Set<String> synonymousEmeIds, final String
                 manualMatchTrueDefectId ) {
-            this.emeId = emeId;
-            this.synonymousEmeIds = synonymousEmeIds;
+            this.emeId = new EmeId( emeId );
+            this.synonymousEmeIds = synonymousEmeIds.stream().map( EmeId::new ).collect(
+                    ImmutableSet.toImmutableSet() );
             this.manualMatchTrueDefectId = manualMatchTrueDefectId;
         }
 
-        public String getEmeId() {
+        public EmeId getEmeId() {
             return this.emeId;
         }
 
-        public Set<String> getSynonymousEmeIds() {
+        public ImmutableSet<EmeId> getSynonymousEmeIds() {
             return this.synonymousEmeIds;
         }
 
@@ -128,8 +139,12 @@ public class AllTrueDefectsMixin {
 
         @Override
         public boolean equals( final Object o ) {
-            if (this == o) return true;
-            if (o == null || getClass() != o.getClass()) return false;
+            if (this == o) {
+                return true;
+            }
+            if (o == null || getClass() != o.getClass()) {
+                return false;
+            }
             final AdditionalTrueDefectForEme that = (AdditionalTrueDefectForEme) o;
             return Objects.equals( this.emeId, that.emeId ) &&
                     Objects.equals( this.synonymousEmeIds, that.synonymousEmeIds ) &&

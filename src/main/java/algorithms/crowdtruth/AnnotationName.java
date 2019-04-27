@@ -8,7 +8,7 @@ import java.util.Objects;
 public class AnnotationName {
     private final String name;
 
-    private AnnotationName( String name ) {
+    private AnnotationName( final String name ) {
         this.name = name;
     }
 
@@ -18,10 +18,14 @@ public class AnnotationName {
     }
 
     @Override
-    public boolean equals( Object o ) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        AnnotationName that = (AnnotationName) o;
+    public boolean equals( final Object o ) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+        final AnnotationName that = (AnnotationName) o;
         return Objects.equals( this.name, that.name );
     }
 
@@ -30,7 +34,7 @@ public class AnnotationName {
         return Objects.hash( this.name );
     }
 
-    public static AnnotationName create( String name ) {
+    public static AnnotationName create( final String name ) {
         return new AnnotationName( name );
     }
 }
