@@ -2,12 +2,12 @@ package algorithms.majorityvoting.basic;
 
 import algorithms.finaldefects.SemesterSettings;
 import algorithms.finaldefects.majorityvoting.basic.MajorityVotingAlgorithm;
+import algorithms.model.*;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableBiMap;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Maps;
-import model.*;
 import org.junit.Before;
 import org.junit.Test;
 

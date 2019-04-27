@@ -4,10 +4,10 @@ import algorithms.crowdtruth.*;
 import algorithms.crowdtruth.CrowdtruthMetrics.MetricsScores;
 import algorithms.finaldefects.FinalDefectAggregationAlgorithm;
 import algorithms.finaldefects.SemesterSettings;
+import algorithms.model.*;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Maps;
-import model.*;
 
 import java.util.Arrays;
 import java.util.Map;

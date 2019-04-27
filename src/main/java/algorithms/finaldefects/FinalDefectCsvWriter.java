@@ -1,9 +1,9 @@
 package algorithms.finaldefects;
 
+import algorithms.model.EmeAndScenarioId;
+import algorithms.statistic.FinalDefectAnalyzer;
+import algorithms.statistic.FinalDefectResult;
 import com.opencsv.CSVWriter;
-import model.EmeAndScenarioId;
-import statistic.FinalDefectAnalyzer;
-import statistic.FinalDefectResult;
 
 import java.io.IOException;
 import java.io.UncheckedIOException;

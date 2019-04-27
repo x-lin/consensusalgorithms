@@ -1,8 +1,8 @@
 package algorithms.finaldefects.crowdtruth;
 
+import algorithms.model.DefectReport;
+import algorithms.model.TaskWorkerId;
 import com.google.common.collect.ImmutableSet;
-import model.DefectReport;
-import model.TaskWorkerId;
 
 /**
  * @author LinX

@@ -3,11 +3,11 @@ package algorithms.finaldefects.majorityvoting.adaptive;
 import algorithms.finaldefects.FinalDefectAggregationAlgorithm;
 import algorithms.finaldefects.SemesterSettings;
 import algorithms.finaldefects.majorityvoting.basic.MajorityVotingAlgorithm;
+import algorithms.model.*;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Maps;
 import com.google.common.util.concurrent.AtomicDouble;
-import model.*;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;

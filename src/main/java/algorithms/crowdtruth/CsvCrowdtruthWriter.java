@@ -5,10 +5,10 @@ import algorithms.finaldefects.SemesterSettings;
 import algorithms.finaldefects.crowdtruth.AbstractCrowdtruthAggregation.SamplingType;
 import algorithms.finaldefects.crowdtruth.CrowdtruthFilteredWorkersAggregation;
 import algorithms.finaldefects.crowdtruth.CrowdtruthRunner;
+import algorithms.model.TaskWorkerId;
+import algorithms.statistic.QualityAnalyzer;
 import com.google.common.collect.ImmutableSet;
 import com.opencsv.CSVWriter;
-import model.TaskWorkerId;
-import statistic.QualityAnalyzer;
 
 import java.io.IOException;
 import java.nio.file.Files;

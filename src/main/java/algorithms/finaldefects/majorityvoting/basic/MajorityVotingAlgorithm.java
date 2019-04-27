@@ -3,9 +3,9 @@ package algorithms.finaldefects.majorityvoting.basic;
 import algorithms.finaldefects.FinalDefectAggregationAlgorithm;
 import algorithms.finaldefects.SemesterSettings;
 import algorithms.finaldefects.WorkerQuality;
+import algorithms.model.*;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
-import model.*;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;

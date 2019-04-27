@@ -1,9 +1,9 @@
 package algorithms.finaldefects.majorityvoting.qualitficationreport;
 
+import algorithms.model.TaskWorkerId;
 import com.google.common.collect.ImmutableMap;
 import com.opencsv.CSVReader;
 import com.opencsv.CSVReaderBuilder;
-import model.TaskWorkerId;
 
 import java.io.IOException;
 import java.io.Reader;

@@ -5,10 +5,10 @@ import algorithms.finaldefects.SemesterSettings;
 import algorithms.finaldefects.WorkerQuality;
 import algorithms.finaldefects.WorkerQualityInfluence;
 import algorithms.finaldefects.majorityvoting.basic.MajorityVotingAlgorithm;
+import algorithms.model.EmeAndScenarioId;
+import algorithms.model.FinalDefect;
+import algorithms.model.TaskWorkerId;
 import com.google.common.collect.ImmutableMap;
-import model.EmeAndScenarioId;
-import model.FinalDefect;
-import model.TaskWorkerId;
 
 import java.util.List;
 import java.util.Map;

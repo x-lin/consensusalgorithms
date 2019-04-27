@@ -1,8 +1,8 @@
 package algorithms.finaldefects;
 
+import algorithms.model.EmeAndScenarioId;
+import algorithms.model.FinalDefect;
 import com.google.common.collect.ImmutableMap;
-import model.EmeAndScenarioId;
-import model.FinalDefect;
 
 /**
  * @author LinX

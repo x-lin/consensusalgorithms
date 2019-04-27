@@ -2,12 +2,12 @@ package algorithms.finaldefects.majorityvoting.experiencequestionnaire;
 
 import algorithms.finaldefects.Semester;
 import algorithms.finaldefects.SemesterSettings;
+import algorithms.model.Participant;
+import algorithms.model.TaskWorkerId;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.opencsv.CSVReader;
 import com.opencsv.CSVReaderBuilder;
-import model.Participant;
-import model.TaskWorkerId;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

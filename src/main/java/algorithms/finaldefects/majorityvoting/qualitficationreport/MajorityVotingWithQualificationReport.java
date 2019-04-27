@@ -2,11 +2,11 @@ package algorithms.finaldefects.majorityvoting.qualitficationreport;
 
 import algorithms.finaldefects.*;
 import algorithms.finaldefects.majorityvoting.basic.MajorityVotingAlgorithm;
+import algorithms.model.EmeAndScenarioId;
+import algorithms.model.FinalDefect;
+import algorithms.model.TaskWorkerId;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableMap;
-import model.EmeAndScenarioId;
-import model.FinalDefect;
-import model.TaskWorkerId;
 
 import java.util.Optional;
 

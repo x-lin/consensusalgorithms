@@ -1,7 +1,7 @@
 package algorithms.finaldefects;
 
+import algorithms.model.DefectReport;
 import com.google.common.collect.ImmutableMap;
-import model.DefectReport;
 
 import java.util.function.Predicate;
 
