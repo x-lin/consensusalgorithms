@@ -20,7 +20,7 @@ public class MajorityVotingWithQualificationReport implements FinalDefectAggrega
             final WorkerQualityInfluence influence, final double alpha ) {
         this.majorityVoting = MajorityVotingAlgorithm.create( settings, wid -> {
             final ImmutableMap<TaskWorkerId, QualificationReport> qualificationReports =
-                    QualificationReport.fetchQualificationReports();
+                    QualificationReport.QUALIFICATION_REPORTS;
             final WorkerQuality averageWorkerQuality = getAverageWorkerQuality( influence, alpha,
                     qualificationReports );
             return Optional.ofNullable( qualificationReports.get( wid ) ).map(

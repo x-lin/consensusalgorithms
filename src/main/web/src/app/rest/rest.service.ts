@@ -38,7 +38,14 @@ export class RestService {
     } else if (algorithmType === AlgorithmType.MajorityVoting) {
       return this.http.get(RestService.ENDPOINT + 'algorithms/finalDefects/MajorityVoting?' + this.getSemesterParam(semester));
     } else if (algorithmType === AlgorithmType.AdaptiveMajorityVoting) {
-      return this.http.get(RestService.ENDPOINT + 'algorithms/finalDefects/AdaptiveMajorityVoting?threshold=' + parameters.threshold + '&' + this.getSemesterParam(semester));
+      return this.http.get(RestService.ENDPOINT + 'algorithms/finalDefects/AdaptiveMajorityVoting?threshold=' + parameters.threshold
+        + '&' + this.getSemesterParam(semester));
+    } else if (algorithmType === AlgorithmType.MajorityVotingWithExperienceQuestionnaire) {
+      return this.http.get(RestService.ENDPOINT + 'algorithms/finalDefects/MajorityVotingWithExperienceQuestionnaire?alpha=' + parameters.alpha
+        + '&qualityInfluence=' + parameters.qualityInfluence  + '&' + this.getSemesterParam(semester));
+    } else if (algorithmType === AlgorithmType.MajorityVotingWithQualificationReport) {
+      return this.http.get(RestService.ENDPOINT + 'algorithms/finalDefects/MajorityVotingWithQualificationReport?alpha=' + parameters.alpha
+        + '&qualityInfluence=' + parameters.qualityInfluence  + '&' + this.getSemesterParam(semester));
     } else {
       console.log('Unknown algorithm type', algorithmType);
     }
@@ -81,10 +88,17 @@ export class ConfusionMatrix {
 export enum AlgorithmType {
   CrowdTruth = 'CrowdTruth',
   MajorityVoting = 'MajorityVoting',
-  AdaptiveMajorityVoting = 'AdaptiveMajorityVoting'
+  AdaptiveMajorityVoting = 'AdaptiveMajorityVoting',
+  MajorityVotingWithQualificationReport = 'MajorityVotingWithQualificationReport',
+  MajorityVotingWithExperienceQuestionnaire = 'MajorityVotingWithExperienceQuestionnaire'
 }
 
 export enum Semester {
   WS2017 = 'WS2017',
   SS2018 = 'SS2018'
+}
+
+export enum WorkerQualityInfluence {
+  LINEAR = 'LINEAR',
+  EXPONENTIAL = 'EXPONENTIAL'
 }

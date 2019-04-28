@@ -55,6 +55,6 @@ public class DefectReports {
     }
 
     public static DefectReports fetchFromDb( final SemesterSettings settings ) {
-        return new DefectReports( DefectReport.fetchDefectReports( settings.getDefectReportFilter() ) );
+        return new DefectReports( DefectReport.fetchDefectReports( settings ) );
     }
 }

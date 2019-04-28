@@ -6,6 +6,7 @@ import algorithms.model.Participant;
 import algorithms.model.TaskWorkerId;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Maps;
 import com.opencsv.CSVReader;
 import com.opencsv.CSVReaderBuilder;
 import org.slf4j.Logger;
@@ -22,6 +23,9 @@ import java.util.*;
  * @author LinX
  */
 public class ExperienceQuestionnaire {
+    private static final Map<SemesterSettings, ImmutableMap<TaskWorkerId, ExperienceQuestionnaire>>
+            CACHED_QUESTIONNAIRES = Maps.newHashMap();
+
     private static final Logger LOG = LoggerFactory.getLogger( ExperienceQuestionnaire.class );
 
     private static final ImmutableMap<Semester, String> CSV_FILE_PATHS = ImmutableMap.of(
@@ -72,6 +76,11 @@ public class ExperienceQuestionnaire {
     }
 
     public static ImmutableMap<TaskWorkerId, ExperienceQuestionnaire> fetch( final SemesterSettings settings ) {
+        return CACHED_QUESTIONNAIRES.computeIfAbsent( settings, ExperienceQuestionnaire::readQuestionnaires );
+    }
+
+    private static ImmutableMap<TaskWorkerId, ExperienceQuestionnaire> readQuestionnaires(
+            final SemesterSettings settings ) {
         final ImmutableSet<Participant> participants = Participant.fetchParticipants( settings );
         try (Reader reader = Files.newBufferedReader( Paths.get( CSV_FILE_PATHS.get( settings.getSemester() ) ) );
              CSVReader csvReader = new CSVReaderBuilder( reader ).withSkipLines( 1 ).build()) {

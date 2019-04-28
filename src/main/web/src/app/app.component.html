@@ -97,7 +97,7 @@
               <mat-card-content>
                 <mat-card-subtitle>Algorithms</mat-card-subtitle>
                 <mat-radio-group [(ngModel)]="finalDefectsParameters.type">
-                  <div *ngFor="let algoType of algorithmTypes">
+                  <div *ngFor="let algoType of algorithmTypes[activeSemester]">
                     <mat-radio-button [value]="algoType" (change)="finalDefectsAlgorithmTypeChanged($event)">
                       {{algoType}}
                     </mat-radio-button>
@@ -131,7 +131,79 @@
                   </mat-slider>
                 </mat-card-content>
               </mat-card>
-          </ng-template>
+            </ng-template>
+
+            <ng-template [ngIf]="finalDefectsClicked && finalDefectsParameters.type === algorithmType.MajorityVotingWithExperienceQuestionnaire">
+              <mat-card class="result" style="margin-top: 10px">
+                <mat-card-header>
+                  <mat-card-title>Parameters</mat-card-title>
+                </mat-card-header>
+                <mat-divider></mat-divider>
+                <mat-card-content>
+                  <mat-card-subtitle>Worker Quality Influence</mat-card-subtitle>
+                  <div *ngFor="let influence of workerQualityInfluences">
+                    <mat-radio-button [value]="influence" (change)="onMajorityVotingExperienceQuestionnaireQualityInfluenceChanged($event)" [checked]="influence === majorityVotingExperienceQuestionnaireParameters.qualityInfluence">
+                      {{influence}}
+                    </mat-radio-button>
+                  </div>
+                </mat-card-content>
+                <ng-template [ngIf]="majorityVotingExperienceQuestionnaireParameters.qualityInfluence === workerQualityInfluence.EXPONENTIAL">
+                  <mat-card-content>
+                    <mat-card-subtitle>Alpha</mat-card-subtitle>
+                    <mat-slider
+                      style="width: 100%"
+                      [disabled]="false"
+                      [invert]="false"
+                      [max]="1.0"
+                      [min]="0.0"
+                      [step]="0.05"
+                      [thumbLabel]="true"
+                      [tickInterval]="false"
+                      [(ngModel)]="majorityVotingExperienceQuestionnaireParameters.alpha"
+                      [vertical]="vertical"
+                      (input)="onMajorityVotingExperienceQuestionnaireAlphaChanged($event)">
+                    </mat-slider>
+                  </mat-card-content>
+                </ng-template>
+              </mat-card>
+            </ng-template>
+
+            <ng-template [ngIf]="finalDefectsClicked && finalDefectsParameters.type === algorithmType.MajorityVotingWithQualificationReport">
+              <mat-card class="result" style="margin-top: 10px">
+                <mat-card-header>
+                  <mat-card-title>Parameters</mat-card-title>
+                </mat-card-header>
+
+                <mat-divider></mat-divider>
+
+                <mat-card-content>
+                  <mat-card-subtitle>Worker Quality Influence</mat-card-subtitle>
+                  <div *ngFor="let influence of workerQualityInfluences">
+                    <mat-radio-button [value]="influence" (change)="onMajorityVotingQualificationReportQualityInfluenceChanged($event)" [checked]="influence === majorityVotingQualificationReportParameters.qualityInfluence">
+                      {{influence}}
+                    </mat-radio-button>
+                  </div>
+                </mat-card-content>
+                <ng-template [ngIf]="majorityVotingQualificationReportParameters.qualityInfluence === workerQualityInfluence.EXPONENTIAL">
+                  <mat-card-content>
+                    <mat-card-subtitle>Alpha</mat-card-subtitle>
+                    <mat-slider
+                      style="width: 100%"
+                      [disabled]="false"
+                      [invert]="false"
+                      [max]="0.9"
+                      [min]="0.0"
+                      [step]="0.05"
+                      [thumbLabel]="true"
+                      [tickInterval]="false"
+                      [(ngModel)]="majorityVotingQualificationReportParameters.alpha"
+                      [vertical]="vertical"
+                      (input)="onMajorityVotingQualificationReportAlphaChanged($event)">
+                    </mat-slider>
+                  </mat-card-content>
+                </ng-template>
+              </mat-card>
+            </ng-template>
           </ng-template>
         </div>
       </ng-template>

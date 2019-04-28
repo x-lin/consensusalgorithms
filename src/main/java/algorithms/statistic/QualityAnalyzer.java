@@ -1,7 +1,7 @@
 package algorithms.statistic;
 
 import algorithms.finaldefects.SemesterSettings;
-import algorithms.finaldefects.crowdtruth.CrowdtruthRunner;
+import algorithms.finaldefects.crowdtruth.CrowdtruthAggregationAlgorithm;
 import algorithms.model.EmeId;
 import algorithms.model.TrueDefect;
 import com.google.common.collect.ImmutableMap;
@@ -25,7 +25,7 @@ public class QualityAnalyzer {
     }
 
     public void writeConfusionMatrix( final SemesterSettings settings,
-            final ImmutableSet<CrowdtruthRunner.Sample> samples, final
+            final ImmutableSet<CrowdtruthAggregationAlgorithm.Sample> samples, final
     String idKey, final String
             outputFilePath ) {
         try {
@@ -52,7 +52,7 @@ public class QualityAnalyzer {
     }
 
     public ImmutableSet<ArtifactWithConfusionMatrix> getConfusionMatrix( final SemesterSettings settings, final
-    ImmutableSet<CrowdtruthRunner.Sample> samples ) {
+    ImmutableSet<CrowdtruthAggregationAlgorithm.Sample> samples ) {
         final ImmutableMap<EmeId, TrueDefect> trueDefects;
         final ImmutableSet.Builder<ArtifactWithConfusionMatrix> builder = ImmutableSet.builder();
         trueDefects = AllTrueDefectsMixin.findAllTrueDefects( settings );

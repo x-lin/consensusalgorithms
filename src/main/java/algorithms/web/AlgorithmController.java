@@ -1,13 +1,14 @@
 package algorithms.web;
 
 import algorithms.finaldefects.*;
-import algorithms.finaldefects.crowdtruth.CrowdtruthRunner;
+import algorithms.finaldefects.crowdtruth.CrowdtruthAggregationAlgorithm;
 import algorithms.finaldefects.majorityvoting.adaptive.AdaptiveMajorityVoting;
 import algorithms.finaldefects.majorityvoting.basic.MajorityVotingAlgorithm;
 import algorithms.finaldefects.majorityvoting.experiencequestionnaire.MajorityVotingWithExperienceQuestionnaire;
 import algorithms.finaldefects.majorityvoting.qualitficationreport.MajorityVotingWithQualificationReport;
 import algorithms.model.EmeAndScenarioId;
 import algorithms.statistic.*;
+import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableBiMap;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
@@ -25,9 +26,9 @@ import java.util.Map;
 @RestController
 @RequestMapping("algorithms")
 public class AlgorithmController {
-    private final Map<Semester, CrowdtruthRunner> crowdtruthRunners = ImmutableMap.of( //
-            Semester.WS2017, CrowdtruthRunner.create( SemesterSettings.get( Semester.WS2017 ) ),
-            Semester.SS2018, CrowdtruthRunner.create( SemesterSettings.get( Semester.SS2018 ) ) );
+    private final Map<Semester, CrowdtruthAggregationAlgorithm> crowdtruthRunners = ImmutableMap.of( //
+            Semester.WS2017, CrowdtruthAggregationAlgorithm.create( SemesterSettings.get( Semester.WS2017 ) ),
+            Semester.SS2018, CrowdtruthAggregationAlgorithm.create( SemesterSettings.get( Semester.SS2018 ) ) );
 
     @GetMapping("/finalDefects/CrowdTruth")
     public WebFinalDefects crowdtruthFinalDefects(
@@ -51,22 +52,57 @@ public class AlgorithmController {
                 new AdaptiveMajorityVoting( threshold, SemesterSettings.get( semester ) ) ).values() );
     }
 
+    @GetMapping("/finalDefects/MajorityVotingWithExperienceQuestionnaire")
+    public WebFinalDefects majorityVotingWithExperienceQuestionnaireFinalDefects(
+            @RequestParam(value = "qualityInfluence") final WorkerQualityInfluence qualityInfluence,
+            @RequestParam(value = "alpha", defaultValue = "0.0") final double alpha,
+            @RequestParam(value = "semester", defaultValue = "WS2017") final Semester semester ) {
+        return new WebFinalDefects( FinalDefectAnalyzer.getFinalDefects(
+                MajorityVotingWithExperienceQuestionnaire.create( SemesterSettings.get( semester ), qualityInfluence,
+                        alpha ) ).values() );
+    }
+
+    @GetMapping("/finalDefects/MajorityVotingWithQualificationReport")
+    public WebFinalDefects majorityVotingWithQualificationReportFinalDefects(
+            @RequestParam(value = "qualityInfluence") final WorkerQualityInfluence qualityInfluence,
+            @RequestParam(value = "alpha", defaultValue = "0.0") final double alpha,
+            @RequestParam(value = "semester", defaultValue = "SS2018") final Semester semester ) {
+        Preconditions.checkArgument( semester != Semester.WS2017 );
+        return new WebFinalDefects( FinalDefectAnalyzer.getFinalDefects(
+                MajorityVotingWithQualificationReport.create( SemesterSettings.get( semester ), qualityInfluence,
+                        alpha ) ).values() );
+    }
+
+
+    //TODO implement
+//    @GetMapping("/correlation/MajorityVotingWithQualificationReport")
+//    public WebFinalDefects crowdtruthFinalDefects(
+//            @RequestParam(value = "qualityInfluence") final WorkerQualityInfluence qualityInfluence,
+//            @RequestParam(value = "alpha", defaultValue = "0.0") final double alpha,
+//            @RequestParam(value = "semester", defaultValue = "WS2017") final Semester semester ) {
+//        final MajorityVotingWithQualificationReport algorithm = MajorityVotingWithQualificationReport.create(
+//                SemesterSettings.get( semester ), qualityInfluence, alpha );
+//        QualityAnalyzer.create().getConfusionMatrix(
+//                algorithm.getSettings(), algorithm.getFinalDefects() );
+//        return new CorrelationScores();
+//    }
+
     @GetMapping("/workers")
     public CrowdtruthScores workers(
             @RequestParam(value = "semester", defaultValue = "WS2017") final Semester semester ) {
-        final CrowdtruthRunner crowdtruthRunner = this.crowdtruthRunners.get( semester );
+        final CrowdtruthAggregationAlgorithm crowdtruthAggregationAlgorithm = this.crowdtruthRunners.get( semester );
         final ImmutableSet<ArtifactWithConfusionMatrix> workerScores = QualityAnalyzer.create().getConfusionMatrix(
-                crowdtruthRunner.getSettings(), crowdtruthRunner.getAllWorkerScores() );
+                crowdtruthAggregationAlgorithm.getSettings(), crowdtruthAggregationAlgorithm.getAllWorkerScores() );
         final ImmutableSet<ArtifactWithConfusionMatrix> annotationScores =
-                QualityAnalyzer.create().getConfusionMatrix( crowdtruthRunner.getSettings(),
-                        crowdtruthRunner.getAllAnnotationScores() );
+                QualityAnalyzer.create().getConfusionMatrix( crowdtruthAggregationAlgorithm.getSettings(),
+                        crowdtruthAggregationAlgorithm.getAllAnnotationScores() );
         final ImmutableSet<ArtifactWithConfusionMatrix> mediaUnitScores =
-                QualityAnalyzer.create().getConfusionMatrix( crowdtruthRunner.getSettings(),
-                        crowdtruthRunner.getAllMediaUnitScores() );
+                QualityAnalyzer.create().getConfusionMatrix( crowdtruthAggregationAlgorithm.getSettings(),
+                        crowdtruthAggregationAlgorithm.getAllMediaUnitScores() );
         return new CrowdtruthScores( workerScores, new PearsonScores( workerScores ),
                 annotationScores, new PearsonScores( annotationScores ),
                 mediaUnitScores, new PearsonScores( mediaUnitScores ),
-                new WebMetricsScores( crowdtruthRunner.getMetricsScores() ) );
+                new WebMetricsScores( crowdtruthAggregationAlgorithm.getMetricsScores() ) );
     }
 
     @GetMapping("/all/metrics")

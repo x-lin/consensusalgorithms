@@ -20,12 +20,14 @@ export class FinalDefectsService {
 
   semester = Semester.WS2017;
 
+  parameters = {};
+
   constructor(private restService: RestService) {
     this.refreshData();
   }
 
   private refreshData() {
-    this.algorithmTypeChanged(this.finalDefectsParameters.type, {});
+    this.algorithmTypeChanged(this.finalDefectsParameters.type, this.parameters);
     this.getMetricsComparison();
     this.getFinalDefectsComparison();
   }
@@ -38,9 +40,10 @@ export class FinalDefectsService {
     this.semester = semester;
     this.refreshData();
   }
- 
+
   algorithmTypeChanged(algorithmType: AlgorithmType, parameters) {
     this.finalDefectsParameters.type = algorithmType;
+    this.parameters = parameters;
     this.restService.getFinalDefects(algorithmType, parameters, this.semester).subscribe(d => {
       this.dataSubject.next({
         data: d.finalDefectResults,

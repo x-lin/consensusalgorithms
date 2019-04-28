@@ -18,6 +18,9 @@ import java.util.Objects;
 public class QualificationReport {
     private static final String CSV_FILE_PATH = "src/main/resources/additions/qualificationReports.csv";
 
+    public static final ImmutableMap<TaskWorkerId, QualificationReport> QUALIFICATION_REPORTS =
+            fetchQualificationReports();
+
     private final TaskWorkerId workerId;
 
     private final ImmutableMap<Integer, Boolean> results;
@@ -73,7 +76,7 @@ public class QualificationReport {
                 '}';
     }
 
-    public static ImmutableMap<TaskWorkerId, QualificationReport> fetchQualificationReports() {
+    private static ImmutableMap<TaskWorkerId, QualificationReport> fetchQualificationReports() {
         try (Reader reader = Files.newBufferedReader( Paths.get( CSV_FILE_PATH ) );
              CSVReader csvReader = new CSVReaderBuilder( reader ).withSkipLines( 1 ).build()) {
             return csvReader.readAll().stream().collect(

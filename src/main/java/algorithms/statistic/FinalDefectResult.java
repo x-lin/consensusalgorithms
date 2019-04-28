@@ -43,11 +43,6 @@ public final class FinalDefectResult {
         Preconditions.checkArgument( Objects.equals( finalDefect.getEmeId(), trueDefect.getAboutEmEid() ),
                 "True defect eme id %s does not match final defect eme id %s", trueDefect.getAboutEmEid()
                 , finalDefect.getEmeId() );
-        if (!Objects.equals( finalDefect.getScenarioId(), trueDefect.getScenario() )) {
-            LOG.warn( String.format( "True defect scenario id %s does not match final defect scenario " +
-                            "id %s for eme %s", trueDefect.getScenario()
-                    , finalDefect.getScenarioId(), finalDefect.getEmeId() ) );
-        }
         this.emeId = finalDefect.getEmeId().toString();
         this.scenarioId = finalDefect.getScenarioId().toString();
         this.emeText = finalDefect.getEmeText();

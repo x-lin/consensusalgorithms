@@ -3,8 +3,8 @@ package algorithms.crowdtruth;
 import algorithms.finaldefects.FinalDefectCsvWriter;
 import algorithms.finaldefects.SemesterSettings;
 import algorithms.finaldefects.crowdtruth.AbstractCrowdtruthAggregation.SamplingType;
+import algorithms.finaldefects.crowdtruth.CrowdtruthAggregationAlgorithm;
 import algorithms.finaldefects.crowdtruth.CrowdtruthFilteredWorkersAggregation;
-import algorithms.finaldefects.crowdtruth.CrowdtruthRunner;
 import algorithms.model.TaskWorkerId;
 import algorithms.statistic.QualityAnalyzer;
 import com.google.common.collect.ImmutableSet;
@@ -33,62 +33,67 @@ public class CsvCrowdtruthWriter {
             "output/crowdtruth/media_unit_annotation_score.csv";
 
     public static void main( final String[] args ) {
-        final CrowdtruthRunner crowdtruthRunner = CrowdtruthRunner.create( SemesterSettings.ws2017() );
-        runFullAnalysis( crowdtruthRunner );
-        runSamplingWorkers( crowdtruthRunner );
-        runWorkerAnalysis( crowdtruthRunner );
+        final CrowdtruthAggregationAlgorithm
+                crowdtruthAggregationAlgorithm = CrowdtruthAggregationAlgorithm.create( SemesterSettings.ws2017() );
+        runFullAnalysis( crowdtruthAggregationAlgorithm );
+        runSamplingWorkers( crowdtruthAggregationAlgorithm );
+        runWorkerAnalysis( crowdtruthAggregationAlgorithm );
     }
 
-    private static void runFullAnalysis( final CrowdtruthRunner crowdtruthRunner ) {
-        FinalDefectCsvWriter.analyzeAndWrite( crowdtruthRunner, ANALYSIS_OUT_CSV );
+    private static void runFullAnalysis( final CrowdtruthAggregationAlgorithm crowdtruthAggregationAlgorithm ) {
+        FinalDefectCsvWriter.analyzeAndWrite( crowdtruthAggregationAlgorithm, ANALYSIS_OUT_CSV );
     }
 
-    private static void runWorkerAnalysis( final CrowdtruthRunner crowdtruthRunner ) {
-        QualityAnalyzer.create().writeConfusionMatrix( crowdtruthRunner.getSettings(),
-                crowdtruthRunner.getAllWorkerScores(),
+    private static void runWorkerAnalysis( final CrowdtruthAggregationAlgorithm crowdtruthAggregationAlgorithm ) {
+        QualityAnalyzer.create().writeConfusionMatrix( crowdtruthAggregationAlgorithm.getSettings(),
+                crowdtruthAggregationAlgorithm.getAllWorkerScores(),
                 "workerId", ANAYLSIS_ALL_WORKERS_OUT_CSV );
     }
 
-    private static void runSamplingWorkers( final CrowdtruthRunner crowdtruthRunner ) {
+    private static void runSamplingWorkers( final CrowdtruthAggregationAlgorithm crowdtruthAggregationAlgorithm ) {
         final int nrWorkers = 5;
         final ImmutableSet<TaskWorkerId> highestQualityWorkerIds = sampleHighestQualityWorkers(
-                crowdtruthRunner, nrWorkers );
+                crowdtruthAggregationAlgorithm, nrWorkers );
         FinalDefectCsvWriter.analyzeAndWrite(
-                new CrowdtruthFilteredWorkersAggregation( crowdtruthRunner, highestQualityWorkerIds ),
+                new CrowdtruthFilteredWorkersAggregation( crowdtruthAggregationAlgorithm, highestQualityWorkerIds ),
                 getCsvFilenameAnalysisHighest( nrWorkers ) );
 
         final ImmutableSet<TaskWorkerId> lowestQualityWorkers = sampleLowestQualityWorkers(
-                crowdtruthRunner, nrWorkers );
-        FinalDefectCsvWriter.analyzeAndWrite( new CrowdtruthFilteredWorkersAggregation( crowdtruthRunner,
+                crowdtruthAggregationAlgorithm, nrWorkers );
+        FinalDefectCsvWriter.analyzeAndWrite( new CrowdtruthFilteredWorkersAggregation( crowdtruthAggregationAlgorithm,
                 lowestQualityWorkers ), getCsvFilenameAnalysisLowest( nrWorkers ) );
     }
 
-    private static ImmutableSet<TaskWorkerId> sampleHighestQualityWorkers( final CrowdtruthRunner
-            crowdtruthRunner, final int
+    private static ImmutableSet<TaskWorkerId> sampleHighestQualityWorkers( final CrowdtruthAggregationAlgorithm
+            crowdtruthAggregationAlgorithm, final int
             nrWorkers ) {
-        final ImmutableSet<CrowdtruthRunner.Sample> sampleHighestWorkers = crowdtruthRunner.sampleWorkers(
-                SamplingType.HIGHEST, nrWorkers );
+        final ImmutableSet<CrowdtruthAggregationAlgorithm.Sample> sampleHighestWorkers =
+                crowdtruthAggregationAlgorithm.sampleWorkers(
+                        SamplingType.HIGHEST, nrWorkers );
         final AtomicInteger counter = new AtomicInteger( 1 );
         sampleHighestWorkers.stream().sorted( ( w1, w2 ) -> Double.valueOf( w2.getQuality() ).compareTo(
-                w1.getQuality() ) ).forEach( w -> FinalDefectCsvWriter.analyzeAndWrite( crowdtruthRunner,
+                w1.getQuality() ) ).forEach( w -> FinalDefectCsvWriter.analyzeAndWrite( crowdtruthAggregationAlgorithm,
                 getCsvFilenameAnalysisSingleHighest( Integer.valueOf( w.getId() ), counter.getAndIncrement() ) ) );
-        return sampleHighestWorkers.stream().map( CrowdtruthRunner.Sample::getId ).map( TaskWorkerId::new ).collect(
+        return sampleHighestWorkers.stream().map( CrowdtruthAggregationAlgorithm.Sample::getId ).map(
+                TaskWorkerId::new ).collect(
                 ImmutableSet
                         .toImmutableSet() );
     }
 
-    private static ImmutableSet<TaskWorkerId> sampleLowestQualityWorkers( final CrowdtruthRunner
-            crowdtruthRunner,
+    private static ImmutableSet<TaskWorkerId> sampleLowestQualityWorkers( final CrowdtruthAggregationAlgorithm
+            crowdtruthAggregationAlgorithm,
             final int nrWorkers ) {
-        final ImmutableSet<CrowdtruthRunner.Sample> sampleLowestWorkers = crowdtruthRunner.sampleWorkers(
-                SamplingType.LOWEST, nrWorkers );
+        final ImmutableSet<CrowdtruthAggregationAlgorithm.Sample> sampleLowestWorkers =
+                crowdtruthAggregationAlgorithm.sampleWorkers(
+                        SamplingType.LOWEST, nrWorkers );
         final AtomicInteger counter = new AtomicInteger( 1 );
         sampleLowestWorkers.stream().sorted( ( w1, w2 ) -> Double.valueOf( w1.getQuality() ).compareTo(
-                w2.getQuality() ) ).forEach( w -> FinalDefectCsvWriter.analyzeAndWrite( crowdtruthRunner,
+                w2.getQuality() ) ).forEach( w -> FinalDefectCsvWriter.analyzeAndWrite( crowdtruthAggregationAlgorithm,
                 getCsvFilenameAnalysisSingleLowest( Integer.valueOf( w.getId() ), counter.getAndIncrement() ) ) );
-        return sampleLowestWorkers.stream().map( CrowdtruthRunner.Sample::getId ).map( TaskWorkerId::new ).collect(
-                ImmutableSet
-                        .toImmutableSet() );
+        return sampleLowestWorkers.stream().map( CrowdtruthAggregationAlgorithm.Sample::getId ).map( TaskWorkerId::new )
+                                  .collect(
+                                          ImmutableSet
+                                                  .toImmutableSet() );
     }
 
     private static String getCsvFilenameAnalysisHighest( final int nr ) {

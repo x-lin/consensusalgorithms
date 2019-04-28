@@ -1,5 +1,5 @@
 import {Component, OnInit} from '@angular/core';
-import {AlgorithmType, RestService, Semester} from './rest/rest.service';
+import {AlgorithmType, Semester, WorkerQualityInfluence} from './rest/rest.service';
 import {MatRadioChange} from '@angular/material';
 import {CrowdtruthPage, CrowdtruthService} from './crowdtruth/crowdtruth.service';
 import {FinalDefectsPage, FinalDefectsService} from './final-defects/final-defects.service';
@@ -18,7 +18,12 @@ export class AppComponent implements OnInit {
 
   private activeSemester = Semester.WS2017;
 
-  private algorithmTypes = Object.keys(AlgorithmType);
+  private algorithmTypes = {
+    WS2017: Object.keys(AlgorithmType).filter(t => t !== AlgorithmType.MajorityVotingWithQualificationReport),
+    SS2018: Object.keys(AlgorithmType)
+  };
+
+  private workerQualityInfluences = Object.keys(WorkerQualityInfluence);
 
   private algorithmType = AlgorithmType;
 
@@ -28,12 +33,24 @@ export class AppComponent implements OnInit {
 
   private semesterType = Semester;
 
+  private workerQualityInfluence = WorkerQualityInfluence;
+
   private finalDefectsParameters = {
     type: AlgorithmType.CrowdTruth,
   };
 
   private adaptiveMajorityVotingParameters = {
     threshold: 0
+  };
+
+  private majorityVotingExperienceQuestionnaireParameters = {
+    alpha: 0.0,
+    qualityInfluence: WorkerQualityInfluence.LINEAR
+  };
+
+  private majorityVotingQualificationReportParameters = {
+    alpha: 0.0,
+    qualityInfluence: WorkerQualityInfluence.LINEAR
   };
 
   constructor(
@@ -66,6 +83,11 @@ export class AppComponent implements OnInit {
     this.finalDefectsParameters.type = event.value;
     if (this.finalDefectsParameters.type === AlgorithmType.AdaptiveMajorityVoting) {
       this.finalDefectsService.algorithmTypeChanged(event.value, this.adaptiveMajorityVotingParameters);
+    } else if (this.finalDefectsParameters.type === AlgorithmType.MajorityVotingWithExperienceQuestionnaire) {
+      console.log("parameters: " + JSON.stringify(this.majorityVotingExperienceQuestionnaireParameters))
+      this.finalDefectsService.algorithmTypeChanged(event.value, this.majorityVotingExperienceQuestionnaireParameters);
+    } else if(this.finalDefectsParameters.type === AlgorithmType.MajorityVotingWithQualificationReport) {
+      this.finalDefectsService.algorithmTypeChanged(event.value, this.majorityVotingQualificationReportParameters);
     } else {
       this.finalDefectsService.algorithmTypeChanged(event.value, {});
     }
@@ -74,6 +96,31 @@ export class AppComponent implements OnInit {
   onAdaptiveMajorityVotingThresholdParameterChanged(event) {
     this.adaptiveMajorityVotingParameters.threshold = event.value;
     this.finalDefectsService.algorithmTypeChanged(AlgorithmType.AdaptiveMajorityVoting, this.adaptiveMajorityVotingParameters);
+  }
+
+  onMajorityVotingExperienceQuestionnaireAlphaChanged(event) {
+    this.majorityVotingExperienceQuestionnaireParameters.alpha = event.value;
+    console.log("parameters: " + JSON.stringify(this.majorityVotingExperienceQuestionnaireParameters))
+    this.finalDefectsService.algorithmTypeChanged(AlgorithmType.MajorityVotingWithExperienceQuestionnaire,
+      this.majorityVotingExperienceQuestionnaireParameters);
+  }
+
+  onMajorityVotingExperienceQuestionnaireQualityInfluenceChanged(event: MatRadioChange) {
+    this.majorityVotingExperienceQuestionnaireParameters.qualityInfluence = event.value;
+    this.finalDefectsService.algorithmTypeChanged(AlgorithmType.MajorityVotingWithExperienceQuestionnaire,
+      this.majorityVotingExperienceQuestionnaireParameters);
+  }
+
+  onMajorityVotingQualificationReportAlphaChanged(event) {
+    this.majorityVotingQualificationReportParameters.alpha = event.value;
+    this.finalDefectsService.algorithmTypeChanged(AlgorithmType.MajorityVotingWithQualificationReport,
+      this.majorityVotingQualificationReportParameters);
+  }
+
+  onMajorityVotingQualificationReportQualityInfluenceChanged(event: MatRadioChange) {
+    this.majorityVotingQualificationReportParameters.qualityInfluence = event.value;
+    this.finalDefectsService.algorithmTypeChanged(AlgorithmType.MajorityVotingWithQualificationReport,
+      this.majorityVotingQualificationReportParameters);
   }
 
   crowdtruthPageChanged(newPage: CrowdtruthPage) {

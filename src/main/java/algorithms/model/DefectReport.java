@@ -1,13 +1,13 @@
 package algorithms.model;
 
+import algorithms.finaldefects.SemesterSettings;
 import algorithms.utils.UncheckedSQLException;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Maps;
 import com.opencsv.CSVReader;
 import com.opencsv.CSVReaderBuilder;
 import org.jooq.Record;
 import org.jooq.impl.DSL;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.io.Reader;
@@ -24,7 +24,7 @@ import java.util.stream.Collectors;
  * @author LinX
  */
 public class DefectReport {
-    private static final Logger LOG = LoggerFactory.getLogger( DefectReport.class );
+    private static final Map<SemesterSettings, ImmutableSet<DefectReport>> CACHED_DEFECT_REPORTS = Maps.newHashMap();
 
     public static final String DEFECT_REPORT_TABLE = "defect_report";
 
@@ -226,7 +226,12 @@ public class DefectReport {
                            .build();
     }
 
-    public static ImmutableSet<DefectReport> fetchDefectReports( final Predicate<DefectReport> filter ) {
+    public static ImmutableSet<DefectReport> fetchDefectReports( final SemesterSettings semesterSettings ) {
+        return CACHED_DEFECT_REPORTS.computeIfAbsent( semesterSettings,
+                s -> readDefectReports( s.getDefectReportFilter() ) );
+    }
+
+    private static ImmutableSet<DefectReport> readDefectReports( final Predicate<DefectReport> filter ) {
         try (Connection connection = DatabaseConnector.createConnection()) {
             final String sql = "select * from " + DEFECT_REPORT_TABLE;
             final ImmutableSet<DefectReport> defectReports = DSL.using( connection )

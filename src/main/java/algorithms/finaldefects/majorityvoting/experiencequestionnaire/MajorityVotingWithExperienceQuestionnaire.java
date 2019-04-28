@@ -22,7 +22,7 @@ public class MajorityVotingWithExperienceQuestionnaire implements FinalDefectAgg
 
     private final MajorityVotingAlgorithm majorityVoting;
 
-    protected MajorityVotingWithExperienceQuestionnaire( final SemesterSettings settings,
+    private MajorityVotingWithExperienceQuestionnaire( final SemesterSettings settings,
             final WorkerQualityInfluence influence, final double alpha,
             final ImmutableMap<TaskWorkerId, ExperienceQuestionnaire> questionnaireResults ) {
         final WorkerQuality averageWorkerQuality = influence.calculateWorkerQualityFromScore(

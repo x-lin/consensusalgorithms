@@ -4,6 +4,7 @@ import algorithms.finaldefects.Semester;
 import algorithms.finaldefects.SemesterSettings;
 import algorithms.utils.UncheckedSQLException;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Maps;
 import org.jooq.Record;
 import org.jooq.impl.DSL;
 import org.slf4j.Logger;
@@ -11,6 +12,7 @@ import org.slf4j.LoggerFactory;
 
 import java.sql.Connection;
 import java.sql.SQLException;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 
@@ -18,6 +20,8 @@ import java.util.Optional;
  * @author LinX
  */
 public class Participant {
+    private static final Map<SemesterSettings, ImmutableSet<Participant>> CACHED_PARTICIPANTS = Maps.newHashMap();
+
     private static final Logger LOG = LoggerFactory.getLogger( Participant.class );
 
     public static final String PARTICIPANT_TABLE = "participant";
@@ -103,6 +107,10 @@ public class Participant {
     }
 
     public static ImmutableSet<Participant> fetchParticipants( final SemesterSettings settings ) {
+        return CACHED_PARTICIPANTS.computeIfAbsent( settings, Participant::readParticipants );
+    }
+
+    private static ImmutableSet<Participant> readParticipants( final SemesterSettings settings ) {
         final String sql = "select * from " + PARTICIPANT_TABLE;
         try (Connection connection = DatabaseConnector.createConnection()) {
             return DSL.using( connection )
