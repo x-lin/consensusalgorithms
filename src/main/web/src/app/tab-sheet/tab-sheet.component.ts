@@ -15,7 +15,6 @@ export class TabSheetComponent implements OnInit, OnDestroy {
   constructor() { }
 
   ngOnInit() {
-    console.log("data:", this.data);
     this.data = this.data.slice().map((d: object) => {
       const dCopy = Object.assign({}, d);
       Object.keys(dCopy).forEach(k => {

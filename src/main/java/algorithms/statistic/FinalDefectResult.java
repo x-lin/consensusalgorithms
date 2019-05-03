@@ -5,8 +5,6 @@ import algorithms.model.FinalDefect;
 import algorithms.model.FinalDefectType;
 import algorithms.model.TrueDefect;
 import com.google.common.base.Preconditions;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.util.Objects;
 import java.util.stream.Stream;
@@ -15,8 +13,6 @@ import java.util.stream.Stream;
  * @author LinX
  */
 public final class FinalDefectResult {
-    private static final Logger LOG = LoggerFactory.getLogger( FinalDefectResult.class );
-
     private final String emeId;
 
     private final String scenarioId;

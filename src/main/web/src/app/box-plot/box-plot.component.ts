@@ -43,6 +43,7 @@ export class BoxPlotComponent implements OnInit, OnDestroy, OnChanges, AfterView
   }
 
   updateCharts(data) {
+    console.log(JSON.stringify(data));
     this.removeChart(this.chart);
     this.chart = new taucharts.Chart(this.createConfig(data, this.xAxis, this.yAxis));
     this.chart.renderTo('#box' + this.nameSquashed);
@@ -58,14 +59,10 @@ export class BoxPlotComponent implements OnInit, OnDestroy, OnChanges, AfterView
   private createConfig(payload: any, xAxis, yAxis): any {
     return {
       data: payload,
-      guide: {
-        x: {min: 0, max: 1, nice: false},
-        y: {min: 0, max: 1, nice: false}
-      },
       type: 'scatterplot',
       x: xAxis,
       y: yAxis,
-      plugins: [taucharts.api.plugins.get('tooltip')(), taucharts.api.plugins.get('box-whiskers')()]
+      plugins: [taucharts.api.plugins.get('tooltip')(), taucharts.api.plugins.get('box-whiskers')({mode: 'outliers-only', flip: true})]
     };
   }
 }

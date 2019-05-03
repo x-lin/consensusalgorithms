@@ -17,7 +17,7 @@ public class SemesterSettings {
 
     private final Predicate<String> useOldEmes;
 
-    private static final ImmutableMap<Semester, SemesterSettings> SETTINGS = ImmutableMap.of( Semester.WS2017,
+    public static final ImmutableMap<Semester, SemesterSettings> SETTINGS = ImmutableMap.of( Semester.WS2017,
             SemesterSettings.ws2017(), Semester.SS2018, SemesterSettings.ss2018() );
 
     private SemesterSettings( final Semester semester, final Predicate<DefectReport> defectReportFilter, final String

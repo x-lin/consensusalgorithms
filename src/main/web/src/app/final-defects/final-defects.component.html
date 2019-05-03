@@ -5,6 +5,12 @@
   <app-tab-sheet [columnsToDisplay]="data.tableHeaderNames" [displayedColumns]="data.fieldNames" [data]="data.data"
                  [title]="data.title"></app-tab-sheet>
 </ng-template>
+
+<ng-template [ngIf]="currentPage === finalDefectsPage.WORKER_METRICS && data !== undefined">
+  <box-plot [data]="data.metrics.workerMetricsBoxPlotData" [name]="'Worker Metrics'" [xAxis]="'value'" [yAxis]="'type'"></box-plot>
+  <workerScores-chart [data]="data.metrics.workerMetrics.evaluationResultMetrics" [pearsonScores]="data.metrics.workerMetrics.pearsonScores" [name]="'Worker Metrics'"></workerScores-chart>
+</ng-template>
+
 <ng-template [ngIf]="currentPage === finalDefectsPage.METRICS_COMPARISON && allMetrics !== undefined">
   <bar-chart [data]="confusionMatrixForBarChart" [xAxis]="'value'" [yAxis]="'type'" [colorField]="'algorithm'" [name]="'Confusion Matrix Comparison'"></bar-chart>
   <bar-chart [data]="allMetricsForBarChart" [xAxis]="'value'" [yAxis]="'type'" [colorField]="'algorithm'" [name]="'Metrics Comparison'"></bar-chart>

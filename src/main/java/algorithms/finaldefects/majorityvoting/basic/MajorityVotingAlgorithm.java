@@ -2,6 +2,7 @@ package algorithms.finaldefects.majorityvoting.basic;
 
 import algorithms.finaldefects.FinalDefectAggregationAlgorithm;
 import algorithms.finaldefects.SemesterSettings;
+import algorithms.finaldefects.WorkerDefectReports;
 import algorithms.finaldefects.WorkerQuality;
 import algorithms.model.*;
 import com.google.common.collect.ImmutableMap;
@@ -60,6 +61,16 @@ public class MajorityVotingAlgorithm implements FinalDefectAggregationAlgorithm 
     @Override
     public SemesterSettings getSettings() {
         return this.settings;
+    }
+
+    @Override
+    public ImmutableMap<String, String> getParameters() {
+        return ImmutableMap.of();
+    }
+
+    @Override
+    public ImmutableMap<TaskWorkerId, WorkerDefectReports> getWorkerDefectReports() {
+        return this.defectReports.toWorkerDefectReports( this.workerQuality );
     }
 
     private ImmutableMap<EmeAndScenarioId, FinalDefect> calculateFinalDefects() {

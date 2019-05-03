@@ -1,9 +1,9 @@
-package algorithms.finaldefects;
+package algorithms.web;
 
 /**
  * @author LinX
  */
-public enum AlgorithmType {
+enum AlgorithmType {
     CrowdTruth,
     MajorityVoting,
     AdaptiveMajorityVoting,

@@ -7,7 +7,7 @@
                    [title]="data.workers.title"></app-tab-sheet>
   </ng-template>
   <ng-template [ngIf]="currentPage === crowdtruthPage.BOX_PLOTS_WORKERS">
-    <box-plot [name]="'Worker Scores'" [data]="boxPlotData" [xAxis]="'type'" [yAxis]="'value'"></box-plot>
+    <box-plot [name]="'Worker Scores'" [data]="boxPlotData" [xAxis]="'value'" [yAxis]="'type'"></box-plot>
   </ng-template>
 
   <ng-template [ngIf]="currentPage === crowdtruthPage.CORRELATIONS_ANNOTATIONS">

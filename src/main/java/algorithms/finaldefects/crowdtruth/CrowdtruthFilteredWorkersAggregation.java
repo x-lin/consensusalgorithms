@@ -1,7 +1,9 @@
 package algorithms.finaldefects.crowdtruth;
 
 import algorithms.model.DefectReport;
+import algorithms.model.DefectReports;
 import algorithms.model.TaskWorkerId;
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 
 /**
@@ -11,7 +13,7 @@ public class CrowdtruthFilteredWorkersAggregation extends AbstractCrowdtruthAggr
     public CrowdtruthFilteredWorkersAggregation( final CrowdtruthAggregationAlgorithm crowdtruthAggregationAlgorithm,
             final ImmutableSet<TaskWorkerId> workerIds ) {
         super( crowdtruthAggregationAlgorithm.getSettings(),
-                filterByWorkerIds( crowdtruthAggregationAlgorithm, workerIds ) );
+                new DefectReports( filterByWorkerIds( crowdtruthAggregationAlgorithm, workerIds ) ) );
     }
 
     private static ImmutableSet<DefectReport> filterByWorkerIds(
@@ -20,5 +22,10 @@ public class CrowdtruthFilteredWorkersAggregation extends AbstractCrowdtruthAggr
         return crowdtruthAggregationAlgorithm.getDefectReports().stream()
                                              .filter( r -> workerIds.contains( r.getWorkerId() ) )
                                              .collect( ImmutableSet.toImmutableSet() );
+    }
+
+    @Override
+    public ImmutableMap<String, String> getParameters() {
+        return ImmutableMap.of();
     }
 }

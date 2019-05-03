@@ -1,6 +1,9 @@
 package algorithms.web;
 
-import algorithms.finaldefects.*;
+import algorithms.finaldefects.FinalDefectAggregationAlgorithm;
+import algorithms.finaldefects.Semester;
+import algorithms.finaldefects.SemesterSettings;
+import algorithms.finaldefects.WorkerQualityInfluence;
 import algorithms.finaldefects.crowdtruth.CrowdtruthAggregationAlgorithm;
 import algorithms.finaldefects.majorityvoting.adaptive.AdaptiveMajorityVoting;
 import algorithms.finaldefects.majorityvoting.basic.MajorityVotingAlgorithm;
@@ -8,7 +11,6 @@ import algorithms.finaldefects.majorityvoting.experiencequestionnaire.MajorityVo
 import algorithms.finaldefects.majorityvoting.qualitficationreport.MajorityVotingWithQualificationReport;
 import algorithms.model.EmeAndScenarioId;
 import algorithms.statistic.*;
-import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableBiMap;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
@@ -26,30 +28,32 @@ import java.util.Map;
 @RestController
 @RequestMapping("algorithms")
 public class AlgorithmController {
-    private final Map<Semester, CrowdtruthAggregationAlgorithm> crowdtruthRunners = ImmutableMap.of( //
-            Semester.WS2017, CrowdtruthAggregationAlgorithm.create( SemesterSettings.get( Semester.WS2017 ) ),
-            Semester.SS2018, CrowdtruthAggregationAlgorithm.create( SemesterSettings.get( Semester.SS2018 ) ) );
+    private final Map<Semester, CrowdtruthAggregationAlgorithm> crowdtruthAlgorithm;
+
+    public AlgorithmController() {
+        this.crowdtruthAlgorithm = Maps.toMap( SemesterSettings.SETTINGS.keySet(),
+                s -> CrowdtruthAggregationAlgorithm.create( SemesterSettings.get( s ) ) );
+    }
 
     @GetMapping("/finalDefects/CrowdTruth")
     public WebFinalDefects crowdtruthFinalDefects(
             @RequestParam(value = "semester", defaultValue = "WS2017") final Semester semester ) {
-        return new WebFinalDefects(
-                FinalDefectAnalyzer.getFinalDefects( this.crowdtruthRunners.get( semester ) ).values() );
+        return new WebFinalDefects( AlgorithmType.CrowdTruth, this.crowdtruthAlgorithm.get( semester ) );
     }
 
     @GetMapping("/finalDefects/MajorityVoting")
     public WebFinalDefects majorityVotingFinalDefects(
             @RequestParam(value = "semester", defaultValue = "WS2017") final Semester semester ) {
-        return new WebFinalDefects( FinalDefectAnalyzer
-                .getFinalDefects( MajorityVotingAlgorithm.create( SemesterSettings.get( semester ) ) ).values() );
+        return new WebFinalDefects( AlgorithmType.MajorityVoting,
+                MajorityVotingAlgorithm.create( SemesterSettings.get( semester ) ) );
     }
 
     @GetMapping("/finalDefects/AdaptiveMajorityVoting")
     public WebFinalDefects crowdtruthFinalDefects(
-            @RequestParam(value = "threshold") final double threshold,
+            @RequestParam(value = "threshold", defaultValue = "0.0") final double threshold,
             @RequestParam(value = "semester", defaultValue = "WS2017") final Semester semester ) {
-        return new WebFinalDefects( FinalDefectAnalyzer.getFinalDefects(
-                new AdaptiveMajorityVoting( threshold, SemesterSettings.get( semester ) ) ).values() );
+        return new WebFinalDefects( AlgorithmType.AdaptiveMajorityVoting,
+                new AdaptiveMajorityVoting( threshold, SemesterSettings.get( semester ) ) );
     }
 
     @GetMapping("/finalDefects/MajorityVotingWithExperienceQuestionnaire")
@@ -57,9 +61,9 @@ public class AlgorithmController {
             @RequestParam(value = "qualityInfluence") final WorkerQualityInfluence qualityInfluence,
             @RequestParam(value = "alpha", defaultValue = "0.0") final double alpha,
             @RequestParam(value = "semester", defaultValue = "WS2017") final Semester semester ) {
-        return new WebFinalDefects( FinalDefectAnalyzer.getFinalDefects(
-                MajorityVotingWithExperienceQuestionnaire.create( SemesterSettings.get( semester ), qualityInfluence,
-                        alpha ) ).values() );
+        return new WebFinalDefects( AlgorithmType.MajorityVotingWithExperienceQuestionnaire,
+                MajorityVotingWithExperienceQuestionnaire
+                        .create( SemesterSettings.get( semester ), qualityInfluence, alpha ) );
     }
 
     @GetMapping("/finalDefects/MajorityVotingWithQualificationReport")
@@ -67,32 +71,18 @@ public class AlgorithmController {
             @RequestParam(value = "qualityInfluence") final WorkerQualityInfluence qualityInfluence,
             @RequestParam(value = "alpha", defaultValue = "0.0") final double alpha,
             @RequestParam(value = "semester", defaultValue = "SS2018") final Semester semester ) {
-        Preconditions.checkArgument( semester != Semester.WS2017 );
-        return new WebFinalDefects( FinalDefectAnalyzer.getFinalDefects(
-                MajorityVotingWithQualificationReport.create( SemesterSettings.get( semester ), qualityInfluence,
-                        alpha ) ).values() );
+        return new WebFinalDefects( AlgorithmType.MajorityVotingWithQualificationReport,
+                MajorityVotingWithQualificationReport
+                        .create( SemesterSettings.get( semester ), qualityInfluence, alpha ) );
     }
-
-
-    //TODO implement
-//    @GetMapping("/correlation/MajorityVotingWithQualificationReport")
-//    public WebFinalDefects crowdtruthFinalDefects(
-//            @RequestParam(value = "qualityInfluence") final WorkerQualityInfluence qualityInfluence,
-//            @RequestParam(value = "alpha", defaultValue = "0.0") final double alpha,
-//            @RequestParam(value = "semester", defaultValue = "WS2017") final Semester semester ) {
-//        final MajorityVotingWithQualificationReport algorithm = MajorityVotingWithQualificationReport.create(
-//                SemesterSettings.get( semester ), qualityInfluence, alpha );
-//        QualityAnalyzer.create().getConfusionMatrix(
-//                algorithm.getSettings(), algorithm.getFinalDefects() );
-//        return new CorrelationScores();
-//    }
 
     @GetMapping("/workers")
     public CrowdtruthScores workers(
             @RequestParam(value = "semester", defaultValue = "WS2017") final Semester semester ) {
-        final CrowdtruthAggregationAlgorithm crowdtruthAggregationAlgorithm = this.crowdtruthRunners.get( semester );
-        final ImmutableSet<ArtifactWithConfusionMatrix> workerScores = QualityAnalyzer.create().getConfusionMatrix(
-                crowdtruthAggregationAlgorithm.getSettings(), crowdtruthAggregationAlgorithm.getAllWorkerScores() );
+        final CrowdtruthAggregationAlgorithm crowdtruthAggregationAlgorithm = this.crowdtruthAlgorithm.get( semester );
+        final ImmutableSet<ArtifactWithConfusionMatrix> workerScores =
+                QualityAnalyzer.create().getConfusionMatrixForWorkers(
+                        crowdtruthAggregationAlgorithm );
         final ImmutableSet<ArtifactWithConfusionMatrix> annotationScores =
                 QualityAnalyzer.create().getConfusionMatrix( crowdtruthAggregationAlgorithm.getSettings(),
                         crowdtruthAggregationAlgorithm.getAllAnnotationScores() );
@@ -105,6 +95,7 @@ public class AlgorithmController {
                 new WebMetricsScores( crowdtruthAggregationAlgorithm.getMetricsScores() ) );
     }
 
+    //TODO remove
     @GetMapping("/all/metrics")
     public Map<String, ConfusionMatrix> getAllMetrics(
             @RequestParam(value = "semester", defaultValue = "WS2017") final Semester semester ) {
@@ -142,7 +133,7 @@ public class AlgorithmController {
         final ImmutableMap.Builder<String, FinalDefectAggregationAlgorithm> builder = ImmutableMap.builder();
         builder
                 .put( AlgorithmType.MajorityVoting.name(), MajorityVotingAlgorithm.create( settings ) ) //
-                .put( AlgorithmType.CrowdTruth.name(), this.crowdtruthRunners.get( semester ) )
+                .put( AlgorithmType.CrowdTruth.name(), this.crowdtruthAlgorithm.get( semester ) )
                 .put( AlgorithmType.AdaptiveMajorityVoting + ";t=0.1", new AdaptiveMajorityVoting( 0.1, settings ) )
                 .put( AlgorithmType.AdaptiveMajorityVoting + ";t=0.9", new AdaptiveMajorityVoting( 0.9, settings ) )
                 .put( AlgorithmType.MajorityVotingWithExperienceQuestionnaire + ";exp;alpha=0.1",

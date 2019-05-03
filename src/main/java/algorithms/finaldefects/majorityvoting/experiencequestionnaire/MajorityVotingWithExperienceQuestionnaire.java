@@ -1,9 +1,6 @@
 package algorithms.finaldefects.majorityvoting.experiencequestionnaire;
 
-import algorithms.finaldefects.FinalDefectAggregationAlgorithm;
-import algorithms.finaldefects.SemesterSettings;
-import algorithms.finaldefects.WorkerQuality;
-import algorithms.finaldefects.WorkerQualityInfluence;
+import algorithms.finaldefects.*;
 import algorithms.finaldefects.majorityvoting.basic.MajorityVotingAlgorithm;
 import algorithms.model.EmeAndScenarioId;
 import algorithms.model.FinalDefect;
@@ -13,6 +10,7 @@ import com.google.common.collect.ImmutableMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 /**
@@ -22,14 +20,24 @@ public class MajorityVotingWithExperienceQuestionnaire implements FinalDefectAgg
 
     private final MajorityVotingAlgorithm majorityVoting;
 
+    private final WorkerQualityInfluence influence;
+
+    private final double alpha;
+
+    private final Function<TaskWorkerId, WorkerQuality>
+            workerQualityFunction;
+
     private MajorityVotingWithExperienceQuestionnaire( final SemesterSettings settings,
             final WorkerQualityInfluence influence, final double alpha,
             final ImmutableMap<TaskWorkerId, ExperienceQuestionnaire> questionnaireResults ) {
+        this.influence = influence;
+        this.alpha = alpha;
         final WorkerQuality averageWorkerQuality = influence.calculateWorkerQualityFromScore(
                 getAverageWorkerQuality( questionnaireResults ), alpha );
-        this.majorityVoting = MajorityVotingAlgorithm.create( settings, wid -> Optional.ofNullable(
+        this.workerQualityFunction = wid -> Optional.ofNullable(
                 questionnaireResults.get( wid ) ).map( re -> influence
-                .calculateWorkerQualityFromScore( getQualityScore( re ), alpha ) ).orElse( averageWorkerQuality ) );
+                .calculateWorkerQualityFromScore( getQualityScore( re ), alpha ) ).orElse( averageWorkerQuality );
+        this.majorityVoting = MajorityVotingAlgorithm.create( settings, this.workerQualityFunction );
     }
 
     @Override
@@ -40,6 +48,21 @@ public class MajorityVotingWithExperienceQuestionnaire implements FinalDefectAgg
     @Override
     public SemesterSettings getSettings() {
         return this.majorityVoting.getSettings();
+    }
+
+    @Override
+    public ImmutableMap<String, String> getParameters() {
+        final ImmutableMap.Builder<String, String> builder = ImmutableMap.<String, String>builder().put(
+                "workerQualityInfluence", this.influence.name() );
+        if (this.influence == WorkerQualityInfluence.EXPONENTIAL) {
+            builder.put( "alpha", String.valueOf( this.alpha ) );
+        }
+        return builder.build();
+    }
+
+    @Override
+    public ImmutableMap<TaskWorkerId, WorkerDefectReports> getWorkerDefectReports() {
+        return this.majorityVoting.getWorkerDefectReports();
     }
 
     private static double getAverageWorkerQuality(

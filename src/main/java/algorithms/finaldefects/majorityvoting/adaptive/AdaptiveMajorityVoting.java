@@ -2,6 +2,7 @@ package algorithms.finaldefects.majorityvoting.adaptive;
 
 import algorithms.finaldefects.FinalDefectAggregationAlgorithm;
 import algorithms.finaldefects.SemesterSettings;
+import algorithms.finaldefects.WorkerDefectReports;
 import algorithms.finaldefects.majorityvoting.basic.MajorityVotingAlgorithm;
 import algorithms.model.*;
 import com.google.common.collect.ImmutableMap;
@@ -51,8 +52,7 @@ public class AdaptiveMajorityVoting implements FinalDefectAggregationAlgorithm {
                     finalDefectsFiltered );
 
             agreement.entrySet().stream().filter( a -> a.getValue() < this.threshold ).map( Map.Entry::getKey )
-                     .forEach(
-                             defectReportsPerWorker::remove );
+                     .forEach( defectReportsPerWorker::remove );
 
             lowestAgreement.set(
                     Collections.min( agreement.values().isEmpty() ? ImmutableSet.of( 0.0 ) : agreement.values() ) );
@@ -64,6 +64,17 @@ public class AdaptiveMajorityVoting implements FinalDefectAggregationAlgorithm {
     @Override
     public SemesterSettings getSettings() {
         return this.settings;
+    }
+
+    @Override
+    public ImmutableMap<String, String> getParameters() {
+        return ImmutableMap.of( "threshold", String.valueOf( this.threshold ) );
+    }
+
+    @Override
+    public ImmutableMap<TaskWorkerId, WorkerDefectReports> getWorkerDefectReports() {
+        return DefectReports.fetchFromDb( this.settings ).toWorkerDefectReports(
+                MajorityVotingAlgorithm.PERFECT_WORKER_QUALITY );
     }
 
     private ImmutableMap<EmeAndScenarioId, FinalDefect> aggregate( final Emes emes,

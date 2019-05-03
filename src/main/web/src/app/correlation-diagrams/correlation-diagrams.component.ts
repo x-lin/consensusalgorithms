@@ -47,7 +47,6 @@ export class CorrelationDiagramsComponent implements OnInit, OnDestroy, OnChange
 
   ngOnChanges(changes: SimpleChanges): void {
     if (this.nameSquashed !== undefined) {
-      console.log("updating correlation diagrams")
       this.updateCharts(this.data);
     }
   }
@@ -58,7 +57,6 @@ export class CorrelationDiagramsComponent implements OnInit, OnDestroy, OnChange
     this.removeChart(this.chartQualityRecall);
     this.removeChart(this.chartQualityAccuracy);
 
-    console.log(JSON.stringify(data));
     this.chartQualityFMeasure = new taucharts.Chart(this.createConfig(data, 'quality', 'fmeasure'));
     this.chartQualityFMeasure.renderTo('#' + this.nameSquashed + 'scatterQualityFMeasure');
 

@@ -168,6 +168,13 @@ public class DefectReport {
         return new EmeAndScenarioId( this.emeId, this.scenarioId );
     }
 
+    public FinalDefect toFinalDefect( final Emes emes ) {
+        return FinalDefect.builder( emes, getEmeAndScenarioId() )
+                          .withAgreementCoeff( new AgreementCoefficient( 1.0 ) )
+                          .withFinalDefectType( getDefectType().toFinalDefectType() )
+                          .build();
+    }
+
     @Override
     public boolean equals( final Object o ) {
         if (this == o) {

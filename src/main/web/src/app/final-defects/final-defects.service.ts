@@ -1,6 +1,6 @@
 import {Injectable} from '@angular/core';
 import {BehaviorSubject} from 'rxjs';
-import {AlgorithmType, RestService, Semester} from '../rest/rest.service';
+import {AlgorithmType, ArtifactWithConfusionMatrixResponse, RestService, Semester} from '../rest/rest.service';
 
 @Injectable({
   providedIn: 'root'
@@ -57,6 +57,8 @@ export class FinalDefectsService {
             title: 'Metrics - ' + algorithmType,
             fieldNames: ['nrEmes', 'fmeasure', 'precision', 'recall', 'accuracy', 'truePositives', 'trueNegatives', 'falsePositives', 'falseNegatives'],
             tableHeaderNames: ['nrEmes', 'fmeasure', 'precision', 'recall', 'accuracy', 'truePositives', 'trueNegatives', 'falsePositives', 'falseNegatives'],
+            workerMetrics: this.createCorrelationData(this.flattenArtifactWithConfusionMatrixResponse(d.workerConfusionMatrix), d.workerPearsonScores, 'Worker Metrics'),
+            workerMetricsBoxPlotData: this.workerScoresBoxPlotData(d.workerConfusionMatrix),
             data: [{
               nrEmes: d.finalDefectResults.length,
               fmeasure: d.confusionMatrix.fmeasure,
@@ -71,6 +73,58 @@ export class FinalDefectsService {
           }
       });
     });
+  }
+
+  private workerScoresBoxPlotData(scores) {
+    const d = [];
+    scores.forEach(m => {
+      d.push({
+        type: 'worker quality',
+        value: m.quality
+      }, {
+        type: 'fmeasure',
+        value: m.confusionMatrix.fmeasure
+      }, {
+        type: 'precision',
+        value: m.confusionMatrix.precision
+      }, {
+        type: 'recall',
+        value: m.confusionMatrix.recall
+      }, {
+        type: 'accuracy',
+        value: m.confusionMatrix.accuracy
+      });
+    });
+    return d;
+  }
+
+  private flattenArtifactWithConfusionMatrixResponse(data: object[]) {
+    return data.map((d: ArtifactWithConfusionMatrixResponse) => {
+      return {
+        id: d.id,
+        quality: d.quality,
+        fmeasure: d.confusionMatrix.fmeasure,
+        recall: d.confusionMatrix.recall,
+        precision: d.confusionMatrix.precision,
+        accuracy: d.confusionMatrix.accuracy,
+        truePositives: d.confusionMatrix.truePositives,
+        trueNegatives: d.confusionMatrix.trueNegatives,
+        falsePositives: d.confusionMatrix.falsePositives,
+        falseNegatives: d.confusionMatrix.falseNegatives
+      };
+    });
+  }
+
+  private createCorrelationData(qualityScores, personScores, titleName) {
+    return {
+      evaluationResultMetrics: qualityScores,
+      pearsonScores: personScores,
+      title: titleName,
+      fieldNames: ['id', 'quality', 'precision', 'recall', 'fmeasure', 'accuracy', 'truePositives', 'trueNegatives', 'falsePositives',
+        'falseNegatives'],
+      tableHeaderNames: ['id', 'quality', 'precision', 'recall', 'fmeasure', 'accuracy', 'truePositives', 'trueNegatives',
+        'falsePositives', 'falseNegatives']
+    };
   }
 
   getMetricsComparison() {
@@ -118,6 +172,7 @@ export class FinalDefectsService {
 
 export enum FinalDefectsPage {
   TABLE,
+  WORKER_METRICS,
   METRICS_COMPARISON,
   FINAL_DEFECT_COMPARISON
 }

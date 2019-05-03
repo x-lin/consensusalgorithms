@@ -1,11 +1,16 @@
 package algorithms.model;
 
 import algorithms.finaldefects.SemesterSettings;
+import algorithms.finaldefects.WorkerDefectReports;
+import algorithms.finaldefects.WorkerQuality;
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Maps;
 
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 /**
@@ -28,6 +33,12 @@ public class DefectReports {
 
     public Map<TaskWorkerId, List<DefectReport>> groupedByWorkerId() {
         return this.defectReports.stream().collect( Collectors.groupingBy( DefectReport::getWorkerId ) );
+    }
+
+    public ImmutableMap<TaskWorkerId, WorkerDefectReports> toWorkerDefectReports(
+            final Function<TaskWorkerId, WorkerQuality> workerQuality ) {
+        return ImmutableMap.copyOf( Maps.transformEntries( groupedByWorkerId(),
+                ( id, d ) -> WorkerDefectReports.create( id, workerQuality.apply( id ), ImmutableSet.copyOf( d ) ) ) );
     }
 
     @Override

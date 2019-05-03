@@ -16,8 +16,14 @@ import java.util.Optional;
 public class MajorityVotingWithQualificationReport implements FinalDefectAggregationAlgorithm {
     private final MajorityVotingAlgorithm majorityVoting;
 
+    private final WorkerQualityInfluence influence;
+
+    private final double alpha;
+
     private MajorityVotingWithQualificationReport( final SemesterSettings settings,
             final WorkerQualityInfluence influence, final double alpha ) {
+        this.influence = influence;
+        this.alpha = alpha;
         this.majorityVoting = MajorityVotingAlgorithm.create( settings, wid -> {
             final ImmutableMap<TaskWorkerId, QualificationReport> qualificationReports =
                     QualificationReport.QUALIFICATION_REPORTS;
@@ -35,8 +41,23 @@ public class MajorityVotingWithQualificationReport implements FinalDefectAggrega
     }
 
     @Override
+    public ImmutableMap<TaskWorkerId, WorkerDefectReports> getWorkerDefectReports() {
+        return this.majorityVoting.getWorkerDefectReports();
+    }
+
+    @Override
     public SemesterSettings getSettings() {
         return this.majorityVoting.getSettings();
+    }
+
+    @Override
+    public ImmutableMap<String, String> getParameters() {
+        final ImmutableMap.Builder<String, String> builder = ImmutableMap.<String, String>builder().put(
+                "workerQualityInfluence", this.influence.name() );
+        if (this.influence == WorkerQualityInfluence.EXPONENTIAL) {
+            builder.put( "alpha", String.valueOf( this.alpha ) );
+        }
+        return builder.build();
     }
 
     private static WorkerQuality getAverageWorkerQuality( final WorkerQualityInfluence influence, final double alpha,
