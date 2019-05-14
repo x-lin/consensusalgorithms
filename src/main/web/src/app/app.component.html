@@ -53,7 +53,7 @@
             <!--<mat-divider></mat-divider>-->
 
             <!--<mat-card-content>-->
-                  <!--<mat-card-subtitle>Algorithms</mat-card-subtitle>-->
+                  <!--<span>Algorithms</span>-->
                   <!--<mat-checkbox-->
                     <!--class="example-margin"-->
                     <!--[checked]="true"-->
@@ -66,7 +66,7 @@
 
             <!--&lt;!&ndash;<mat-divider></mat-divider>&ndash;&gt;-->
             <!--&lt;!&ndash;<mat-card-content>&ndash;&gt;-->
-              <!--&lt;!&ndash;<mat-card-subtitle>sad</mat-card-subtitle>&ndash;&gt;-->
+              <!--&lt;!&ndash;<span>sad</span>&ndash;&gt;-->
               <!--&lt;!&ndash;<mat-slider&ndash;&gt;-->
                 <!--&lt;!&ndash;style="width:100%"&ndash;&gt;-->
                 <!--&lt;!&ndash;[disabled]="disabled"&ndash;&gt;-->
@@ -96,7 +96,7 @@
           <ng-template [ngIf]="finalDefectsPageClicked === finalDefectsPage.TABLE || finalDefectsPageClicked === finalDefectsPage.WORKER_METRICS">
             <mat-card class="result" style="margin-top: 10px">
               <mat-card-content>
-                <mat-card-subtitle>Algorithms</mat-card-subtitle>
+                <span>Algorithms</span>
                 <mat-radio-group [(ngModel)]="finalDefectsParameters.type">
                   <div *ngFor="let algoType of algorithmTypes[activeSemester]">
                     <mat-radio-button [value]="algoType" (change)="finalDefectsAlgorithmTypeChanged($event)">
@@ -116,7 +116,7 @@
                 <mat-divider></mat-divider>
 
                 <mat-card-content>
-                  <mat-card-subtitle>Threshold</mat-card-subtitle>
+                  <span>Threshold</span>
                   <mat-slider
                     style="width: 100%"
                     [disabled]="false"
@@ -141,16 +141,107 @@
                 </mat-card-header>
                 <mat-divider></mat-divider>
                 <mat-card-content>
-                  <mat-card-subtitle>Worker Quality Influence</mat-card-subtitle>
+                  <span>Worker Quality Influence</span>
                   <div *ngFor="let influence of workerQualityInfluences">
                     <mat-radio-button [value]="influence" (change)="onMajorityVotingExperienceQuestionnaireQualityInfluenceChanged($event)" [checked]="influence === majorityVotingExperienceQuestionnaireParameters.qualityInfluence">
                       {{influence}}
                     </mat-radio-button>
                   </div>
                 </mat-card-content>
-                <ng-template [ngIf]="majorityVotingExperienceQuestionnaireParameters.qualityInfluence === workerQualityInfluence.EXPONENTIAL">
-                  <mat-card-content>
-                    <mat-card-subtitle>Alpha</mat-card-subtitle>
+                <mat-divider></mat-divider>
+                <mat-card-content>
+                  <span>Weight Language Skills</span>
+                  <mat-slider
+                    style="width: 100%"
+                    [disabled]="false"
+                    [invert]="false"
+                    [max]="1.0"
+                    [min]="0.0"
+                    [step]="0.05"
+                    [thumbLabel]="true"
+                    [tickInterval]="false"
+                    [(ngModel)]="majorityVotingExperienceQuestionnaireParameters.weightLanguageSkills"
+                    [vertical]="vertical"
+                    (input)="onMajorityVotingExperienceQuestionnaireWeightLanguageSkillsChanged($event)">
+                  </mat-slider>
+                  <mat-divider></mat-divider>
+                  <span>Weight Project Skills</span>
+                  <mat-slider
+                    style="width: 100%"
+                    [disabled]="false"
+                    [invert]="false"
+                    [max]="1.0"
+                    [min]="0.0"
+                    [step]="0.05"
+                    [thumbLabel]="true"
+                    [tickInterval]="false"
+                    [(ngModel)]="majorityVotingExperienceQuestionnaireParameters.weightProjectSkills"
+                    [vertical]="vertical"
+                    (input)="onMajorityVotingExperienceQuestionnaireWeightProjectSkillsChanged($event)">
+                  </mat-slider>
+                  <mat-divider></mat-divider>
+                  <span>Quality Assurance Skills</span>
+                  <mat-slider
+                    style="width: 100%"
+                    [disabled]="false"
+                    [invert]="false"
+                    [max]="1.0"
+                    [min]="0.0"
+                    [step]="0.05"
+                    [thumbLabel]="true"
+                    [tickInterval]="false"
+                    [(ngModel)]="majorityVotingExperienceQuestionnaireParameters.weightQualityAssuranceSkills"
+                    [vertical]="vertical"
+                    (input)="onMajorityVotingExperienceQuestionnaireWeightQualityAssuranceSkillsChanged($event)">
+                  </mat-slider>
+                  <mat-divider></mat-divider>
+                  <span>Weight Domain Experience</span>
+                  <mat-slider
+                    style="width: 100%"
+                    [disabled]="false"
+                    [invert]="false"
+                    [max]="1.0"
+                    [min]="0.0"
+                    [step]="0.05"
+                    [thumbLabel]="true"
+                    [tickInterval]="false"
+                    [(ngModel)]="majorityVotingExperienceQuestionnaireParameters.weightDomainExperience"
+                    [vertical]="vertical"
+                    (input)="onMajorityVotingExperienceQuestionnaireWeightDomainExperienceChanged($event)">
+                  </mat-slider>
+                  <mat-divider></mat-divider>
+                  <span>Weight Working Environment</span>
+                  <mat-slider
+                    style="width: 100%"
+                    [disabled]="false"
+                    [invert]="false"
+                    [max]="1.0"
+                    [min]="0.0"
+                    [step]="0.05"
+                    [thumbLabel]="true"
+                    [tickInterval]="false"
+                    [(ngModel)]="majorityVotingExperienceQuestionnaireParameters.weightWorkingEnvironment"
+                    [vertical]="vertical"
+                    (input)="onMajorityVotingExperienceQuestionnaireWeightWorkingEnvironmentChanged($event)">
+                  </mat-slider>
+                  <mat-divider></mat-divider>
+                  <span>Weight Crowdsourcing Application Experience</span>
+                  <mat-slider
+                    style="width: 100%"
+                    [disabled]="false"
+                    [invert]="false"
+                    [max]="1.0"
+                    [min]="0.0"
+                    [step]="0.05"
+                    [thumbLabel]="true"
+                    [tickInterval]="false"
+                    [(ngModel)]="majorityVotingExperienceQuestionnaireParameters.weightCrowdsourcingApplications"
+                    [vertical]="vertical"
+                    (input)="onMajorityVotingExperienceQuestionnaireWeightCrowdsourcingApplicationsChanged($event)">
+                  </mat-slider>
+                  <ng-template [ngIf]="majorityVotingExperienceQuestionnaireParameters.qualityInfluence === workerQualityInfluence.EXPONENTIAL">
+                    <mat-divider></mat-divider>
+                    <span>Alpha</span>
                     <mat-slider
                       style="width: 100%"
                       [disabled]="false"
@@ -164,8 +255,8 @@
                       [vertical]="vertical"
                       (input)="onMajorityVotingExperienceQuestionnaireAlphaChanged($event)">
                     </mat-slider>
-                  </mat-card-content>
-                </ng-template>
+                  </ng-template>
+                </mat-card-content>
               </mat-card>
             </ng-template>
 
@@ -178,7 +269,7 @@
                 <mat-divider></mat-divider>
 
                 <mat-card-content>
-                  <mat-card-subtitle>Worker Quality Influence</mat-card-subtitle>
+                  <span>Worker Quality Influence</span>
                   <div *ngFor="let influence of workerQualityInfluences">
                     <mat-radio-button [value]="influence" (change)="onMajorityVotingQualificationReportQualityInfluenceChanged($event)" [checked]="influence === majorityVotingQualificationReportParameters.qualityInfluence">
                       {{influence}}
@@ -187,7 +278,7 @@
                 </mat-card-content>
                 <ng-template [ngIf]="majorityVotingQualificationReportParameters.qualityInfluence === workerQualityInfluence.EXPONENTIAL">
                   <mat-card-content>
-                    <mat-card-subtitle>Alpha</mat-card-subtitle>
+                    <span>Alpha</span>
                     <mat-slider
                       style="width: 100%"
                       [disabled]="false"

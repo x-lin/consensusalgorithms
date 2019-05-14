@@ -7,7 +7,9 @@ import algorithms.finaldefects.WorkerQualityInfluence;
 import algorithms.finaldefects.crowdtruth.CrowdtruthAggregationAlgorithm;
 import algorithms.finaldefects.majorityvoting.adaptive.AdaptiveMajorityVoting;
 import algorithms.finaldefects.majorityvoting.basic.MajorityVotingAlgorithm;
+import algorithms.finaldefects.majorityvoting.experiencequestionnaire.ExperienceQuestionType;
 import algorithms.finaldefects.majorityvoting.experiencequestionnaire.MajorityVotingWithExperienceQuestionnaire;
+import algorithms.finaldefects.majorityvoting.experiencequestionnaire.Weight;
 import algorithms.finaldefects.majorityvoting.qualitficationreport.MajorityVotingWithQualificationReport;
 import algorithms.model.EmeAndScenarioId;
 import algorithms.statistic.*;
@@ -60,10 +62,26 @@ public class AlgorithmController {
     public WebFinalDefects majorityVotingWithExperienceQuestionnaireFinalDefects(
             @RequestParam(value = "qualityInfluence") final WorkerQualityInfluence qualityInfluence,
             @RequestParam(value = "alpha", defaultValue = "0.0") final double alpha,
-            @RequestParam(value = "semester", defaultValue = "WS2017") final Semester semester ) {
+            @RequestParam(value = "semester", defaultValue = "WS2017") final Semester semester,
+            @RequestParam(value = "weightLanguageSkills", defaultValue = "1") final double weightLanguageSkills,
+            @RequestParam(value = "weightProjectSkills", defaultValue = "1") final double weightProjectSkills,
+            @RequestParam(value = "weightQualityAssuranceSkills", defaultValue = "1") final double weightQualityAssuranceSkills,
+            @RequestParam(value = "weightWorkingEnvironment", defaultValue = "1") final double weightWorkingEnvironment,
+            @RequestParam(value = "weightDomainExperience", defaultValue = "1") final double weightDomainExperience,
+            @RequestParam(value = "weightCrowdsourcingApplications", defaultValue = "1") final double weightCrowdsourcingApplications ) {
+        final ImmutableMap<ExperienceQuestionType, Weight> weights =
+                ImmutableMap.<ExperienceQuestionType, Weight>builder()
+                        .put( ExperienceQuestionType.LANGUAGE, new Weight( weightLanguageSkills ) )
+                        .put( ExperienceQuestionType.SOFTWARE_PROJECT, new Weight( weightProjectSkills ) )
+                        .put( ExperienceQuestionType.QUALITY_ASSURANCE, new Weight( weightQualityAssuranceSkills ) )
+                        .put( ExperienceQuestionType.WORKING_ENVIRONMENT, new Weight( weightWorkingEnvironment ) )
+                        .put( ExperienceQuestionType.DOMAIN_EXPERIENCE, new Weight( weightDomainExperience ) )
+                        .put( ExperienceQuestionType.CROWDSOURCING_APPLICATIONS,
+                                new Weight( weightCrowdsourcingApplications ) )
+                        .build();
         return new WebFinalDefects( AlgorithmType.MajorityVotingWithExperienceQuestionnaire,
                 MajorityVotingWithExperienceQuestionnaire
-                        .create( SemesterSettings.get( semester ), qualityInfluence, alpha ) );
+                        .create( SemesterSettings.get( semester ), qualityInfluence, alpha, weights ) );
     }
 
     @GetMapping("/finalDefects/MajorityVotingWithQualificationReport")

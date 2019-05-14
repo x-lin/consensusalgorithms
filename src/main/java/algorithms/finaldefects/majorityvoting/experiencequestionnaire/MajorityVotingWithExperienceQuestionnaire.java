@@ -24,20 +24,19 @@ public class MajorityVotingWithExperienceQuestionnaire implements FinalDefectAgg
 
     private final double alpha;
 
-    private final Function<TaskWorkerId, WorkerQuality>
-            workerQualityFunction;
-
     private MajorityVotingWithExperienceQuestionnaire( final SemesterSettings settings,
             final WorkerQualityInfluence influence, final double alpha,
-            final ImmutableMap<TaskWorkerId, ExperienceQuestionnaire> questionnaireResults ) {
+            final ImmutableMap<TaskWorkerId, ExperienceQuestionnaire> questionnaireResults,
+            final ImmutableMap<ExperienceQuestionType, Weight> weights ) {
         this.influence = influence;
         this.alpha = alpha;
         final WorkerQuality averageWorkerQuality = influence.calculateWorkerQualityFromScore(
-                getAverageWorkerQuality( questionnaireResults ), alpha );
-        this.workerQualityFunction = wid -> Optional.ofNullable(
+                getAverageWorkerQuality( questionnaireResults, weights ), alpha );
+        final Function<TaskWorkerId, WorkerQuality> workerQualityFunction = wid -> Optional.ofNullable(
                 questionnaireResults.get( wid ) ).map( re -> influence
-                .calculateWorkerQualityFromScore( getQualityScore( re ), alpha ) ).orElse( averageWorkerQuality );
-        this.majorityVoting = MajorityVotingAlgorithm.create( settings, this.workerQualityFunction );
+                .calculateWorkerQualityFromScore( getQualityScore( re, weights ), alpha ) ).orElse(
+                averageWorkerQuality );
+        this.majorityVoting = MajorityVotingAlgorithm.create( settings, workerQualityFunction );
     }
 
     @Override
@@ -66,26 +65,36 @@ public class MajorityVotingWithExperienceQuestionnaire implements FinalDefectAgg
     }
 
     private static double getAverageWorkerQuality(
-            final ImmutableMap<TaskWorkerId, ExperienceQuestionnaire> questionnaireResults ) {
+            final ImmutableMap<TaskWorkerId, ExperienceQuestionnaire> questionnaireResults,
+            final ImmutableMap<ExperienceQuestionType, Weight> weights ) {
         return questionnaireResults.values().stream().collect( Collectors.averagingDouble(
-                MajorityVotingWithExperienceQuestionnaire::getQualityScore ) );
+                s -> getQualityScore( s, weights ) ) );
     }
 
-    private static double getQualityScore( final ExperienceQuestionnaire questionnaire ) {
+    private static double getQualityScore( final ExperienceQuestionnaire questionnaire,
+            final ImmutableMap<ExperienceQuestionType, Weight> weights ) {
         final Map<ExperienceQuestionType, List<Experience>> experienceByQuestionType =
                 questionnaire.getResults().stream().collect(
                         Collectors.groupingBy( Experience::getQuestionType ) );
-        return experienceByQuestionType.values().stream().collect(
-                Collectors.averagingDouble( MajorityVotingWithExperienceQuestionnaire::calculateAverage ) );
+        return experienceByQuestionType.entrySet().stream().collect(
+                Collectors.averagingDouble( e -> calculateAverageScore( e.getValue(), weights.getOrDefault( e.getKey(),
+                        Weight.ONE ) ) ) );
     }
 
-    private static double calculateAverage( final List<Experience> e ) {
-        return e.stream().collect( Collectors.averagingDouble( Experience::getScoreRatio ) );
+    private static double calculateAverageScore( final List<Experience> experiences, final Weight weight ) {
+        return 1 - (1 - experiences.stream().collect( Collectors.averagingDouble( Experience::getScoreRatio ) )) *
+                weight.toDouble();
     }
 
     public static MajorityVotingWithExperienceQuestionnaire create( final SemesterSettings settings,
             final WorkerQualityInfluence influence, final double alpha ) {
+        return create( settings, influence, alpha, ImmutableMap.of() );
+    }
+
+    public static MajorityVotingWithExperienceQuestionnaire create( final SemesterSettings settings,
+            final WorkerQualityInfluence influence, final double alpha,
+            final ImmutableMap<ExperienceQuestionType, Weight> weights ) {
         return new MajorityVotingWithExperienceQuestionnaire( settings, influence, alpha,
-                ExperienceQuestionnaire.fetch( settings ) );
+                ExperienceQuestionnaire.fetch( settings ), weights );
     }
 }

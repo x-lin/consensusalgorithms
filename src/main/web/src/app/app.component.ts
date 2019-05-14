@@ -45,7 +45,13 @@ export class AppComponent implements OnInit {
 
   private majorityVotingExperienceQuestionnaireParameters = {
     alpha: 0.0,
-    qualityInfluence: WorkerQualityInfluence.LINEAR
+    qualityInfluence: WorkerQualityInfluence.LINEAR,
+    weightLanguageSkills: 1.0,
+    weightProjectSkills: 1.0,
+    weightQualityAssuranceSkills: 1.0,
+    weightWorkingEnvironment: 1.0,
+    weightDomainExperience: 1.0,
+    weightCrowdsourcingApplications: 1.0
   };
 
   private majorityVotingQualificationReportParameters = {
@@ -84,7 +90,6 @@ export class AppComponent implements OnInit {
     if (this.finalDefectsParameters.type === AlgorithmType.AdaptiveMajorityVoting) {
       this.finalDefectsService.algorithmTypeChanged(event.value, this.adaptiveMajorityVotingParameters);
     } else if (this.finalDefectsParameters.type === AlgorithmType.MajorityVotingWithExperienceQuestionnaire) {
-      console.log("parameters: " + JSON.stringify(this.majorityVotingExperienceQuestionnaireParameters))
       this.finalDefectsService.algorithmTypeChanged(event.value, this.majorityVotingExperienceQuestionnaireParameters);
     } else if(this.finalDefectsParameters.type === AlgorithmType.MajorityVotingWithQualificationReport) {
       this.finalDefectsService.algorithmTypeChanged(event.value, this.majorityVotingQualificationReportParameters);
@@ -98,9 +103,47 @@ export class AppComponent implements OnInit {
     this.finalDefectsService.algorithmTypeChanged(AlgorithmType.AdaptiveMajorityVoting, this.adaptiveMajorityVotingParameters);
   }
 
+  onMajorityVotingExperienceQuestionnaireWeightWorkingEnvironmentChanged(event) {
+    this.majorityVotingExperienceQuestionnaireParameters.weightWorkingEnvironment = event.value;
+    this.finalDefectsService.algorithmTypeChanged(AlgorithmType.MajorityVotingWithExperienceQuestionnaire,
+      this.majorityVotingExperienceQuestionnaireParameters);
+  }
+
+
+  onMajorityVotingExperienceQuestionnaireWeightQualityAssuranceSkillsChanged(event) {
+    this.majorityVotingExperienceQuestionnaireParameters.weightQualityAssuranceSkills = event.value;
+    this.finalDefectsService.algorithmTypeChanged(AlgorithmType.MajorityVotingWithExperienceQuestionnaire,
+      this.majorityVotingExperienceQuestionnaireParameters);
+  }
+
+  onMajorityVotingExperienceQuestionnaireWeightProjectSkillsChanged(event) {
+    this.majorityVotingExperienceQuestionnaireParameters.weightProjectSkills = event.value;
+    this.finalDefectsService.algorithmTypeChanged(AlgorithmType.MajorityVotingWithExperienceQuestionnaire,
+      this.majorityVotingExperienceQuestionnaireParameters);
+  }
+
+
+  onMajorityVotingExperienceQuestionnaireWeightDomainExperienceChanged(event) {
+    this.majorityVotingExperienceQuestionnaireParameters.weightDomainExperience = event.value;
+    this.finalDefectsService.algorithmTypeChanged(AlgorithmType.MajorityVotingWithExperienceQuestionnaire,
+      this.majorityVotingExperienceQuestionnaireParameters);
+  }
+
+
+  onMajorityVotingExperienceQuestionnaireWeightCrowdsourcingApplicationsChanged(event) {
+    this.majorityVotingExperienceQuestionnaireParameters.weightCrowdsourcingApplications = event.value;
+    this.finalDefectsService.algorithmTypeChanged(AlgorithmType.MajorityVotingWithExperienceQuestionnaire,
+      this.majorityVotingExperienceQuestionnaireParameters);
+  }
+
+  onMajorityVotingExperienceQuestionnaireWeightLanguageSkillsChanged(event) {
+    this.majorityVotingExperienceQuestionnaireParameters.weightLanguageSkills = event.value;
+    this.finalDefectsService.algorithmTypeChanged(AlgorithmType.MajorityVotingWithExperienceQuestionnaire,
+      this.majorityVotingExperienceQuestionnaireParameters);
+  }
+
   onMajorityVotingExperienceQuestionnaireAlphaChanged(event) {
     this.majorityVotingExperienceQuestionnaireParameters.alpha = event.value;
-    console.log("parameters: " + JSON.stringify(this.majorityVotingExperienceQuestionnaireParameters))
     this.finalDefectsService.algorithmTypeChanged(AlgorithmType.MajorityVotingWithExperienceQuestionnaire,
       this.majorityVotingExperienceQuestionnaireParameters);
   }

@@ -42,7 +42,14 @@ export class RestService {
         + '&' + this.getSemesterParam(semester));
     } else if (algorithmType === AlgorithmType.MajorityVotingWithExperienceQuestionnaire) {
       return this.http.get(RestService.ENDPOINT + 'algorithms/finalDefects/MajorityVotingWithExperienceQuestionnaire?alpha=' + parameters.alpha
-        + '&qualityInfluence=' + parameters.qualityInfluence  + '&' + this.getSemesterParam(semester));
+        + '&qualityInfluence=' + parameters.qualityInfluence
+        + '&weightLanguageSkills=' + parameters.weightLanguageSkills
+        + '&weightProjectSkills=' + parameters.weightProjectSkills
+        + '&weightQualityAssuranceSkills=' + parameters.weightQualityAssuranceSkills
+        + '&weightWorkingEnvironment=' + parameters.weightWorkingEnvironment
+        + '&weightDomainExperience=' + parameters.weightDomainExperience
+        + '&weightCrowdsourcingApplications=' + parameters.weightCrowdsourcingApplications
+        + '&' + this.getSemesterParam(semester));
     } else if (algorithmType === AlgorithmType.MajorityVotingWithQualificationReport) {
       return this.http.get(RestService.ENDPOINT + 'algorithms/finalDefects/MajorityVotingWithQualificationReport?alpha=' + parameters.alpha
         + '&qualityInfluence=' + parameters.qualityInfluence  + '&' + this.getSemesterParam(semester));
