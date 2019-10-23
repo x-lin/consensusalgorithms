@@ -31,19 +31,6 @@ public enum WorkerQualityInfluence {
             return new WorkerQuality( Math.exp( (-1) * alpha *
                     (1 - score) ) ); //formula from "An Incremental Truth Inference to Aggregate Contributions in GWAPs
         }
-    },
-    NONE {
-        @Override
-        public WorkerQuality calculateWorkerQuality( final double nrResults, final double falseResults,
-                final double alpha ) {
-            return new WorkerQuality( 1 );
-        }
-
-        @Override
-        public WorkerQuality calculateWorkerQualityFromScore( final double overallScore,
-                final double alpha ) {
-            return new WorkerQuality( 1 );
-        }
     };
 
     public abstract WorkerQuality calculateWorkerQuality( double nrResults, double falseResults, double alpha );

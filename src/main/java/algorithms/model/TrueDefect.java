@@ -11,6 +11,8 @@ import java.util.Objects;
  * @author LinX
  */
 public class TrueDefect {
+    private static ImmutableSet<TrueDefect> CACHED_TRUE_DEFECTS = null;
+
     public static String TRUE_DEFECT_TABLE = "true_defect";
 
     public static String ID_COLUMN = "id";
@@ -158,9 +160,12 @@ public class TrueDefect {
     }
 
     public static ImmutableSet<TrueDefect> fetchTrueDefects( final Connection connection ) {
-        final String sql = "select * from " + TRUE_DEFECT_TABLE;
-        return DSL.using( connection )
-                  .fetch( sql )
-                  .map( TrueDefect::new ).stream().collect( ImmutableSet.toImmutableSet() );
+        if (CACHED_TRUE_DEFECTS == null) {
+            final String sql = "select * from " + TRUE_DEFECT_TABLE;
+            CACHED_TRUE_DEFECTS = DSL.using( connection )
+                                     .fetch( sql )
+                                     .map( TrueDefect::new ).stream().collect( ImmutableSet.toImmutableSet() );
+        }
+        return CACHED_TRUE_DEFECTS;
     }
 }

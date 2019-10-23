@@ -8,6 +8,7 @@ import algorithms.model.TaskWorkerId;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableMap;
 
+import java.util.NoSuchElementException;
 import java.util.Optional;
 
 /**
@@ -27,11 +28,13 @@ public class MajorityVotingWithQualificationReport implements FinalDefectAggrega
         this.majorityVoting = MajorityVotingAlgorithm.create( settings, wid -> {
             final ImmutableMap<TaskWorkerId, QualificationReport> qualificationReports =
                     QualificationReport.QUALIFICATION_REPORTS;
-            final WorkerQuality averageWorkerQuality = getAverageWorkerQuality( influence, alpha,
-                    qualificationReports );
+            //TODO remove comment
+//            final WorkerQuality averageWorkerQuality = getAverageWorkerQuality( influence, alpha,
+//                    qualificationReports );
             return Optional.ofNullable( qualificationReports.get( wid ) ).map(
-                    r -> influence.calculateWorkerQuality( r.getNrResults(), r.getNrFalseResults(), alpha ) ).orElse(
-                    averageWorkerQuality );
+                    r -> influence.calculateWorkerQuality( r.getNrResults(), r.getNrFalseResults(), alpha ) )
+                           .orElseThrow(
+                                   () -> new NoSuchElementException( "Unknown qualifaction test worker " + wid ) );
         } );
     }
 

@@ -33,12 +33,13 @@ public class AlgorithmController {
     private final Map<Semester, CrowdtruthAggregationAlgorithm> crowdtruthAlgorithm;
 
     public AlgorithmController() {
-        this.crowdtruthAlgorithm = Maps.toMap( SemesterSettings.SETTINGS.keySet(),
-                s -> CrowdtruthAggregationAlgorithm.create( SemesterSettings.get( s ) ) );
+        this.crowdtruthAlgorithm = Maps.newHashMap();
+//        this.crowdtruthAlgorithm = Maps.toMap( SemesterSettings.SETTINGS.keySet(),
+//                s -> CrowdtruthAggregationAlgorithm.create( SemesterSettings.get( s ) ) ); //TODO uncomment
     }
 
     @GetMapping("/finalDefects/CrowdTruth")
-    public WebFinalDefects crowdtruthFinalDefects(
+    public WebFinalDefects crowdTruthFinalDefects(
             @RequestParam(value = "semester", defaultValue = "WS2017") final Semester semester ) {
         return new WebFinalDefects( AlgorithmType.CrowdTruth, this.crowdtruthAlgorithm.get( semester ) );
     }
@@ -51,7 +52,7 @@ public class AlgorithmController {
     }
 
     @GetMapping("/finalDefects/AdaptiveMajorityVoting")
-    public WebFinalDefects crowdtruthFinalDefects(
+    public WebFinalDefects adaptiveMajorityVotingFinalDefects(
             @RequestParam(value = "threshold", defaultValue = "0.0") final double threshold,
             @RequestParam(value = "semester", defaultValue = "WS2017") final Semester semester ) {
         return new WebFinalDefects( AlgorithmType.AdaptiveMajorityVoting,

@@ -1,6 +1,6 @@
 import {Component, OnDestroy, OnInit} from '@angular/core';
 import {Subscription} from 'rxjs';
-import {RestService} from '../rest/rest.service';
+import {ArtifactWithConfusionMatrixResponse, RestService} from '../rest/rest.service';
 import {FinalDefectsPage, FinalDefectsService} from './final-defects.service';
 
 @Component({
@@ -19,6 +19,8 @@ export class FinalDefectsComponent implements OnInit, OnDestroy {
   private dataSubscription: Subscription;
 
   private data;
+
+  private workerScores;
 
   private allMetricsSubscription: Subscription;
 
@@ -61,7 +63,9 @@ export class FinalDefectsComponent implements OnInit, OnDestroy {
     } );
     this.finalDefectsComparisonSubscription = this.finalDefectsService.finalDefectComparisonSubject.subscribe(r =>
       this.finalDefectsComparison = r);
-    this.currentPageSubscription = this.finalDefectsService.pageSubject.subscribe(page => this.currentPage = page );
+    this.currentPageSubscription = this.finalDefectsService.pageSubject.subscribe(page => {
+      this.currentPage = page;
+    } );
   }
 
   getAllMetricsForBarChart(allMetrics) {

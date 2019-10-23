@@ -9,6 +9,7 @@ import com.google.common.collect.ImmutableMap;
 
 import java.util.List;
 import java.util.Map;
+import java.util.NoSuchElementException;
 import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -24,18 +25,23 @@ public class MajorityVotingWithExperienceQuestionnaire implements FinalDefectAgg
 
     private final double alpha;
 
+    private final ImmutableMap<ExperienceQuestionType, Weight> weights;
+
     private MajorityVotingWithExperienceQuestionnaire( final SemesterSettings settings,
             final WorkerQualityInfluence influence, final double alpha,
             final ImmutableMap<TaskWorkerId, ExperienceQuestionnaire> questionnaireResults,
             final ImmutableMap<ExperienceQuestionType, Weight> weights ) {
         this.influence = influence;
         this.alpha = alpha;
-        final WorkerQuality averageWorkerQuality = influence.calculateWorkerQualityFromScore(
-                getAverageWorkerQuality( questionnaireResults, weights ), alpha );
-        final Function<TaskWorkerId, WorkerQuality> workerQualityFunction = wid -> Optional.ofNullable(
-                questionnaireResults.get( wid ) ).map( re -> influence
-                .calculateWorkerQualityFromScore( getQualityScore( re, weights ), alpha ) ).orElse(
-                averageWorkerQuality );
+        this.weights = weights;
+        //TODO remove comment
+//        final WorkerQuality averageWorkerQuality = influence.calculateWorkerQualityFromScore(
+//                getAverageWorkerQuality( questionnaireResults, weights ), alpha );
+        final Function<TaskWorkerId, WorkerQuality> workerQualityFunction = wid ->
+                Optional.ofNullable( questionnaireResults.get( wid ) ).map(
+                        result -> influence.calculateWorkerQualityFromScore( getQualityScore( result, weights ),
+                                alpha ) ).orElseThrow(
+                        () -> new NoSuchElementException( "Unknown experience questionnaire worker " + wid ) );
         this.majorityVoting = MajorityVotingAlgorithm.create( settings, workerQualityFunction );
     }
 
@@ -56,6 +62,7 @@ public class MajorityVotingWithExperienceQuestionnaire implements FinalDefectAgg
         if (this.influence == WorkerQualityInfluence.EXPONENTIAL) {
             builder.put( "alpha", String.valueOf( this.alpha ) );
         }
+        this.weights.forEach( ( e, w ) -> builder.put( e.toString(), w.toString() ) );
         return builder.build();
     }
 

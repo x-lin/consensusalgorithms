@@ -24,7 +24,8 @@ import java.util.stream.Collectors;
  * @author LinX
  */
 public class DefectReport {
-    private static final Map<SemesterSettings, ImmutableSet<DefectReport>> CACHED_DEFECT_REPORTS = Maps.newHashMap();
+    private static final Map<SemesterSettings, ImmutableSet<DefectReport>> CACHED_DEFECT_REPORTS =
+            Maps.newConcurrentMap();
 
     public static final String DEFECT_REPORT_TABLE = "defect_report";
 

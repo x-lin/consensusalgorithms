@@ -160,7 +160,7 @@ public class ExperienceQuestionnaire {
             return 3;
         }
         else {
-            throw new NoSuchElementException( "Unknown value" + value );
+            throw new NoSuchElementException( "Unknown getValue" + value );
         }
     }
 

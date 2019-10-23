@@ -6,6 +6,7 @@ import algorithms.finaldefects.WorkerDefectReports;
 import algorithms.finaldefects.WorkerQuality;
 import algorithms.model.*;
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Maps;
 
 import java.math.BigDecimal;
@@ -38,15 +39,21 @@ public class MajorityVotingAlgorithm implements FinalDefectAggregationAlgorithm 
 
     private final DefectReports defectReports;
 
-    private final Function<TaskWorkerId, WorkerQuality>
-            workerQuality;
+    private final Function<TaskWorkerId, WorkerQuality> workerQuality;
 
     private MajorityVotingAlgorithm( final SemesterSettings settings,
             final Emes emes, final DefectReports defectReports,
             final Function<TaskWorkerId, WorkerQuality> workerQuality ) {
         this.settings = settings;
         this.emes = emes;
-        this.defectReports = defectReports;
+        this.defectReports = new DefectReports( defectReports.getDefectReports().stream().filter( r -> {
+            try {
+                workerQuality.apply( r.getWorkerId() );
+                return true;
+            } catch (NoSuchElementException e) {
+                return false;
+            }
+        } ).collect( ImmutableSet.toImmutableSet() ) );
         this.workerQuality = workerQuality;
     }
 
@@ -70,25 +77,29 @@ public class MajorityVotingAlgorithm implements FinalDefectAggregationAlgorithm 
 
     @Override
     public ImmutableMap<TaskWorkerId, WorkerDefectReports> getWorkerDefectReports() {
-        return this.defectReports.toWorkerDefectReports( this.workerQuality );
+        final ImmutableMap<EmeAndScenarioId, FinalDefect> finalDefects = getFinalDefects();
+        return new DefectReports( this.defectReports.getDefectReports().stream().filter(
+                d -> finalDefects.containsKey( d.getEmeAndScenarioId() ) ).collect( ImmutableSet.toImmutableSet() ) )
+                .toWorkerDefectReports( this.workerQuality );
     }
 
     private ImmutableMap<EmeAndScenarioId, FinalDefect> calculateFinalDefects() {
         return this.defectReports.groupedByEmeAndScenarioId().entrySet().stream().map(
-                e -> getFinalDefectForEmeAndScenario( e.getKey(), e.getValue(), this.workerQuality ) ).collect(
+                e -> getFinalDefectForEmeAndScenario( e.getKey(), e.getValue() ) ).collect(
                 ImmutableMap.toImmutableMap( FinalDefect::getEmeAndScenarioId, Function.identity() ) );
     }
 
     private FinalDefect getFinalDefectForEmeAndScenario( final EmeAndScenarioId emeAndScenarioId,
-            final Collection<DefectReport> defectReports, final Function<TaskWorkerId, WorkerQuality> workerQuality ) {
+            final Collection<DefectReport> defectReports ) {
         final ImmutableMap<DefectType, AgreementCoefficient> coefficientsByDefectType = calculateScoreByDefectType(
-                defectReports, workerQuality );
+                defectReports, this.workerQuality );
         return calculateFinalDefect(
                 coefficientsByDefectType, FinalDefect.builder( this.emes, emeAndScenarioId ) );
     }
 
     private static ImmutableMap<DefectType, AgreementCoefficient> calculateScoreByDefectType(
-            final Collection<DefectReport> defectReports, final Function<TaskWorkerId, WorkerQuality> workerQuality ) {
+            final Collection<DefectReport> defectReports,
+            final Function<TaskWorkerId, WorkerQuality> workerQuality ) {
         final Map<DefectType, List<DefectReport>> defectsForEachType = defectReports.stream().collect(
                 Collectors.groupingBy( DefectReport::getDefectType ) );
         return ImmutableMap.copyOf( Maps.transformValues( defectsForEachType,

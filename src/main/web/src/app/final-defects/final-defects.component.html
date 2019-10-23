@@ -11,6 +11,11 @@
   <workerScores-chart [data]="data.metrics.workerMetrics.evaluationResultMetrics" [pearsonScores]="data.metrics.workerMetrics.pearsonScores" [name]="'Worker Metrics'"></workerScores-chart>
 </ng-template>
 
+<ng-template [ngIf]="currentPage === finalDefectsPage.WORKER_METRICS_TABLE && data !== undefined">
+  <app-tab-sheet [columnsToDisplay]="data.metrics.workerMetrics.tableHeaderNames" [displayedColumns]="data.metrics.workerMetrics.fieldNames" [data]="data.metrics.workerMetrics.evaluationResultMetrics"
+                 [title]="data.metrics.title"></app-tab-sheet>
+</ng-template>
+
 <ng-template [ngIf]="currentPage === finalDefectsPage.METRICS_COMPARISON && allMetrics !== undefined">
   <bar-chart [data]="confusionMatrixForBarChart" [xAxis]="'value'" [yAxis]="'type'" [colorField]="'algorithm'" [name]="'Confusion Matrix Comparison'"></bar-chart>
   <bar-chart [data]="allMetricsForBarChart" [xAxis]="'value'" [yAxis]="'type'" [colorField]="'algorithm'" [name]="'Metrics Comparison'"></bar-chart>

@@ -91,7 +91,7 @@ export class AppComponent implements OnInit {
       this.finalDefectsService.algorithmTypeChanged(event.value, this.adaptiveMajorityVotingParameters);
     } else if (this.finalDefectsParameters.type === AlgorithmType.MajorityVotingWithExperienceQuestionnaire) {
       this.finalDefectsService.algorithmTypeChanged(event.value, this.majorityVotingExperienceQuestionnaireParameters);
-    } else if(this.finalDefectsParameters.type === AlgorithmType.MajorityVotingWithQualificationReport) {
+    } else if (this.finalDefectsParameters.type === AlgorithmType.MajorityVotingWithQualificationReport) {
       this.finalDefectsService.algorithmTypeChanged(event.value, this.majorityVotingQualificationReportParameters);
     } else {
       this.finalDefectsService.algorithmTypeChanged(event.value, {});

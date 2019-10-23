@@ -2,7 +2,9 @@ package algorithms.model;
 
 import algorithms.finaldefects.SemesterSettings;
 import com.google.common.collect.ImmutableBiMap;
+import com.google.common.collect.Maps;
 
+import java.util.Map;
 import java.util.Objects;
 import java.util.function.Function;
 
@@ -10,6 +12,8 @@ import java.util.function.Function;
  * @author LinX
  */
 public final class Emes {
+    private static final Map<SemesterSettings, Emes> CACHED_EMES = Maps.newConcurrentMap();
+
     private final ImmutableBiMap<EmeId, Eme> emes;
 
     public Emes( final ImmutableBiMap<EmeId, Eme> emes ) {
@@ -49,7 +53,9 @@ public final class Emes {
     }
 
     public static Emes fetchFromDb( final SemesterSettings settings ) {
-        return new Emes( Eme.fetchEmes( settings )
-                            .collect( ImmutableBiMap.toImmutableBiMap( Eme::getEmeId, Function.identity() ) ) );
+        return CACHED_EMES.computeIfAbsent( settings, s -> new Emes( Eme.fetchEmes( settings )
+                                                                        .collect( ImmutableBiMap
+                                                                                .toImmutableBiMap( Eme::getEmeId,
+                                                                                        Function.identity() ) ) ) );
     }
 }

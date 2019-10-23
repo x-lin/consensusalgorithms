@@ -6,6 +6,7 @@ import algorithms.finaldefects.crowdtruth.CrowdtruthAggregationAlgorithm;
 import algorithms.model.EmeId;
 import algorithms.model.Emes;
 import algorithms.model.TrueDefect;
+import algorithms.web.WebFinalDefects;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
@@ -72,6 +73,31 @@ public class QualityAnalyzer {
         return builder.build();
     }
 
+    public ImmutableSet<ArtifactWithConfusionMatrix> getConfusionMatrixForWorkers(
+            final FinalDefectAggregationAlgorithm algorithm, WebFinalDefects finalDefects ) {
+
+        final ImmutableMap<EmeId, TrueDefect> trueDefects;
+        final ImmutableSet.Builder<ArtifactWithConfusionMatrix> builder = ImmutableSet.builder();
+        trueDefects = AllTrueDefectsMixin.findAllTrueDefects( algorithm.getSettings() );
+        final Emes emes = Emes.fetchFromDb( algorithm.getSettings() );
+
+        algorithm.getWorkerDefectReports().values().forEach( workerReports -> {
+            final Set<FinalDefectResult> results = Sets.newHashSet();
+            workerReports.getDefectReports().forEach( dr -> {
+                final FinalDefectResult finalDefectResult = Optional.ofNullable( trueDefects.get( dr.getEmeId()
+                ) ).map( td -> new FinalDefectResult( dr.toFinalDefect( emes ), td ) ).orElseGet(
+                        () -> new FinalDefectResult( dr.toFinalDefect( emes ) ) );
+                results.add( finalDefectResult );
+            } );
+
+            final ConfusionMatrix metrics = new ConfusionMatrix( results );
+            builder.add( new ArtifactWithConfusionMatrix( metrics, workerReports.getId().toString(),
+                    workerReports.getQuality().toDouble() ) );
+        } );
+        return builder.build();
+    }
+
+    //TODO consolidate methods
     public ImmutableSet<ArtifactWithConfusionMatrix> getConfusionMatrixForWorkers(
             final FinalDefectAggregationAlgorithm algorithm ) {
         final ImmutableMap<EmeId, TrueDefect> trueDefects;

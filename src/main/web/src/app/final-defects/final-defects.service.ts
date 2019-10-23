@@ -47,14 +47,14 @@ export class FinalDefectsService {
     this.restService.getFinalDefects(algorithmType, parameters, this.semester).subscribe(d => {
       this.dataSubject.next({
         data: d.finalDefectResults,
-        title: 'Final Defects - ' + algorithmType,
+        title: 'Final Defects - ' + algorithmType + ' - ' + this.semester,
         fieldNames: ['emeId', 'scenarioId', 'agreementCoefficient', 'finalDefectType', 'trueDefectType', 'emeText', 'trueDefectId',
           'truePositive', 'trueNegative', 'falsePositive', 'falseNegative'],
         tableHeaderNames: ['emeId', 'scenarioId', 'agreementCoefficient', 'finalDefectType', 'trueDefectType', 'emeText', 'trueDefectId',
           'truePositive', 'trueNegative', 'falsePositive', 'falseNegative'],
         algorithmType: this.finalDefectsParameters.type,
         metrics: {
-            title: 'Metrics - ' + algorithmType,
+            title: 'Metrics - ' + algorithmType + ' - ' + this.semester,
             fieldNames: ['nrEmes', 'fmeasure', 'precision', 'recall', 'accuracy', 'truePositives', 'trueNegatives', 'falsePositives', 'falseNegatives'],
             tableHeaderNames: ['nrEmes', 'fmeasure', 'precision', 'recall', 'accuracy', 'truePositives', 'trueNegatives', 'falsePositives', 'falseNegatives'],
             workerMetrics: this.createCorrelationData(this.flattenArtifactWithConfusionMatrixResponse(d.workerConfusionMatrix), d.workerPearsonScores, 'Worker Metrics'),
@@ -173,6 +173,7 @@ export class FinalDefectsService {
 export enum FinalDefectsPage {
   TABLE,
   WORKER_METRICS,
+  WORKER_METRICS_TABLE,
   METRICS_COMPARISON,
   FINAL_DEFECT_COMPARISON
 }

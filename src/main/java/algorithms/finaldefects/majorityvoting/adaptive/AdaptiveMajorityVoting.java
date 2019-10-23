@@ -45,9 +45,10 @@ public class AdaptiveMajorityVoting implements FinalDefectAggregationAlgorithm {
 
         final AtomicDouble lowestAgreement = new AtomicDouble( 0.0 );
 
-        while (lowestAgreement.get() < this.threshold) {
-            finalDefectsFiltered = aggregate( emes, new DefectReports( defectReportsPerWorker.values().stream().flatMap(
-                    Collection::stream ).collect( ImmutableSet.toImmutableSet() ) ) );
+        while (lowestAgreement.get() < this.threshold && !defectReportsPerWorker.isEmpty()) {
+            finalDefectsFiltered = aggregate( emes,
+                    new DefectReports( defectReportsPerWorker.values().stream().flatMap(
+                            Collection::stream ).collect( ImmutableSet.toImmutableSet() ) ) );
             final ImmutableMap<TaskWorkerId, Double> agreement = getWorkerAgreement( defectReportsPerWorker,
                     finalDefectsFiltered );
 

@@ -12,8 +12,10 @@
     </button>
   </div>
   <div class="navbar-buttons">
-    <button mat-button (click)="onCrowdtruthClicked()" [ngStyle]="showStyle(crowdTruthClicked)">Crowdtruth Metrics</button>
-    <button mat-button (click)="onFinalDefectsClicked()" [ngStyle]="showStyle(finalDefectsClicked)">Final Defects</button>
+    <button mat-button (click)="onCrowdtruthClicked()" [ngStyle]="showStyle(crowdTruthClicked)">Crowdtruth Metrics
+    </button>
+    <button mat-button (click)="onFinalDefectsClicked()" [ngStyle]="showStyle(finalDefectsClicked)">Final Defects
+    </button>
   </div>
 </nav>
 
@@ -30,56 +32,71 @@
             <mat-divider></mat-divider>
 
             <mat-card-content>
-              <button mat-flat-button style="width: 100%; font-weight: bold; margin-top: 20px" (click)="crowdtruthPageChanged(crowdtruthPage.CORRELATIONS_WORKERS)">Worker Scores Correlation</button>
-              <button mat-flat-button style="width: 100%; font-weight: bold;" (click)="crowdtruthPageChanged(crowdtruthPage.BOX_PLOTS_WORKERS)">Worker Scores Box Plots</button>
-              <button mat-flat-button style="width: 100%; font-weight: bold;" (click)="crowdtruthPageChanged(crowdtruthPage.TABLE_WORKERS)">Worker Scores Table</button>
+              <button mat-flat-button style="width: 100%; font-weight: bold; margin-top: 20px"
+                      (click)="crowdtruthPageChanged(crowdtruthPage.CORRELATIONS_WORKERS)">Worker Scores Correlation
+              </button>
+              <button mat-flat-button style="width: 100%; font-weight: bold;"
+                      (click)="crowdtruthPageChanged(crowdtruthPage.BOX_PLOTS_WORKERS)">Worker Scores Box Plots
+              </button>
+              <button mat-flat-button style="width: 100%; font-weight: bold;"
+                      (click)="crowdtruthPageChanged(crowdtruthPage.TABLE_WORKERS)">Worker Scores Table
+              </button>
 
               <!--<button mat-flat-button style="width: 100%; font-weight: bold; margin-top: 20px" (click)="crowdtruthPageChanged(crowdtruthPage.CORRELATIONS_ANNOTATIONS)">Annotation Scores Correlation</button>-->
               <!--<button mat-flat-button style="width: 100%; font-weight: bold;" (click)="crowdtruthPageChanged(crowdtruthPage.TABLE_ANNOTATIONS)">Annotation Scores Table</button>-->
               <!--<button mat-flat-button style="width: 100%; font-weight: bold; margin-top: 20px" (click)="crowdtruthPageChanged(crowdtruthPage.CORRELATIONS_MEDIA_UNITS)">Media Unit Scores Correlation</button>-->
               <!--<button mat-flat-button style="width: 100%; font-weight: bold;" (click)="crowdtruthPageChanged(crowdtruthPage.TABLE_MEDIA_UNITS)">Media Unit Scores Table</button>-->
-              <button mat-flat-button style="width: 100%; font-weight: bold; margin-top: 20px" (click)="crowdtruthPageChanged(crowdtruthPage.TABLE_WORKER_QUALITY)">Worker Quality Score</button>
-              <button mat-flat-button style="width: 100%; font-weight: bold;" (click)="crowdtruthPageChanged(crowdtruthPage.TABLE_ANNOTATION_QUALITY)">Annotation Quality Score</button>
-              <button mat-flat-button style="width: 100%; font-weight: bold;" (click)="crowdtruthPageChanged(crowdtruthPage.TABLE_MEDIA_UNIT_QUALITY)">Media Unit Quality Score</button>
-              <button mat-flat-button style="width: 100%; font-weight: bold;" (click)="crowdtruthPageChanged(crowdtruthPage.TABLE_UNIT_ANNOTATION_SCORES)">Unit Annotation Scores</button>
+              <button mat-flat-button style="width: 100%; font-weight: bold; margin-top: 20px"
+                      (click)="crowdtruthPageChanged(crowdtruthPage.TABLE_WORKER_QUALITY)">Worker Quality Score
+              </button>
+              <button mat-flat-button style="width: 100%; font-weight: bold;"
+                      (click)="crowdtruthPageChanged(crowdtruthPage.TABLE_ANNOTATION_QUALITY)">Annotation Quality Score
+              </button>
+              <button mat-flat-button style="width: 100%; font-weight: bold;"
+                      (click)="crowdtruthPageChanged(crowdtruthPage.TABLE_MEDIA_UNIT_QUALITY)">Media Unit Quality Score
+              </button>
+              <button mat-flat-button style="width: 100%; font-weight: bold;"
+                      (click)="crowdtruthPageChanged(crowdtruthPage.TABLE_UNIT_ANNOTATION_SCORES)">Unit Annotation
+                Scores
+              </button>
             </mat-card-content>
           </mat-card>
 
           <!--<mat-card class="result" style="margin-top: 10px">-->
-            <!--<mat-card-header>-->
-              <!--<mat-card-title>Parameters</mat-card-title>-->
-            <!--</mat-card-header>-->
+          <!--<mat-card-header>-->
+          <!--<mat-card-title>Parameters</mat-card-title>-->
+          <!--</mat-card-header>-->
 
-            <!--<mat-divider></mat-divider>-->
+          <!--<mat-divider></mat-divider>-->
 
-            <!--<mat-card-content>-->
-                  <!--<span>Algorithms</span>-->
-                  <!--<mat-checkbox-->
-                    <!--class="example-margin"-->
-                    <!--[checked]="true"-->
-                    <!--[(indeterminate)]="indeterminate"-->
-                    <!--[labelPosition]="labelPosition"-->
-                    <!--[disabled]="disabled">-->
-                    <!--CrowdTruth-->
-                  <!--</mat-checkbox>-->
-            <!--</mat-card-content>-->
+          <!--<mat-card-content>-->
+          <!--<span>Algorithms</span>-->
+          <!--<mat-checkbox-->
+          <!--class="example-margin"-->
+          <!--[checked]="true"-->
+          <!--[(indeterminate)]="indeterminate"-->
+          <!--[labelPosition]="labelPosition"-->
+          <!--[disabled]="disabled">-->
+          <!--CrowdTruth-->
+          <!--</mat-checkbox>-->
+          <!--</mat-card-content>-->
 
-            <!--&lt;!&ndash;<mat-divider></mat-divider>&ndash;&gt;-->
-            <!--&lt;!&ndash;<mat-card-content>&ndash;&gt;-->
-              <!--&lt;!&ndash;<span>sad</span>&ndash;&gt;-->
-              <!--&lt;!&ndash;<mat-slider&ndash;&gt;-->
-                <!--&lt;!&ndash;style="width:100%"&ndash;&gt;-->
-                <!--&lt;!&ndash;[disabled]="disabled"&ndash;&gt;-->
-                <!--&lt;!&ndash;[invert]="invert"&ndash;&gt;-->
-                <!--&lt;!&ndash;[max]="max"&ndash;&gt;-->
-                <!--&lt;!&ndash;[min]="min"&ndash;&gt;-->
-                <!--&lt;!&ndash;[step]="step"&ndash;&gt;-->
-                <!--&lt;!&ndash;[thumbLabel]="thumbLabel"&ndash;&gt;-->
-                <!--&lt;!&ndash;[tickInterval]="tickInterval"&ndash;&gt;-->
-                <!--&lt;!&ndash;[(ngModel)]="value"&ndash;&gt;-->
-                <!--&lt;!&ndash;[vertical]="vertical">&ndash;&gt;-->
-              <!--&lt;!&ndash;</mat-slider>&ndash;&gt;-->
-            <!--&lt;!&ndash;</mat-card-content>&ndash;&gt;-->
+          <!--&lt;!&ndash;<mat-divider></mat-divider>&ndash;&gt;-->
+          <!--&lt;!&ndash;<mat-card-content>&ndash;&gt;-->
+          <!--&lt;!&ndash;<span>sad</span>&ndash;&gt;-->
+          <!--&lt;!&ndash;<mat-slider&ndash;&gt;-->
+          <!--&lt;!&ndash;style="width:100%"&ndash;&gt;-->
+          <!--&lt;!&ndash;[disabled]="disabled"&ndash;&gt;-->
+          <!--&lt;!&ndash;[invert]="invert"&ndash;&gt;-->
+          <!--&lt;!&ndash;[max]="max"&ndash;&gt;-->
+          <!--&lt;!&ndash;[min]="min"&ndash;&gt;-->
+          <!--&lt;!&ndash;[step]="step"&ndash;&gt;-->
+          <!--&lt;!&ndash;[thumbLabel]="thumbLabel"&ndash;&gt;-->
+          <!--&lt;!&ndash;[tickInterval]="tickInterval"&ndash;&gt;-->
+          <!--&lt;!&ndgetValue(ngModel)]="value"&ndash;&gt;-->
+          <!--&lt;!&ndash;[vertical]="vertical">&ndash;&gt;-->
+          <!--&lt;!&ndash;</mat-slider>&ndash;&gt;-->
+          <!--&lt;!&ndash;</mat-card-content>&ndash;&gt;-->
           <!--</mat-card>-->
         </div>
       </ng-template>
@@ -87,13 +104,25 @@
       <ng-template [ngIf]="finalDefectsClicked">
         <div class="sidebar-sticky">
           <mat-card>
-            <button mat-flat-button style="width: 100%; font-weight: bold; margin-top: 20px" (click)="finalDefectsPageChanged(finalDefectsPage.TABLE)">Tabular Data</button>
-            <button mat-flat-button style="width: 100%; font-weight: bold;" (click)="finalDefectsPageChanged(finalDefectsPage.WORKER_METRICS)">Worker Metrics</button>
-            <button mat-flat-button style="width: 100%; font-weight: bold;" (click)="finalDefectsPageChanged(finalDefectsPage.METRICS_COMPARISON)">Metrics Comparison</button>
-            <button mat-flat-button style="width: 100%; font-weight: bold;" (click)="finalDefectsPageChanged(finalDefectsPage.FINAL_DEFECT_COMPARISON)">Final Defects Comparison</button>
+            <button mat-flat-button style="width: 100%; font-weight: bold; margin-top: 20px"
+                    (click)="finalDefectsPageChanged(finalDefectsPage.TABLE)">Tabular Data
+            </button>
+            <button mat-flat-button style="width: 100%; font-weight: bold;"
+                    (click)="finalDefectsPageChanged(finalDefectsPage.WORKER_METRICS_TABLE)">Worker Metrics Table
+            </button>
+            <button mat-flat-button style="width: 100%; font-weight: bold;"
+                    (click)="finalDefectsPageChanged(finalDefectsPage.WORKER_METRICS)">Worker Metrics
+            </button>
+            <button mat-flat-button style="width: 100%; font-weight: bold;"
+                    (click)="finalDefectsPageChanged(finalDefectsPage.METRICS_COMPARISON)">Metrics Comparison
+            </button>
+            <button mat-flat-button style="width: 100%; font-weight: bold;"
+                    (click)="finalDefectsPageChanged(finalDefectsPage.FINAL_DEFECT_COMPARISON)">Final Defects Comparison
+            </button>
           </mat-card>
 
-          <ng-template [ngIf]="finalDefectsPageClicked === finalDefectsPage.TABLE || finalDefectsPageClicked === finalDefectsPage.WORKER_METRICS">
+          <ng-template
+            [ngIf]="finalDefectsPageClicked === finalDefectsPage.TABLE || finalDefectsPageClicked === finalDefectsPage.WORKER_METRICS || finalDefectsPageClicked === finalDefectsPage.WORKER_METRICS_TABLE">
             <mat-card class="result" style="margin-top: 10px">
               <mat-card-content>
                 <span>Algorithms</span>
@@ -107,7 +136,8 @@
               </mat-card-content>
             </mat-card>
 
-            <ng-template [ngIf]="finalDefectsClicked && finalDefectsParameters.type === algorithmType.AdaptiveMajorityVoting">
+            <ng-template
+              [ngIf]="finalDefectsClicked && finalDefectsParameters.type === algorithmType.AdaptiveMajorityVoting">
               <mat-card class="result" style="margin-top: 10px">
                 <mat-card-header>
                   <mat-card-title>Parameters</mat-card-title>
@@ -134,7 +164,8 @@
               </mat-card>
             </ng-template>
 
-            <ng-template [ngIf]="finalDefectsClicked && finalDefectsParameters.type === algorithmType.MajorityVotingWithExperienceQuestionnaire">
+            <ng-template
+              [ngIf]="finalDefectsClicked && finalDefectsParameters.type === algorithmType.MajorityVotingWithExperienceQuestionnaire">
               <mat-card class="result" style="margin-top: 10px">
                 <mat-card-header>
                   <mat-card-title>Parameters</mat-card-title>
@@ -143,7 +174,9 @@
                 <mat-card-content>
                   <span>Worker Quality Influence</span>
                   <div *ngFor="let influence of workerQualityInfluences">
-                    <mat-radio-button [value]="influence" (change)="onMajorityVotingExperienceQuestionnaireQualityInfluenceChanged($event)" [checked]="influence === majorityVotingExperienceQuestionnaireParameters.qualityInfluence">
+                    <mat-radio-button [value]="influence"
+                                      (change)="onMajorityVotingExperienceQuestionnaireQualityInfluenceChanged($event)"
+                                      [checked]="influence === majorityVotingExperienceQuestionnaireParameters.qualityInfluence">
                       {{influence}}
                     </mat-radio-button>
                   </div>
@@ -239,7 +272,8 @@
                     [vertical]="vertical"
                     (input)="onMajorityVotingExperienceQuestionnaireWeightCrowdsourcingApplicationsChanged($event)">
                   </mat-slider>
-                  <ng-template [ngIf]="majorityVotingExperienceQuestionnaireParameters.qualityInfluence === workerQualityInfluence.EXPONENTIAL">
+                  <ng-template
+                    [ngIf]="majorityVotingExperienceQuestionnaireParameters.qualityInfluence === workerQualityInfluence.EXPONENTIAL">
                     <mat-divider></mat-divider>
                     <span>Alpha</span>
                     <mat-slider
@@ -260,7 +294,8 @@
               </mat-card>
             </ng-template>
 
-            <ng-template [ngIf]="finalDefectsClicked && finalDefectsParameters.type === algorithmType.MajorityVotingWithQualificationReport">
+            <ng-template
+              [ngIf]="finalDefectsClicked && finalDefectsParameters.type === algorithmType.MajorityVotingWithQualificationReport">
               <mat-card class="result" style="margin-top: 10px">
                 <mat-card-header>
                   <mat-card-title>Parameters</mat-card-title>
@@ -271,12 +306,15 @@
                 <mat-card-content>
                   <span>Worker Quality Influence</span>
                   <div *ngFor="let influence of workerQualityInfluences">
-                    <mat-radio-button [value]="influence" (change)="onMajorityVotingQualificationReportQualityInfluenceChanged($event)" [checked]="influence === majorityVotingQualificationReportParameters.qualityInfluence">
+                    <mat-radio-button [value]="influence"
+                                      (change)="onMajorityVotingQualificationReportQualityInfluenceChanged($event)"
+                                      [checked]="influence === majorityVotingQualificationReportParameters.qualityInfluence">
                       {{influence}}
                     </mat-radio-button>
                   </div>
                 </mat-card-content>
-                <ng-template [ngIf]="majorityVotingQualificationReportParameters.qualityInfluence === workerQualityInfluence.EXPONENTIAL">
+                <ng-template
+                  [ngIf]="majorityVotingQualificationReportParameters.qualityInfluence === workerQualityInfluence.EXPONENTIAL">
                   <mat-card-content>
                     <span>Alpha</span>
                     <mat-slider
