@@ -40,6 +40,7 @@ public class HybridDawidSkeneAggregation implements FinalDefectAggregationAlgori
         System.out.println( aggregation.getFinalDefects() );
     }
 
+    //TODO factor in case where two class estimation have same ratio
     @Override
     public final ImmutableMap<EmeAndScenarioId, FinalDefect> getFinalDefects() {
         final Map<EmeAndScenarioId, FinalDefect.Builder> finalDefects = Maps.newHashMap();
