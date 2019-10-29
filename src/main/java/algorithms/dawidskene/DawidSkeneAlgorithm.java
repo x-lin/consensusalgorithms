@@ -17,9 +17,9 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 /**
- * Implements Crowdtruth algorithm for calculating worker disagreement metrics from:
+ * Implements D&S algorithm for estimating the probability of patient classes from:
  *
- * Maximum Likelihood IndicatorEstimation of Observer Error-Rates Using the EM Algorithm
+ * Maximum Likelihood Estimation of Observer Error-Rates Using the EM Algorithm
  * A. P. Dawid and A. M. Skene
  * 1979
  *
@@ -270,11 +270,11 @@ public class DawidSkeneAlgorithm {
     }
 
     public final class Output {
-        ImmutableMap<Label, Double> patientClassProbabilities;
+        private final ImmutableMap<Label, Double> patientClassProbabilities;
 
-        ImmutableMap<ErrorRateId, ErrorRateEstimation> errorRates;
+        private final ImmutableMap<ErrorRateId, ErrorRateEstimation> errorRates;
 
-        ImmutableMap<PatientId, ImmutableSet<IndicatorEstimation>> patientClassEstimations;
+        private final ImmutableMap<PatientId, ImmutableSet<IndicatorEstimation>> patientClassEstimations;
 
         public Output(
                 final ImmutableMap<Label, Double> patientClassProbabilities,
@@ -310,7 +310,7 @@ public class DawidSkeneAlgorithm {
         }
     }
 
-    public final class IndicatorEstimation {
+    public static final class IndicatorEstimation {
         private final Label label;
 
         private final double indicatorEstimation;
@@ -337,14 +337,14 @@ public class DawidSkeneAlgorithm {
         }
     }
 
-    private class ErrorRateId extends Id<String> {
+    public static final class ErrorRateId extends Id<String> {
         public ErrorRateId( final ObserverId observerId, final Label answeredLabel,
                 final Label estimatedTrueLabel ) {
             super( "k=" + observerId + "|l=" + answeredLabel + "j=" + estimatedTrueLabel );
         }
     }
 
-    private class ErrorRateEstimation {
+    public final class ErrorRateEstimation {
         private final ErrorRateId errorRateId;
 
         private final double errorRateEstimation;

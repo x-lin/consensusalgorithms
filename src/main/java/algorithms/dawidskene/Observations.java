@@ -11,7 +11,7 @@ import java.util.Set;
 /**
  * @author LinX
  */
-public class Observations {
+public final class Observations {
     private static final Logger LOG = LoggerFactory.getLogger( Observations.class );
 
     private final ImmutableMap<PatientId, ImmutableSet<Observation>> byPatients;
@@ -22,20 +22,11 @@ public class Observations {
 
     private final ImmutableMap<ObserverId, ImmutableMap<PatientId, ImmutableSet<Observation>>> byObserversForPatients;
 
-    private final ImmutableSet<PatientId> patients;
-
-    private final ImmutableSet<ObserverId> observers;
-
-    private final ImmutableSet<Label> labels;
-
-    public Observations( final Set<Observation> observations ) {
+    Observations( final Set<Observation> observations ) {
         final Map<PatientId, Set<Observation>> byPatients = Maps.newHashMap();
         final Map<ObserverId, Set<Observation>> byObservers = Maps.newHashMap();
         final Map<Label, List<Observation>> byLabel = Maps.newHashMap();
         final Map<ObserverId, Map<PatientId, Set<Observation>>> byObserversForPatients = Maps.newHashMap();
-        final Set<PatientId> patients = Sets.newHashSet();
-        final Set<ObserverId> observers = Sets.newHashSet();
-        final Set<Label> labels = Sets.newHashSet();
 
         observations.forEach( observation -> {
             byPatients.computeIfAbsent( observation.getPatientId(), i -> Sets.newHashSet() ).add( observation );
@@ -46,9 +37,6 @@ public class Observations {
             byObserversForPatients.computeIfAbsent( observation.getObserverId(), i -> Maps.newHashMap() )
                                   .computeIfAbsent( observation.getPatientId(), i -> Sets.newHashSet() ).add(
                     observation );
-            patients.add( observation.getPatientId() );
-            observers.add( observation.getObserverId() );
-            labels.addAll( observation.getLabels() );
         } );
 
         this.byPatients = byPatients.entrySet().stream().collect(
@@ -61,12 +49,10 @@ public class Observations {
                 ImmutableMap.toImmutableMap( Map.Entry::getKey,
                         e -> e.getValue().entrySet().stream().collect( ImmutableMap
                                 .toImmutableMap( Map.Entry::getKey, e2 -> ImmutableSet.copyOf( e2.getValue() ) ) ) ) );
-        this.patients = ImmutableSet.copyOf( patients );
-        this.observers = ImmutableSet.copyOf( observers );
-        this.labels = ImmutableSet.copyOf( labels );
 
-        LOG.info( "Patients={} (#{}), observers={} (#{}), labels={} (#{})", this.patients, this.patients.size(),
-                this.observers, this.observers.size(), this.labels, this.labels.size() );
+        LOG.info( "Patients={} (#{}), observers={} (#{}), labels={} (#{})", this.byPatients.keySet(),
+                this.byPatients.size(), this.byObservers.keySet(), this.byObservers.size(), this.byLabels,
+                this.byLabels.size() );
     }
 
     public ImmutableSet<Observation> getObservations( final PatientId patientId ) {
@@ -87,14 +73,14 @@ public class Observations {
     }
 
     public ImmutableSet<PatientId> getPatients() {
-        return this.patients;
+        return this.byPatients.keySet();
     }
 
     public ImmutableSet<ObserverId> getObservers() {
-        return this.observers;
+        return this.byObservers.keySet();
     }
 
     public ImmutableSet<Label> getLabels() {
-        return this.labels;
+        return this.byLabels.keySet();
     }
 }

@@ -1,6 +1,6 @@
 package algorithms.finaldefects.dawidskene;
 
-import algorithms.dawidskene.*;
+import algorithms.fastdawidskene.*;
 import algorithms.finaldefects.FinalDefectAggregationAlgorithm;
 import algorithms.finaldefects.SemesterSettings;
 import algorithms.finaldefects.WorkerDefectReports;
@@ -15,10 +15,10 @@ import java.util.Map;
 /**
  * @author LinX
  */
-public class DawidSkeneAggregation implements FinalDefectAggregationAlgorithm {
+public class HybridDawidSkeneAggregation implements FinalDefectAggregationAlgorithm {
 
-    //patient = task(emeAndScenarioId), observer = worker, label = final defect
-    private final DawidSkeneAlgorithm.Output output;
+    //patient = question(emeAndScenarioId), participant = worker, choice = final defect
+    private final HybridDawidSkeneAlgorithm.Output output;
 
     private final Emes emes;
 
@@ -26,31 +26,30 @@ public class DawidSkeneAggregation implements FinalDefectAggregationAlgorithm {
 
     private final SemesterSettings settings;
 
-    protected DawidSkeneAggregation( final SemesterSettings settings,
+    private HybridDawidSkeneAggregation( final SemesterSettings settings,
             final DefectReports defectReports ) {
         this.settings = settings;
         this.defectReports = defectReports;
         this.emes = Emes.fetchFromDb( settings );
-        this.output = runDawidSkeneAlgorithm( this.defectReports.getDefectReports() );
+        this.output = runAlgorithm( this.defectReports.getDefectReports() );
     }
 
     public static void main( final String[] args ) {
-        final DawidSkeneAggregation aggregation = new DawidSkeneAggregation( SemesterSettings.ws2017(),
+        final HybridDawidSkeneAggregation aggregation = new HybridDawidSkeneAggregation( SemesterSettings.ws2017(),
                 DefectReports.fetchFromDb( SemesterSettings.ws2017() ) );
         System.out.println( aggregation.getFinalDefects() );
     }
 
-    //TODO factor in case where two class estimation have same ratio
     @Override
     public final ImmutableMap<EmeAndScenarioId, FinalDefect> getFinalDefects() {
         final Map<EmeAndScenarioId, FinalDefect.Builder> finalDefects = Maps.newHashMap();
-        this.output.getPatientClassEstimations().forEach( ( patientId, indicatorEstimations ) -> {
+        this.output.getClassEstimations().forEach( ( patientId, indicatorEstimations ) -> {
             indicatorEstimations.forEach( estimation -> {
                 final EmeAndScenarioId emeAndScenarioId = EmeAndScenarioId.fromString( patientId.getId() );
                 final FinalDefect.Builder builder = finalDefects.computeIfAbsent( emeAndScenarioId,
                         id -> FinalDefect.builder( this.emes, emeAndScenarioId ) );
                 if (builder.getAgreementCoeff().toDouble() < estimation.getIndicatorEstimation()) {
-                    builder.withFinalDefectType( FinalDefectType.valueOf( estimation.getLabel().getId() ) )
+                    builder.withFinalDefectType( FinalDefectType.valueOf( estimation.getChoice().getId() ) )
                            .withAgreementCoeff( new AgreementCoefficient( estimation.getIndicatorEstimation() ) );
                 }
                 else if (builder.getAgreementCoeff().toDouble() == estimation.getIndicatorEstimation()) {
@@ -61,7 +60,7 @@ public class DawidSkeneAggregation implements FinalDefectAggregationAlgorithm {
         return ImmutableMap.copyOf( Maps.transformValues( finalDefects, FinalDefect.Builder::build ) );
     }
 
-    public DawidSkeneAlgorithm.Output runDawidSkeneAlgorithm() {
+    public HybridDawidSkeneAlgorithm.Output runAlgorithm() {
         return this.output;
     }
 
@@ -84,13 +83,13 @@ public class DawidSkeneAggregation implements FinalDefectAggregationAlgorithm {
         return ImmutableMap.of(); //TODO
     }
 
-    private static DawidSkeneAlgorithm.Output runDawidSkeneAlgorithm( final ImmutableSet<DefectReport> defectReports ) {
-        final DawidSkeneAlgorithm dawidSkeneAlgorithm = new DawidSkeneAlgorithm(
-                defectReports.stream().map( report -> Observation
-                        .create( ObserverId.create( report.getWorkerId().toInt() ),
-                                PatientId.create( report.getEmeAndScenarioId().toString() ),
-                                ImmutableList.of( Label.create( report.getDefectType().toString() ) ) ) )
-                             .collect( ImmutableSet.toImmutableSet() ) );
-        return dawidSkeneAlgorithm.run();
+    private static HybridDawidSkeneAlgorithm.Output runAlgorithm( final ImmutableSet<DefectReport> defectReports ) {
+        final HybridDawidSkeneAlgorithm algorithm = new HybridDawidSkeneAlgorithm(
+                defectReports.stream().map( report -> Answer
+                        .create( ParticipantId.create( report.getWorkerId().toInt() ),
+                                QuestionId.create( report.getEmeAndScenarioId().toString() ),
+                                ImmutableList.of( ChoiceId.create( report.getDefectType().toString() ) ) ) )
+                             .collect( ImmutableSet.toImmutableSet() ), 0.05 ); //TODO do not make it hard-coded
+        return algorithm.run();
     }
 }
