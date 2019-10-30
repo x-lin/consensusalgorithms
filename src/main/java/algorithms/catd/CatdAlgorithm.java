@@ -1,157 +1,154 @@
 package algorithms.catd;
 
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
-import com.google.common.util.concurrent.AtomicDouble;
+import algorithms.fastdawidskene.*;
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Maps;
 import org.apache.commons.math3.distribution.ChiSquaredDistribution;
+import org.apache.commons.math3.distribution.NormalDistribution;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-import java.io.FileWriter;
-import java.io.IOException;
-import java.io.UncheckedIOException;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.function.Function;
+import java.util.Comparator;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
 /**
+ * Implements algorithm for estimating truths from:
+ *
+ * A Confidence-Aware Approach for Truth Discovery on Long-Tail Data
+ * Li et al.
+ * 2014
+ *
  * @author LinX
  */
 public class CatdAlgorithm {
+    private static final Logger LOG = LoggerFactory.getLogger( CatdAlgorithm.class );
 
-    private final List<Double> city_exp_pop; //entity?
+    private final Answers answers;
 
-    private final List<Double> user_weight; //source weight
+    //threshold under which the algorithm can be viewed as converged
+    private static final double CONVERGENCE_THRESHOLD = 0.00001;
 
-    private final LoadData loadData;
+    //maximum of iterations to perform
+    private static final int MAXIMUM_ITERATIONS = 100;
 
-    public CatdAlgorithm( final String input, final String yearF ) throws IOException {
-        this.loadData = new LoadData( input, yearF );
+    //see Central Limit Theorem: https://www.statisticshowto.datasciencecentral.com/probability-and-statistics/normal-distributions/central-limit-theorem-definition-examples/
+    private static final int MINIMUM_SAMPLES_FOR_NORMAL_DISTRIBUTION = 30;
 
-        this.user_weight = Lists.newArrayList( Collections.nCopies( this.loadData.userId_userName.size(), 1.0 ) );
-        this.city_exp_pop = Lists.newArrayList( Collections.nCopies( this.loadData.cityId_cityName.size(), 0.0 ) );
+    //question=entity, participant=source, choice=information
+    public CatdAlgorithm( final Set<Answer> answers ) {
+        this.answers = new Answers( answers );
     }
 
-    public static void main( final String[] args ) throws Exception {
-        final CatdAlgorithm ab = new CatdAlgorithm( "getPirorTF", "yearFormat" );
-        ab.run();
-    }
+    public Output run( final double alpha ) {
+        final ImmutableMap<QuestionId, ChoiceId> initialTruth = estimateInitialEntityTruths();
+        Output output = null;
+        int iteration = 0;
 
-    public void run() throws Exception {
-        final int iter = 5;
-        for (int i = 0; i < iter; i++) {
-            update_user_weight();
-            update_city_exp_pop();
-        }
+        while (true) {
+            iteration++;
+            LOG.info( "Starting iteration " + iteration );
+            final ImmutableMap<ParticipantId, Double> sourceWeights = estimateSourceWeights( initialTruth, alpha );
+            final ImmutableMap<QuestionId, ChoiceId> estimatedTruths = estimateEntityTruths( sourceWeights );
 
-        final String fileOutput = "src/test/resources/algorithms/catd/result-Population-CATD.txt";
-        final ImmutableList<Output> output = output();
-        writeOutput( fileOutput, output );
-
-        System.out.print( "-\t-\t" );
-        getRMSE( output, o -> o.avg_to_num, "avg", this.loadData.GDScore );
-        System.out.print( "-\t-\t" );
-        getRMSE( output, o -> o.score, "CATD", this.loadData.GDScore );
-    }
-
-    public void getRMSE( final ImmutableList<Output> outputs, final Function<Output, Double> scoreProvider,
-            final String note, final HashMap<Integer, Double> GDScore ) throws Exception {
-        final AtomicDouble mae = new AtomicDouble( 0.0 );
-        final AtomicDouble rmse = new AtomicDouble( 0.0 );
-        final AtomicDouble error_rate = new AtomicDouble( 0 );
-        outputs.forEach( output -> {
-            final int id = output.city_id;
-            if (GDScore.containsKey( id )) {
-                final double score = scoreProvider.apply( output );
-                final double errScore = Math.abs( GDScore.get( id ) - score );
-                rmse.addAndGet( errScore * errScore );
-                mae.addAndGet( errScore );
-                if (errScore > GDScore.get( id ) * 0.01) {
-                    error_rate.addAndGet( 1.0 );
-                }
+            final Output newOutput = new Output( estimatedTruths );
+            if (output != null && (MAXIMUM_ITERATIONS < iteration || output.getTruths().equals(
+                    newOutput.getTruths() ))) {
+                return newOutput;
             }
+            output = newOutput;
+        }
+    }
+
+    /**
+     * Init the initial truth x^*(0)_n with MV algorithm.
+     */
+    private ImmutableMap<QuestionId, ChoiceId> estimateInitialEntityTruths() {
+        return Maps.toMap( this.answers.getQuestions(), entity -> {
+            final ImmutableSet<Answer> answers = this.answers.getAnswers( entity );
+            final Map<ChoiceId, Long> nrAnswersPerChoice = answers.stream().flatMap(
+                    o -> o.getChoices().stream() ).collect( Collectors.groupingBy( o -> o, Collectors.counting() ) );
+            return nrAnswersPerChoice.entrySet().stream().max(
+                    Comparator.comparingLong( Map.Entry::getValue ) ).get().getKey();
         } );
-
-        final int relevantOutput = Sets.intersection( GDScore.keySet(), outputs.stream().map( o -> o.city_id ).collect(
-                Collectors.toSet() ) ).size();
-        rmse.set( rmse.get() / relevantOutput );
-        rmse.set( Math.sqrt( rmse.get() ) );
-        error_rate.set( error_rate.get() / relevantOutput );
-        mae.set( mae.get() / relevantOutput );
-        System.out.println( note + "\tadd\t" + mae + "\t" + rmse + "\t" + error_rate + "\t" + relevantOutput );
     }
 
-    public void update_user_weight() {
-        double sum = 0.0;
-        for (int user_id = 0; user_id < this.loadData.userId_userName.size(); user_id++) {
-            double fenmu = 0.000001;
-            final HashMap<Integer, Double> city_pop = this.loadData.user_city_pop.get( user_id );
-            for (final int city_id : city_pop.keySet()) {
-                final double tmp_movie_given_rate = city_pop.get( city_id );
-                final double tmp_movie_exp_rate = this.city_exp_pop.get( city_id );
-                fenmu += (tmp_movie_given_rate - tmp_movie_exp_rate) * (tmp_movie_given_rate - tmp_movie_exp_rate);
-            }
-            final double fenzi = new ChiSquaredDistribution( city_pop.size() ).inverseCumulativeProbability( 0.975 );
-            final double tmp_score = fenzi / fenmu;
-            this.user_weight.set( user_id, tmp_score );
-            sum += tmp_score;
-        }
-        for (int user_id = 0; user_id < this.loadData.userId_userName.size(); user_id++) {
-            final double weight = this.user_weight.get( user_id ) / sum;
-            this.user_weight.set( user_id, weight );
-        }
+    /**
+     * Estimate source weights (source reliability degree) w_s.
+     * See equation 7
+     */
+    private ImmutableMap<ParticipantId, Double> estimateSourceWeights(
+            final ImmutableMap<QuestionId, ChoiceId> currentTruths, final double alpha ) {
+        final ImmutableMap<ParticipantId, Double> initialSourceWeightEstimation = Maps.toMap(
+                this.answers.getParticipants(), source -> {
+                    final ImmutableSet<Answer> claimsFromSource = this.answers.getAnswers(
+                            source ); //TODO assumes each claim only has one information -> fix value class to only allow one choice per answer
+                    final double numerator;
+                    if (claimsFromSource.size() <=
+                            MINIMUM_SAMPLES_FOR_NORMAL_DISTRIBUTION) { //use Chi-Square Distribution
+                        numerator = new ChiSquaredDistribution( claimsFromSource.size() )
+                                .inverseCumulativeProbability( alpha / 2 );
+                    }
+                    else { //use Normal Distribution
+                        final double v = new NormalDistribution().inverseCumulativeProbability( alpha / 2 );
+                        final double pow = Math.pow( 2 * claimsFromSource.size() - 1, 0.5 );
+                        numerator = 0.5 * Math.pow( v + pow, 2 ); //TODO what is this formula?
+                    }
+
+                    final AtomicInteger diffs = new AtomicInteger( 0 );
+
+                    claimsFromSource.forEach( claim -> {
+                        if (!currentTruths.get( claim.getQuestionId() ).equals(
+                                claim.getChoices().iterator().next() )) {
+                            diffs.incrementAndGet();
+                        }
+                    } );
+
+                    //return diffs.get() == 0 ? 1 : numerator / diffs.get(); TODO
+                    return numerator / (diffs.get() + 0.000000001);
+                } );
+
+        final double weightSum = initialSourceWeightEstimation.values().stream().mapToDouble( e -> e ).sum();
+
+        return ImmutableMap.copyOf(
+                Maps.transformValues( initialSourceWeightEstimation,
+                        v -> v / weightSum ) ); //TODO why divde through weightSum again?
     }
 
-    public void update_city_exp_pop() {
-        for (int city_id = 0; city_id < this.loadData.cityId_cityName.size(); city_id++) {
-            double fenzi = 0.0;
-            double fenmu = 0.0;
-            final HashMap<Integer, Double> user_rate = this.loadData.city_user_pop.get( city_id );
-            for (final int user_id : user_rate.keySet()) {
-                final double tmp_user_rate = user_rate.get( user_id );
-                final double tmp_user_wt = this.user_weight.get( user_id );
-
-                fenzi += tmp_user_rate * tmp_user_wt;
-                fenmu += tmp_user_wt;
-            }
-            this.city_exp_pop.set( city_id, fenzi / fenmu );
-        }
-    }
-
-    private ImmutableList<Output> output() throws Exception {
-        return this.loadData.cityId_cityName.entrySet().stream().map(
-                e -> new Output( e.getKey(), e.getValue(), this.loadData.getAverageToNum( e.getKey() ),
-                        this.loadData.getScore( e.getKey(), this.city_exp_pop.get( e.getKey() ) ) ) ).collect(
-                ImmutableList.toImmutableList() );
-    }
-
-    private void writeOutput( final String filename, final ImmutableList<Output> output ) throws IOException {
-        final FileWriter writer = new FileWriter( filename );
-        output.forEach( o -> {
-            try {
-                writer.write( o.city_id + "\t" + o.city_name + "\t" + o.avg_to_num + "\t" + o.score + "\n" );
-            } catch (final IOException e) {
-                throw new UncheckedIOException( e );
-            }
+    /**
+     * Estimate entity truths x^*_n.
+     * See equation 1
+     */
+    private ImmutableMap<QuestionId, ChoiceId> estimateEntityTruths(
+            final ImmutableMap<ParticipantId, Double> sourceWeights ) {
+        return Maps.toMap( this.answers.getQuestions(), entity -> {
+            final ImmutableSet<Answer> answers = this.answers.getAnswers( entity );
+            final Map<ChoiceId, Double> weightedAnswersPerChoice = Maps.newHashMap();
+            answers.forEach( claim -> {
+                claim.getChoices().iterator().next();
+                final Double sourceWeight = sourceWeights.get( claim.getParticipantId() );
+                weightedAnswersPerChoice.compute( claim.getChoices().iterator().next(),
+                        ( k, v ) -> Optional.ofNullable( v ).orElse( 0.0 ) + sourceWeight );
+            } );
+            return weightedAnswersPerChoice.entrySet().stream().max(
+                    Comparator.comparingDouble( Map.Entry::getValue ) ).get().getKey();
         } );
-        writer.close();
     }
 
-    private class Output {
-        private final int city_id;
+    public static final class Output {
+        private final ImmutableMap<QuestionId, ChoiceId> truths;
 
-        private final String city_name;
+        public Output(
+                final ImmutableMap<QuestionId, ChoiceId> truths ) {
+            this.truths = truths;
+        }
 
-        private final double avg_to_num;
-
-        private final double score;
-
-        public Output( final int city_id, final String city_name, final double avg_to_num, final double score ) {
-            this.city_id = city_id;
-            this.city_name = city_name;
-            this.avg_to_num = avg_to_num;
-            this.score = score;
+        public ImmutableMap<QuestionId, ChoiceId> getTruths() {
+            return this.truths;
         }
     }
 }

@@ -22,7 +22,7 @@ public final class Answers {
 
     private final ImmutableMap<ParticipantId, ImmutableMap<QuestionId, ImmutableSet<Answer>>> byParticipantsForQuestion;
 
-    Answers( final Set<Answer> answers ) {
+    public Answers( final Set<Answer> answers ) {
         final Map<QuestionId, Set<Answer>> byQuestions = Maps.newHashMap();
         final Map<ParticipantId, Set<Answer>> byParticipants = Maps.newHashMap();
         final Map<ChoiceId, List<Answer>> byChoices = Maps.newHashMap();
@@ -47,8 +47,7 @@ public final class Answers {
                 ImmutableMap.toImmutableMap( Map.Entry::getKey,
                         e -> e.getValue().entrySet().stream().collect( ImmutableMap
                                 .toImmutableMap( Map.Entry::getKey, e2 -> ImmutableSet.copyOf( e2.getValue() ) ) ) ) );
-        LOG.info( "Questions={} (#{}), participants={} (#{}), choices={} (#{})", this.byQuestions,
-                this.byQuestions.size(), this.byParticipants, this.byParticipants.size(), this.byChoices,
+        LOG.info( "Questions #{}, participants #{}, choices #{}", this.byQuestions.size(), this.byParticipants.size(),
                 this.byChoices.size() );
     }
 
