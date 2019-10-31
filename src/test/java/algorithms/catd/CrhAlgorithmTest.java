@@ -21,7 +21,7 @@ import static org.hamcrest.core.IsEqual.equalTo;
 /**
  * @author LinX
  */
-public class CatdAlgorithmTest {
+public class CrhAlgorithmTest {
     @Test
     public void when_algorithmRunWithInputParameters_then_returnsExpectedClassProbabilities() throws IOException {
         final int maxDataset = 9;
@@ -31,8 +31,8 @@ public class CatdAlgorithmTest {
             final ImmutableSet<Answer> answers = parseData( dataset );
 
             //WHEN
-            final CatdAlgorithm algorithm = new CatdAlgorithm( answers );
-            final CatdAlgorithm.Output output = algorithm.run( 0.05 );
+            final CrhAlgorithm algorithm = new CrhAlgorithm( answers );
+            final CrhAlgorithm.Output output = algorithm.run();
 
             //THEN
             final ImmutableMap<QuestionId, ChoiceId> expected = getExpectedTruths( dataset );
@@ -42,6 +42,7 @@ public class CatdAlgorithmTest {
             } catch (final AssertionError e) {
                 e.printStackTrace();
             }
+
         }
     }
 
@@ -64,7 +65,7 @@ public class CatdAlgorithmTest {
     private static ImmutableMap<QuestionId, ChoiceId> getExpectedTruths( final int dataset ) {
         try {
             final CSVReader csvReader = new CSVReader( new FileReader(
-                    "src/test/resources/algorithms/catd/s4_Dog data/0/c_CATD_truth_" + dataset + ".csv" ) );
+                    "src/test/resources/algorithms/catd/s4_Dog data/0/c_PM-CRH_truth_" + dataset + ".csv" ) );
 
             return csvReader.readAll().stream().collect(
                     ImmutableMap.toImmutableMap( r -> QuestionId.create( r[0] ), r -> ChoiceId.create( r[1] ) ) );

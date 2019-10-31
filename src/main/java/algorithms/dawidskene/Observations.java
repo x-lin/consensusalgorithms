@@ -22,7 +22,7 @@ public final class Observations {
 
     private final ImmutableMap<ObserverId, ImmutableMap<PatientId, ImmutableSet<Observation>>> byObserversForPatients;
 
-    Observations( final Set<Observation> observations ) {
+    public Observations( final Set<Observation> observations ) {
         final Map<PatientId, Set<Observation>> byPatients = Maps.newHashMap();
         final Map<ObserverId, Set<Observation>> byObservers = Maps.newHashMap();
         final Map<Label, List<Observation>> byLabel = Maps.newHashMap();

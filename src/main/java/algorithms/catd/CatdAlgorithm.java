@@ -30,9 +30,6 @@ public class CatdAlgorithm {
 
     private final Answers answers;
 
-    //threshold under which the algorithm can be viewed as converged
-    private static final double CONVERGENCE_THRESHOLD = 0.00001;
-
     //maximum of iterations to perform
     private static final int MAXIMUM_ITERATIONS = 100;
 
@@ -45,15 +42,15 @@ public class CatdAlgorithm {
     }
 
     public Output run( final double alpha ) {
-        final ImmutableMap<QuestionId, ChoiceId> initialTruth = estimateInitialEntityTruths();
+        ImmutableMap<QuestionId, ChoiceId> estimatedTruths = estimateInitialEntityTruths();
         Output output = null;
         int iteration = 0;
 
         while (true) {
             iteration++;
             LOG.info( "Starting iteration " + iteration );
-            final ImmutableMap<ParticipantId, Double> sourceWeights = estimateSourceWeights( initialTruth, alpha );
-            final ImmutableMap<QuestionId, ChoiceId> estimatedTruths = estimateEntityTruths( sourceWeights );
+            final ImmutableMap<ParticipantId, Double> sourceWeights = estimateSourceWeights( estimatedTruths, alpha );
+            estimatedTruths = estimateEntityTruths( sourceWeights );
 
             final Output newOutput = new Output( estimatedTruths );
             if (output != null && (MAXIMUM_ITERATIONS < iteration || output.getTruths().equals(
@@ -129,11 +126,23 @@ public class CatdAlgorithm {
             final ImmutableSet<Answer> answers = this.answers.getAnswers( entity );
             final Map<ChoiceId, Double> weightedAnswersPerChoice = Maps.newHashMap();
             answers.forEach( claim -> {
-                claim.getChoices().iterator().next();
-                final Double sourceWeight = sourceWeights.get( claim.getParticipantId() );
                 weightedAnswersPerChoice.compute( claim.getChoices().iterator().next(),
-                        ( k, v ) -> Optional.ofNullable( v ).orElse( 0.0 ) + sourceWeight );
+                        ( k, v ) -> {
+                            final double v1 = Optional.ofNullable( v ).orElse( 0.0 ) +
+                                    sourceWeights.get( claim.getParticipantId() );
+                            if (entity.getId().equals( "421" )) {
+                                LOG.info( "claim {} {} weight {}. overall weight {}", claim.getParticipantId(),
+                                        claim.getChoices().iterator().next(),
+                                        sourceWeights.get( claim.getParticipantId() ), v1 );
+                            }
+                            return v1;
+                        } );
             } );
+
+            if (entity.getId().equals( "421" )) {
+                LOG.info( "weighted answers for 421: {}.", weightedAnswersPerChoice );
+            }
+
             return weightedAnswersPerChoice.entrySet().stream().max(
                     Comparator.comparingDouble( Map.Entry::getValue ) ).get().getKey();
         } );

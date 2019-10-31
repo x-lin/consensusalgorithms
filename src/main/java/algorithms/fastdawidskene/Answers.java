@@ -23,18 +23,19 @@ public final class Answers {
     private final ImmutableMap<ParticipantId, ImmutableMap<QuestionId, ImmutableSet<Answer>>> byParticipantsForQuestion;
 
     public Answers( final Set<Answer> answers ) {
-        final Map<QuestionId, Set<Answer>> byQuestions = Maps.newHashMap();
-        final Map<ParticipantId, Set<Answer>> byParticipants = Maps.newHashMap();
-        final Map<ChoiceId, List<Answer>> byChoices = Maps.newHashMap();
-        final Map<ParticipantId, Map<QuestionId, Set<Answer>>> byParticipantForQuestion = Maps.newHashMap();
+        final Map<QuestionId, Set<Answer>> byQuestions = Maps.newLinkedHashMap();
+        final Map<ParticipantId, Set<Answer>> byParticipants = Maps.newLinkedHashMap();
+        final Map<ChoiceId, List<Answer>> byChoices = Maps.newLinkedHashMap();
+        final Map<ParticipantId, Map<QuestionId, Set<Answer>>> byParticipantForQuestion = Maps.newLinkedHashMap();
 
         answers.forEach( answer -> {
-            byQuestions.computeIfAbsent( answer.getQuestionId(), i -> Sets.newHashSet() ).add( answer );
-            byParticipants.computeIfAbsent( answer.getParticipantId(), i -> Sets.newHashSet() ).add( answer );
+            byQuestions.computeIfAbsent( answer.getQuestionId(), i -> Sets.newLinkedHashSet() ).add( answer );
+            byParticipants.computeIfAbsent( answer.getParticipantId(), i -> Sets.newLinkedHashSet() ).add( answer );
             answer.getChoices().forEach(
                     c -> byChoices.computeIfAbsent( c, id -> Lists.newArrayList() ).add( answer ) );
-            byParticipantForQuestion.computeIfAbsent( answer.getParticipantId(), i -> Maps.newHashMap() )
-                                    .computeIfAbsent( answer.getQuestionId(), k -> Sets.newHashSet() ).add( answer );
+            byParticipantForQuestion.computeIfAbsent( answer.getParticipantId(), i -> Maps.newLinkedHashMap() )
+                                    .computeIfAbsent( answer.getQuestionId(), k -> Sets.newLinkedHashSet() ).add(
+                    answer );
         } );
 
         this.byQuestions = byQuestions.entrySet().stream().collect(
