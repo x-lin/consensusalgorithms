@@ -69,7 +69,7 @@ public class HybridDawidSkeneAlgorithm {
             LOG.info( "Log-Likelihood on iteration {}: {}", iteration, logLikelihood );
 
             final Output newOutput = new Output( classProbabilities, errorRates, classEstimations );
-            if (iteration > MAXIMUM_NR_ITERATIONS || output.map( o -> o.hasConverged( newOutput ) ).orElse( false )) {
+            if (iteration >= MAXIMUM_NR_ITERATIONS || output.map( o -> o.hasConverged( newOutput ) ).orElse( false )) {
                 break;
             }
             else if (!switchedToFDS && output.map( o -> o.getDeltaPatientClassProbabilities( newOutput ) <

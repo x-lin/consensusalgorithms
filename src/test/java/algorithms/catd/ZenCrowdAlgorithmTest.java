@@ -7,13 +7,13 @@ import algorithms.fastdawidskene.QuestionId;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Maps;
 import com.opencsv.CSVReader;
 import com.opencsv.CSVReaderBuilder;
 import org.junit.Test;
 
 import java.io.FileReader;
 import java.io.IOException;
+import java.util.Comparator;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.IsEqual.equalTo;
@@ -21,23 +21,26 @@ import static org.hamcrest.core.IsEqual.equalTo;
 /**
  * @author LinX
  */
-public class CrhAlgorithmTest {
+public class ZenCrowdAlgorithmTest {
     @Test
     public void when_algorithmRunWithInputParameters_then_returnsExpectedClassProbabilities() throws IOException {
         final int maxDataset = 9;
 
-        for (int dataset = 0; dataset <= maxDataset; dataset++) {
+        for (int dataset = 1; dataset <= maxDataset; dataset++) {
             //GIVEN
             final ImmutableSet<Answer> answers = parseData( dataset );
 
             //WHEN
-            final CrhAlgorithm algorithm = new CrhAlgorithm( answers );
-            final CrhAlgorithm.Output output = algorithm.run();
-
+            final ZenCrowdAlgorithm algorithm = new ZenCrowdAlgorithm( answers );
+            final ZenCrowdAlgorithm.Output output = algorithm.run();
             //THEN
             final ImmutableMap<QuestionId, ChoiceId> expected = getExpectedTruths( dataset );
-            assertThat( Maps.difference( output.getTruths(), expected ).toString(), output.getTruths(),
-                    equalTo( expected ) );
+            output.getClassProbabilities().forEach( ( question, estimates ) -> {
+                final ChoiceId highest = estimates.stream().max(
+                        Comparator.comparingDouble( ZenCrowdAlgorithm.ClassEstimation::getEstimation ) ).map(
+                        ZenCrowdAlgorithm.ClassEstimation::getChoice ).get();
+                assertThat( "question " + question, highest, equalTo( expected.get( question ) ) );
+            } );
         }
     }
 
@@ -60,7 +63,7 @@ public class CrhAlgorithmTest {
     private static ImmutableMap<QuestionId, ChoiceId> getExpectedTruths( final int dataset ) {
         try {
             final CSVReader csvReader = new CSVReader( new FileReader(
-                    "src/test/resources/algorithms/catd/s4_Dog data/0/c_PM-CRH_truth_" + dataset + ".csv" ) );
+                    "src/test/resources/algorithms/catd/s4_Dog data/0/l_ZenCrowd_truth_" + dataset + ".csv" ) );
 
             return csvReader.readAll().stream().collect(
                     ImmutableMap.toImmutableMap( r -> QuestionId.create( r[0] ), r -> ChoiceId.create( r[1] ) ) );

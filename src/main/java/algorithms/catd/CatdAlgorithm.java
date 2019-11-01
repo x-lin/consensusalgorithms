@@ -5,7 +5,6 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Maps;
 import org.apache.commons.math3.distribution.ChiSquaredDistribution;
-import org.apache.commons.math3.distribution.NormalDistribution;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -13,7 +12,6 @@ import java.util.Comparator;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
 /**
@@ -33,8 +31,8 @@ public class CatdAlgorithm {
     //maximum of iterations to perform
     private static final int MAXIMUM_ITERATIONS = 100;
 
-    //see Central Limit Theorem: https://www.statisticshowto.datasciencecentral.com/probability-and-statistics/normal-distributions/central-limit-theorem-definition-examples/
-    private static final int MINIMUM_SAMPLES_FOR_NORMAL_DISTRIBUTION = 30;
+    //threshold of source weight difference under which the algorithm can be viewed as converged
+    private static final double CONVERGENCE_THRESHOLD = 0.00001;
 
     //question=entity, participant=source, choice=information
     public CatdAlgorithm( final Set<Answer> answers ) {
@@ -52,9 +50,8 @@ public class CatdAlgorithm {
             final ImmutableMap<ParticipantId, Double> sourceWeights = estimateSourceWeights( estimatedTruths, alpha );
             estimatedTruths = estimateEntityTruths( sourceWeights );
 
-            final Output newOutput = new Output( estimatedTruths );
-            if (output != null && (MAXIMUM_ITERATIONS < iteration || output.getTruths().equals(
-                    newOutput.getTruths() ))) {
+            final Output newOutput = new Output( estimatedTruths, sourceWeights );
+            if (output != null && (MAXIMUM_ITERATIONS < iteration || output.hasConverged( newOutput ))) {
                 return newOutput;
             }
             output = newOutput;
@@ -84,36 +81,19 @@ public class CatdAlgorithm {
                 this.answers.getParticipants(), source -> {
                     final ImmutableSet<Answer> claimsFromSource = this.answers.getAnswers(
                             source ); //TODO assumes each claim only has one information -> fix value class to only allow one choice per answer
-                    final double numerator;
-                    if (claimsFromSource.size() <=
-                            MINIMUM_SAMPLES_FOR_NORMAL_DISTRIBUTION) { //use Chi-Square Distribution
-                        numerator = new ChiSquaredDistribution( claimsFromSource.size() )
-                                .inverseCumulativeProbability( alpha / 2 );
-                    }
-                    else { //use Normal Distribution
-                        final double v = new NormalDistribution().inverseCumulativeProbability( alpha / 2 );
-                        final double pow = Math.pow( 2 * claimsFromSource.size() - 1, 0.5 );
-                        numerator = 0.5 * Math.pow( v + pow, 2 ); //TODO what is this formula?
-                    }
+                    final double numerator = new ChiSquaredDistribution( claimsFromSource.size() )
+                            .inverseCumulativeProbability( alpha / 2 );
 
-                    final AtomicInteger diffs = new AtomicInteger( 0 );
+                    final long diffs = claimsFromSource.stream().filter( claim -> !currentTruths.get(
+                            claim.getQuestionId() ).equals(
+                            claim.getChoices().iterator().next() ) ).count();
 
-                    claimsFromSource.forEach( claim -> {
-                        if (!currentTruths.get( claim.getQuestionId() ).equals(
-                                claim.getChoices().iterator().next() )) {
-                            diffs.incrementAndGet();
-                        }
-                    } );
-
-                    //return diffs.get() == 0 ? 1 : numerator / diffs.get(); TODO
-                    return numerator / (diffs.get() + 0.000000001);
+                    return numerator / ((double) diffs + 0.000000001);
                 } );
 
         final double weightSum = initialSourceWeightEstimation.values().stream().mapToDouble( e -> e ).sum();
 
-        return ImmutableMap.copyOf(
-                Maps.transformValues( initialSourceWeightEstimation,
-                        v -> v / weightSum ) ); //TODO why divde through weightSum again?
+        return ImmutableMap.copyOf( Maps.transformValues( initialSourceWeightEstimation, v -> v / weightSum ) );
     }
 
     /**
@@ -151,13 +131,27 @@ public class CatdAlgorithm {
     public static final class Output {
         private final ImmutableMap<QuestionId, ChoiceId> truths;
 
+        private final ImmutableMap<ParticipantId, Double> sourceWeights;
+
         public Output(
-                final ImmutableMap<QuestionId, ChoiceId> truths ) {
+                final ImmutableMap<QuestionId, ChoiceId> truths,
+                final ImmutableMap<ParticipantId, Double> sourceWeights ) {
             this.truths = truths;
+            this.sourceWeights = sourceWeights;
         }
 
         public ImmutableMap<QuestionId, ChoiceId> getTruths() {
             return this.truths;
+        }
+
+        public ImmutableMap<ParticipantId, Double> getSourceWeights() {
+            return this.sourceWeights;
+        }
+
+        public boolean hasConverged( final Output otherOutput ) {
+            return this.sourceWeights.entrySet().stream().mapToDouble(
+                    e -> Math.abs( e.getValue() - otherOutput.getSourceWeights().get( e.getKey() ) ) ).sum() <
+                    CONVERGENCE_THRESHOLD;
         }
     }
 }

@@ -14,6 +14,12 @@ import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
+ * Implements algorithm from:
+ *
+ * Resolving Conflicts in Heterogeneous Data by Truth Discovery and Source Reliability Estimation
+ * Q. Li et al.
+ * 2014
+ *
  * @author LinX
  */
 public class CrhAlgorithm {
