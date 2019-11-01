@@ -1,4 +1,4 @@
-package algorithms.fastdawidskene;
+package algorithms.catd;
 
 import algorithms.Id;
 

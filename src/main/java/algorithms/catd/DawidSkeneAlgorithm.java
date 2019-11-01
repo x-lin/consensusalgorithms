@@ -1,4 +1,4 @@
-package algorithms.dawidskene;
+package algorithms.catd;
 
 import algorithms.Id;
 import com.google.common.collect.ImmutableMap;
@@ -33,17 +33,17 @@ public class DawidSkeneAlgorithm {
 
     private static final int MAXIMUM_NR_ITERATIONS = 100;
 
-    private final Observations observations;
+    private final Answers observations;
 
-    public DawidSkeneAlgorithm( final Set<Observation> observations ) {
-        this.observations = new Observations( observations );
+    public DawidSkeneAlgorithm( final Set<Answer> observations ) {
+        this.observations = new Answers( observations );
     }
 
     public Output run() {
         int iteration = 0;
 
-        ImmutableMap<PatientId, ImmutableSet<IndicatorEstimation>> patientClassEstimations = Maps.toMap(
-                this.observations.getPatients(), this::getInitialEstimatesForTruePatientClasses );
+        ImmutableMap<QuestionId, ImmutableSet<IndicatorEstimation>> patientClassEstimations = Maps.toMap(
+                this.observations.getQuestions(), this::getInitialEstimatesForTruePatientClasses );
 
         Optional<Output> output = Optional.empty();
 
@@ -52,7 +52,7 @@ public class DawidSkeneAlgorithm {
 
             //m-step / maximization step
             //estimate for p_j
-            final ImmutableMap<Label, Double> patientClassProbabilities = calculatePatientClassProbabilities(
+            final ImmutableMap<ChoiceId, Double> patientClassProbabilities = calculatePatientClassProbabilities(
                     patientClassEstimations );
             LOG.info( "estimation for pj done." );
             //estimate for pi^k_jl
@@ -88,18 +88,18 @@ public class DawidSkeneAlgorithm {
      *
      * @return likelihood
      */
-    private double calculateLogLikelihood( final ImmutableMap<Label, Double> patientClassProbabilities,  //pj
+    private double calculateLogLikelihood( final ImmutableMap<ChoiceId, Double> patientClassProbabilities,  //pj
             final ImmutableMap<ErrorRateId, ErrorRateEstimation> errorRates ) {                          //piKjl
         final AtomicDouble likelihood = new AtomicDouble( 0.0 );
-        this.observations.getPatients().forEach( patient -> {
+        this.observations.getQuestions().forEach( patient -> {
             final AtomicDouble sumPjTimesPkjlPowerNkil = new AtomicDouble( 0.0 );
-            this.observations.getLabels().forEach( trueLabel -> {
+            this.observations.getChoices().forEach( trueLabel -> {
                 final AtomicDouble productPkjlPowerNkil = new AtomicDouble( 1.0 );
                 final Double pj = patientClassProbabilities.get( trueLabel );
 
-                this.observations.getObservers().forEach( observer -> {
-                    this.observations.getObservations( observer, patient ).forEach( o -> {
-                        final Map<Label, Long> countForEachLabel = o.getLabels().stream().collect(
+                this.observations.getParticipants().forEach( observer -> {
+                    this.observations.getAnswers( observer, patient ).forEach( o -> {
+                        final Map<ChoiceId, Long> countForEachLabel = o.getChoices().stream().collect(
                                 Collectors.groupingBy( Function.identity(), Collectors.counting() ) );
 
                         countForEachLabel.forEach( ( label, nkil ) -> {
@@ -133,19 +133,19 @@ public class DawidSkeneAlgorithm {
      * @param patientClassProbabilities probabilities of each label being "true"
      * @return patient class estimations for existent labels
      */
-    private ImmutableMap<PatientId, ImmutableSet<IndicatorEstimation>> reCalculatePatientClassEstimatesForTruePatientClasses(
+    private ImmutableMap<QuestionId, ImmutableSet<IndicatorEstimation>> reCalculatePatientClassEstimatesForTruePatientClasses(
             final ImmutableMap<ErrorRateId, ErrorRateEstimation> errorRateEstimations,
-            final ImmutableMap<Label, Double> patientClassProbabilities ) {
-        return Maps.toMap( this.observations.getPatients(), patient -> {
+            final ImmutableMap<ChoiceId, Double> patientClassProbabilities ) {
+        return Maps.toMap( this.observations.getQuestions(), patient -> {
             final ImmutableSet.Builder<IndicatorEstimation> estimations = ImmutableSet.builder();
-            final Map<Label, Double> numerators = Maps.newHashMap();
+            final Map<ChoiceId, Double> numerators = Maps.newHashMap();
 
-            this.observations.getLabels().forEach( trueLabel -> {
+            this.observations.getChoices().forEach( trueLabel -> {
                 final AtomicDouble numerator = new AtomicDouble( 1.0 );
 
-                this.observations.getObservers().forEach( observer -> {
-                    this.observations.getObservations( observer, patient ).forEach( o -> {
-                        final Map<Label, Long> countForEachLabel = o.getLabels().stream().collect(
+                this.observations.getParticipants().forEach( observer -> {
+                    this.observations.getAnswers( observer, patient ).forEach( o -> {
+                        final Map<ChoiceId, Long> countForEachLabel = o.getChoices().stream().collect(
                                 Collectors.groupingBy( Function.identity(), Collectors.counting() ) );
 
                         countForEachLabel.forEach( ( label, nkil ) -> {
@@ -185,30 +185,30 @@ public class DawidSkeneAlgorithm {
      * See Equation 2.3
      */
     private ImmutableMap<ErrorRateId, ErrorRateEstimation> calculateErrorRates(
-            final ImmutableMap<PatientId, ImmutableSet<IndicatorEstimation>> patientClassEstimations ) {
+            final ImmutableMap<QuestionId, ImmutableSet<IndicatorEstimation>> patientClassEstimations ) {
 
         final Set<ErrorRateEstimation> estimations = Sets.newHashSet();
 
-        this.observations.getObservers().forEach( observer -> { //k
-            this.observations.getLabels().forEach( trueLabel -> { //l
-                this.observations.getLabels().forEach( label -> { //j
+        this.observations.getParticipants().forEach( observer -> { //k
+            this.observations.getChoices().forEach( trueLabel -> { //l
+                this.observations.getChoices().forEach( label -> { //j
                     final AtomicDouble numerator = new AtomicDouble( 0.0 );
                     final AtomicDouble denominator = new AtomicDouble( 0.0 );
 
-                    this.observations.getPatients().forEach( patient -> {
+                    this.observations.getQuestions().forEach( patient -> {
                         final double Tij = patientClassEstimations.get( patient ).stream().filter(
                                 p -> p.getLabel().equals( trueLabel ) ).findFirst().map(
                                 IndicatorEstimation::getIndicatorEstimation ).orElse( 0.0 );
-                        final ImmutableSet<Observation> observations = this.observations.getObservations( observer,
+                        final ImmutableSet<Answer> observations = this.observations.getAnswers( observer,
                                 patient );
 
                         final long nkil = observations.stream().flatMap(
-                                o -> o.getLabels().stream().filter( l -> l.equals( label ) ) ).count();
+                                o -> o.getChoices().stream().filter( l -> l.equals( label ) ) ).count();
 
                         numerator.addAndGet( Tij * nkil );
 
                         observations.forEach( o -> {
-                            final Map<Label, Long> countForEachLabel = o.getLabels().stream().collect(
+                            final Map<ChoiceId, Long> countForEachLabel = o.getChoices().stream().collect(
                                     Collectors.groupingBy( Function.identity(), Collectors.counting() ) );
 
                             countForEachLabel.values().forEach(
@@ -235,11 +235,11 @@ public class DawidSkeneAlgorithm {
      *
      * @param patientClassEstimations all ^T_ij
      */
-    private ImmutableMap<Label, Double> calculatePatientClassProbabilities(
-            final ImmutableMap<PatientId, ImmutableSet<IndicatorEstimation>> patientClassEstimations ) {
-        final int nrPatients = this.observations.getPatients().size();
+    private ImmutableMap<ChoiceId, Double> calculatePatientClassProbabilities(
+            final ImmutableMap<QuestionId, ImmutableSet<IndicatorEstimation>> patientClassEstimations ) {
+        final int nrPatients = this.observations.getQuestions().size();
 
-        final Map<Label, Double> sumOfPatientClassEstimations =
+        final Map<ChoiceId, Double> sumOfPatientClassEstimations =
                 patientClassEstimations.values().stream().flatMap(
                         p -> p.stream().map( e -> new AbstractMap.SimpleImmutableEntry<>( e.getLabel(),
                                 e.getIndicatorEstimation() ) ) ).collect(
@@ -257,12 +257,12 @@ public class DawidSkeneAlgorithm {
      * @param patientId id the patient
      * @return patient class estimations for existent labels
      */
-    private ImmutableSet<IndicatorEstimation> getInitialEstimatesForTruePatientClasses( final PatientId patientId ) {
-        final ImmutableSet<Observation> observations = this.observations.getObservations( patientId );
+    private ImmutableSet<IndicatorEstimation> getInitialEstimatesForTruePatientClasses( final QuestionId patientId ) {
+        final ImmutableSet<Answer> observations = this.observations.getAnswers( patientId );
         final double totalNrObservations = observations.stream().mapToInt(
-                o -> o.getLabels().size() ).sum();
-        final Map<Label, Long> nrObservationsPerLabel = observations.stream().flatMap(
-                o -> o.getLabels().stream() ).collect( Collectors.groupingBy( o -> o, Collectors.counting() ) );
+                o -> o.getChoices().size() ).sum();
+        final Map<ChoiceId, Long> nrObservationsPerLabel = observations.stream().flatMap(
+                o -> o.getChoices().stream() ).collect( Collectors.groupingBy( o -> o, Collectors.counting() ) );
 
         return nrObservationsPerLabel.entrySet().stream().map(
                 e -> new IndicatorEstimation( e.getKey(), e.getValue() / totalNrObservations ) ).collect(
@@ -270,22 +270,22 @@ public class DawidSkeneAlgorithm {
     }
 
     public final class Output {
-        private final ImmutableMap<Label, Double> patientClassProbabilities;
+        private final ImmutableMap<ChoiceId, Double> patientClassProbabilities;
 
         private final ImmutableMap<ErrorRateId, ErrorRateEstimation> errorRates;
 
-        private final ImmutableMap<PatientId, ImmutableSet<IndicatorEstimation>> patientClassEstimations;
+        private final ImmutableMap<QuestionId, ImmutableSet<IndicatorEstimation>> patientClassEstimations;
 
         public Output(
-                final ImmutableMap<Label, Double> patientClassProbabilities,
+                final ImmutableMap<ChoiceId, Double> patientClassProbabilities,
                 final ImmutableMap<ErrorRateId, ErrorRateEstimation> errorRates,
-                final ImmutableMap<PatientId, ImmutableSet<IndicatorEstimation>> patientClassEstimations ) {
+                final ImmutableMap<QuestionId, ImmutableSet<IndicatorEstimation>> patientClassEstimations ) {
             this.patientClassProbabilities = patientClassProbabilities;
             this.errorRates = errorRates;
             this.patientClassEstimations = patientClassEstimations;
         }
 
-        public ImmutableMap<Label, Double> getPatientClassProbabilities() {
+        public ImmutableMap<ChoiceId, Double> getPatientClassProbabilities() {
             return this.patientClassProbabilities;
         }
 
@@ -293,7 +293,7 @@ public class DawidSkeneAlgorithm {
             return this.errorRates;
         }
 
-        public ImmutableMap<PatientId, ImmutableSet<IndicatorEstimation>> getPatientClassEstimations() {
+        public ImmutableMap<QuestionId, ImmutableSet<IndicatorEstimation>> getPatientClassEstimations() {
             return this.patientClassEstimations;
         }
 
@@ -311,16 +311,16 @@ public class DawidSkeneAlgorithm {
     }
 
     public static final class IndicatorEstimation {
-        private final Label label;
+        private final ChoiceId label;
 
         private final double indicatorEstimation;
 
-        public IndicatorEstimation( final Label label, final double indicatorEstimation ) {
+        public IndicatorEstimation( final ChoiceId label, final double indicatorEstimation ) {
             this.label = label;
             this.indicatorEstimation = indicatorEstimation;
         }
 
-        public Label getLabel() {
+        public ChoiceId getLabel() {
             return this.label;
         }
 
@@ -338,8 +338,8 @@ public class DawidSkeneAlgorithm {
     }
 
     public static final class ErrorRateId extends Id<String> {
-        public ErrorRateId( final ObserverId observerId, final Label answeredLabel,
-                final Label estimatedTrueLabel ) {
+        public ErrorRateId( final ParticipantId observerId, final ChoiceId answeredLabel,
+                final ChoiceId estimatedTrueLabel ) {
             super( "k=" + observerId + "|l=" + answeredLabel + "j=" + estimatedTrueLabel );
         }
     }
@@ -349,8 +349,8 @@ public class DawidSkeneAlgorithm {
 
         private final double errorRateEstimation;
 
-        public ErrorRateEstimation( final ObserverId observerId, final Label answeredLabel,
-                final Label estimatedTrueLabel, final double errorRateEstimation ) {
+        public ErrorRateEstimation( final ParticipantId observerId, final ChoiceId answeredLabel,
+                final ChoiceId estimatedTrueLabel, final double errorRateEstimation ) {
             this.errorRateId = new ErrorRateId( observerId, answeredLabel, estimatedTrueLabel );
             this.errorRateEstimation = errorRateEstimation;
         }

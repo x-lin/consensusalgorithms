@@ -1,6 +1,10 @@
 package algorithms.finaldefects.dawidskene;
 
-import algorithms.dawidskene.*;
+import algorithms.catd.DawidSkeneAlgorithm;
+import algorithms.catd.Answer;
+import algorithms.catd.ChoiceId;
+import algorithms.catd.ParticipantId;
+import algorithms.catd.QuestionId;
 import algorithms.finaldefects.FinalDefectAggregationAlgorithm;
 import algorithms.finaldefects.SemesterSettings;
 import algorithms.finaldefects.WorkerDefectReports;
@@ -86,10 +90,10 @@ public class DawidSkeneAggregation implements FinalDefectAggregationAlgorithm {
 
     private static DawidSkeneAlgorithm.Output runDawidSkeneAlgorithm( final ImmutableSet<DefectReport> defectReports ) {
         final DawidSkeneAlgorithm dawidSkeneAlgorithm = new DawidSkeneAlgorithm(
-                defectReports.stream().map( report -> Observation
-                        .create( ObserverId.create( report.getWorkerId().toInt() ),
-                                PatientId.create( report.getEmeAndScenarioId().toString() ),
-                                ImmutableList.of( Label.create( report.getDefectType().toString() ) ) ) )
+                defectReports.stream().map( report -> Answer
+                        .create( ParticipantId.create( report.getWorkerId().toInt() ),
+                                QuestionId.create( report.getEmeAndScenarioId().toString() ),
+                                ImmutableList.of( ChoiceId.create( report.getDefectType().toString() ) ) ) )
                              .collect( ImmutableSet.toImmutableSet() ) );
         return dawidSkeneAlgorithm.run();
     }

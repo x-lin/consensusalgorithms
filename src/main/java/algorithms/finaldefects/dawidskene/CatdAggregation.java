@@ -1,10 +1,10 @@
 package algorithms.finaldefects.dawidskene;
 
 import algorithms.catd.CatdAlgorithm;
-import algorithms.fastdawidskene.Answer;
-import algorithms.fastdawidskene.ChoiceId;
-import algorithms.fastdawidskene.ParticipantId;
-import algorithms.fastdawidskene.QuestionId;
+import algorithms.catd.Answer;
+import algorithms.catd.ChoiceId;
+import algorithms.catd.ParticipantId;
+import algorithms.catd.QuestionId;
 import algorithms.finaldefects.FinalDefectAggregationAlgorithm;
 import algorithms.finaldefects.SemesterSettings;
 import algorithms.finaldefects.WorkerDefectReports;

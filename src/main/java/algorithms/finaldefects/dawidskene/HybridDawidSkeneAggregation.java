@@ -1,6 +1,6 @@
 package algorithms.finaldefects.dawidskene;
 
-import algorithms.fastdawidskene.*;
+import algorithms.catd.*;
 import algorithms.finaldefects.FinalDefectAggregationAlgorithm;
 import algorithms.finaldefects.SemesterSettings;
 import algorithms.finaldefects.WorkerDefectReports;

@@ -1,4 +1,4 @@
-package algorithms.fastdawidskene;
+package algorithms.catd;
 
 import algorithms.Id;
 import com.google.common.collect.ImmutableMap;
@@ -14,7 +14,7 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 /**
- * Implements FDS-DS hybrid algorithm as described by:
+ * Implements Fast-Dawid-Skene algorithm as described by:
  *
  * Fast Dawid-Skene: A Fast Vote Aggregation Scheme for Sentiment Classification
  * V.B. Sinha et al.
@@ -22,8 +22,8 @@ import java.util.stream.Collectors;
  *
  * @author LinX
  */
-public class HybridDawidSkeneAlgorithm {
-    private static final Logger LOG = LoggerFactory.getLogger( HybridDawidSkeneAlgorithm.class );
+public class FastDawidSkeneAlgorithm {
+    private static final Logger LOG = LoggerFactory.getLogger( FastDawidSkeneAlgorithm.class );
 
     //threshold under which the algorithm can be viewed as converged
     private static final double CONVERGENCE_THRESHOLD = 0.00001;
@@ -32,11 +32,8 @@ public class HybridDawidSkeneAlgorithm {
 
     private final Answers answers;
 
-    private final double switchThreshold;
-
-    public HybridDawidSkeneAlgorithm( final Set<Answer> answers, final double switchWhenBelowClassProbabilitiesDelta ) {
+    public FastDawidSkeneAlgorithm( final Set<Answer> answers ) {
         this.answers = new Answers( answers );
-        this.switchThreshold = switchWhenBelowClassProbabilitiesDelta;
     }
 
     public Output run() {
@@ -46,7 +43,6 @@ public class HybridDawidSkeneAlgorithm {
                 Maps.toMap( this.answers.getQuestions(), this::getInitialEstimatesForTrueClasses );
 
         Optional<Output> output = Optional.empty();
-        boolean switchedToFDS = false;
 
         while (true) {
             iteration++;
@@ -61,7 +57,7 @@ public class HybridDawidSkeneAlgorithm {
 
             //e-step / estimation step
             //estimate for T_ij
-            classEstimations = reCalculateClassEstimates( errorRates, classProbabilities, switchedToFDS );
+            classEstimations = reCalculateClassEstimates( errorRates, classProbabilities );
             LOG.info( "Estimation step done." );
 
             //calculate log likelihood -> should go up as algorithm proceeds
@@ -71,10 +67,6 @@ public class HybridDawidSkeneAlgorithm {
             final Output newOutput = new Output( classProbabilities, errorRates, classEstimations );
             if (iteration >= MAXIMUM_NR_ITERATIONS || output.map( o -> o.hasConverged( newOutput ) ).orElse( false )) {
                 break;
-            }
-            else if (!switchedToFDS && output.map( o -> o.getDeltaPatientClassProbabilities( newOutput ) <
-                    this.switchThreshold ).orElse( false )) {
-                switchedToFDS = true;
             }
 
             output = Optional.of( newOutput );
@@ -137,8 +129,8 @@ public class HybridDawidSkeneAlgorithm {
      */
     private ImmutableMap<QuestionId, ImmutableSet<IndicatorEstimation>> reCalculateClassEstimates(
             final ImmutableMap<ErrorRateId, ErrorRateEstimation> errorRateEstimations,
-            final ImmutableMap<ChoiceId, Double> patientClassProbabilities, final boolean switchedToFDS ) {
-        //e-step
+            final ImmutableMap<ChoiceId, Double> patientClassProbabilities ) {
+        //e-step (same as original D&S)
         final ImmutableMap<QuestionId, ImmutableSet<IndicatorEstimation>> estimates =
                 Maps.toMap( this.answers.getQuestions(), question -> {
                     final ImmutableSet.Builder<IndicatorEstimation> estimations = ImmutableSet.builder();
@@ -182,12 +174,7 @@ public class HybridDawidSkeneAlgorithm {
                     return estimations.build();
                 } );
 
-        //c-step (classification step), performed if switched to FDS
-        return switchedToFDS ? performClassificationStep( estimates ) : estimates;
-    }
-
-    private ImmutableMap<QuestionId, ImmutableSet<IndicatorEstimation>> performClassificationStep(
-            final ImmutableMap<QuestionId, ImmutableSet<IndicatorEstimation>> estimates ) {
+        //c-step (classification step)
         return ImmutableMap.copyOf( Maps.transformValues( estimates, e -> {
             final Map<ChoiceId, Double> estimatesPerChoice = e.stream().collect(
                     ImmutableMap.toImmutableMap( IndicatorEstimation::getChoice,
@@ -206,6 +193,7 @@ public class HybridDawidSkeneAlgorithm {
      * This is an estimate for the conditional probability, that participant k will answer with l given that j is the true
      * choiceId class.
      * See Equation 2.3
+     * Same as D&S Equation 2.3
      *
      * TODO doc
      */
@@ -256,7 +244,7 @@ public class HybridDawidSkeneAlgorithm {
      * Calculate ^p_j where j in labels, i.e., probability of choiceId j being chosen for a random question.
      * ^p_j's are marginal probabilities. ^p_j is an estimate for the probability of j being the true choiceId for a random
      * question.
-     * See Equation 2.4.
+     * Same as D&S Equation 2.4.
      *
      * TODO fix doc
      *
@@ -281,7 +269,7 @@ public class HybridDawidSkeneAlgorithm {
      * Counts the number of answers containing each choice for the specified question and estimates the true choice being the
      * one that was contained in the maximum of answers. In case more than one choice contains the same agreement coefficient,
      * any of these choices is returned.
-     * Same as D&S Equation 3.1
+     * See equation 2.
      *
      * @param questionId question id
      * @return choice id with the highest number of occurrence for question
@@ -289,14 +277,14 @@ public class HybridDawidSkeneAlgorithm {
     private ImmutableSet<IndicatorEstimation> getInitialEstimatesForTrueClasses(
             final QuestionId questionId ) {
         final ImmutableSet<Answer> answers = this.answers.getAnswers( questionId );
-        final double totalNrAnswers = answers.stream().mapToInt(
-                o -> o.getChoices().size() ).sum();
         final Map<ChoiceId, Long> nrAnswersPerChoice = answers.stream().flatMap(
                 o -> o.getChoices().stream() ).collect( Collectors.groupingBy( o -> o, Collectors.counting() ) );
+        final ChoiceId choiceWithHighestOccurrence = nrAnswersPerChoice.entrySet().stream().max(
+                Comparator.comparingLong( Map.Entry::getValue ) ).get().getKey();
 
-        return nrAnswersPerChoice.entrySet().stream().map(
-                e -> new IndicatorEstimation( e.getKey(), e.getValue() / totalNrAnswers ) )
-                                 .collect( ImmutableSet.toImmutableSet() );
+        return nrAnswersPerChoice.keySet().stream().map(
+                c -> new IndicatorEstimation( c, c.equals( choiceWithHighestOccurrence ) ? 1 : 0 ) ).collect(
+                ImmutableSet.toImmutableSet() );
     }
 
     public final class Output {
@@ -327,19 +315,16 @@ public class HybridDawidSkeneAlgorithm {
             return this.classEstimations;
         }
 
-        private boolean hasConverged( final Output other ) {
-            final double deltaPatientClassProbabilities = getDeltaPatientClassProbabilities( other );
+        public boolean hasConverged( final Output other ) {
+            final double deltaPatientClassProbabilities =
+                    this.classProbabilities.entrySet().stream().mapToDouble(
+                            e -> Math.abs( other.classProbabilities.get( e.getKey() ) - e.getValue() ) ).sum();
             final double deltaErrorRates = this.errorRates.entrySet().stream().mapToDouble(
                     e -> Math.abs( other.errorRates.get( e.getKey() ).getErrorRateEstimation() -
                             e.getValue().getErrorRateEstimation() ) ).sum();
             LOG.info( "Delta pj: {}. Delta pikjl: {}.", deltaPatientClassProbabilities, deltaErrorRates );
 
             return deltaPatientClassProbabilities < CONVERGENCE_THRESHOLD || deltaErrorRates < CONVERGENCE_THRESHOLD;
-        }
-
-        private double getDeltaPatientClassProbabilities( final Output other ) {
-            return this.classProbabilities.entrySet().stream().mapToDouble(
-                    e -> Math.abs( other.classProbabilities.get( e.getKey() ) - e.getValue() ) ).sum();
         }
     }
 

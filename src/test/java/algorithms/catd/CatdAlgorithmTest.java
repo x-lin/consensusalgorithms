@@ -1,9 +1,5 @@
 package algorithms.catd;
 
-import algorithms.fastdawidskene.Answer;
-import algorithms.fastdawidskene.ChoiceId;
-import algorithms.fastdawidskene.ParticipantId;
-import algorithms.fastdawidskene.QuestionId;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
