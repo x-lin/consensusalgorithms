@@ -1,10 +1,6 @@
 package algorithms.finaldefects.dawidskene;
 
-import algorithms.catd.CrhAlgorithm;
-import algorithms.catd.Answer;
-import algorithms.catd.ChoiceId;
-import algorithms.catd.ParticipantId;
-import algorithms.catd.QuestionId;
+import algorithms.truthinference.*;
 import algorithms.finaldefects.FinalDefectAggregationAlgorithm;
 import algorithms.finaldefects.SemesterSettings;
 import algorithms.finaldefects.WorkerDefectReports;

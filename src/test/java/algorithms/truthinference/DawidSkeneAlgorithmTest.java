@@ -1,12 +1,7 @@
-package algorithms.dawidskene;
+package algorithms.truthinference;
 
-import algorithms.catd.DawidSkeneAlgorithm;
-import algorithms.catd.DawidSkeneAlgorithm.ErrorRateId;
-import algorithms.catd.DawidSkeneAlgorithm.IndicatorEstimation;
-import algorithms.catd.Answer;
-import algorithms.catd.ChoiceId;
-import algorithms.catd.ParticipantId;
-import algorithms.catd.QuestionId;
+import algorithms.truthinference.DawidSkeneAlgorithm.ErrorRateId;
+import algorithms.truthinference.DawidSkeneAlgorithm.IndicatorEstimation;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;

@@ -1,4 +1,4 @@
-package algorithms.catd;
+package algorithms.truthinference;
 
 /**
  * @author LinX

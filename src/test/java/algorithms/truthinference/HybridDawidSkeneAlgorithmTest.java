@@ -1,6 +1,5 @@
-package algorithms.fastdawidskene;
+package algorithms.truthinference;
 
-import algorithms.catd.*;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;

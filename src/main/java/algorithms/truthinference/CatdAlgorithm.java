@@ -1,4 +1,4 @@
-package algorithms.catd;
+package algorithms.truthinference;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;

@@ -1,4 +1,4 @@
-package algorithms.catd;
+package algorithms.truthinference;
 
 import com.google.common.collect.*;
 import org.slf4j.Logger;
