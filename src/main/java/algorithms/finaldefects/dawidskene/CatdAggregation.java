@@ -1,10 +1,10 @@
 package algorithms.finaldefects.dawidskene;
 
-import algorithms.truthinference.*;
 import algorithms.finaldefects.FinalDefectAggregationAlgorithm;
 import algorithms.finaldefects.SemesterSettings;
 import algorithms.finaldefects.WorkerDefectReports;
 import algorithms.model.*;
+import algorithms.truthinference.*;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
