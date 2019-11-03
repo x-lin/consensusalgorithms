@@ -87,9 +87,8 @@ public class CrhAlgorithm {
                 this.answers.getParticipants(),
                 source -> {
                     final int sum = this.answers.getAnswers( source ).stream().mapToInt( observation -> {
-                        final int i = observation.getChoices().iterator().next().equals(
-                                truths.get( observation.getQuestionId() ) ) ? 0 : 1;
-                        return i; //loss function dm
+                        return observation.getChoices().iterator().next().equals(
+                                truths.get( observation.getQuestionId() ) ) ? 0 : 1; //loss function dm
                     } ).sum();
                     return sum == 0 ? 0.00000001 : sum;
                 } );
