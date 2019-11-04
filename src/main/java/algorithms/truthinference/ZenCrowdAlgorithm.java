@@ -176,7 +176,7 @@ public class ZenCrowdAlgorithm {
 
         @Override
         public String toString() {
-            return "IndicatorEstimation{" +
+            return "ClassEstimation{" +
                     "choice=" + this.choice +
                     ", estimation=" + this.estimation +
                     '}';
