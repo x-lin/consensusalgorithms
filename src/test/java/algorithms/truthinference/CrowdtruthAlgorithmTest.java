@@ -1,4 +1,4 @@
-package algorithms.crowdtruth;
+package algorithms.truthinference;
 
 import algorithms.truthinference.*;
 import algorithms.truthinference.CrowdtruthAlgorithm.MetricsScores;
