@@ -2,7 +2,7 @@ package algorithms.statistic;
 
 import algorithms.finaldefects.FinalDefectAggregationAlgorithm;
 import algorithms.finaldefects.SemesterSettings;
-import algorithms.finaldefects.crowdtruth.CrowdtruthAggregationAlgorithm;
+import algorithms.finaldefects.aggregation.CrowdtruthAggregation;
 import algorithms.model.EmeId;
 import algorithms.model.Emes;
 import algorithms.model.TrueDefect;
@@ -28,7 +28,7 @@ public class QualityAnalyzer {
     }
 
     public void writeConfusionMatrix( final SemesterSettings settings,
-            final ImmutableSet<CrowdtruthAggregationAlgorithm.Sample> samples, final String idKey, final String
+            final ImmutableSet<CrowdtruthAggregation.Sample> samples, final String idKey, final String
             outputFilePath ) {
         try {
             try (CSVWriter finalDefectsCsv = new CSVWriter( Files.newBufferedWriter( Paths.get(
@@ -54,7 +54,7 @@ public class QualityAnalyzer {
     }
 
     public ImmutableSet<ArtifactWithConfusionMatrix> getConfusionMatrix( final SemesterSettings settings, final
-    ImmutableSet<CrowdtruthAggregationAlgorithm.Sample> samples ) {
+    ImmutableSet<CrowdtruthAggregation.Sample> samples ) {
         final ImmutableMap<EmeId, TrueDefect> trueDefects;
         final ImmutableSet.Builder<ArtifactWithConfusionMatrix> builder = ImmutableSet.builder();
         trueDefects = AllTrueDefectsMixin.findAllTrueDefects( settings );
@@ -74,7 +74,7 @@ public class QualityAnalyzer {
     }
 
     public ImmutableSet<ArtifactWithConfusionMatrix> getConfusionMatrixForWorkers(
-            final FinalDefectAggregationAlgorithm algorithm, WebFinalDefects finalDefects ) {
+            final FinalDefectAggregationAlgorithm algorithm, final WebFinalDefects finalDefects ) {
 
         final ImmutableMap<EmeId, TrueDefect> trueDefects;
         final ImmutableSet.Builder<ArtifactWithConfusionMatrix> builder = ImmutableSet.builder();

@@ -51,7 +51,7 @@ public class HybridDawidSkeneAggregation implements FinalDefectAggregationAlgori
                         id -> FinalDefect.builder( this.emes, emeAndScenarioId ) );
                 if (builder.getAgreementCoeff().toDouble() < estimation.getIndicatorEstimation()) {
                     builder.withFinalDefectType( FinalDefectType.valueOf( estimation.getChoice().getId() ) )
-                           .withAgreementCoeff( new AgreementCoefficient( estimation.getIndicatorEstimation() ) );
+                            .withAgreementCoeff( new AgreementCoefficient( estimation.getIndicatorEstimation() ) );
                 }
                 else if (builder.getAgreementCoeff().toDouble() == estimation.getIndicatorEstimation()) {
                     builder.withFinalDefectType( FinalDefectType.UNDECIDABLE );
@@ -90,7 +90,7 @@ public class HybridDawidSkeneAggregation implements FinalDefectAggregationAlgori
                         .create( ParticipantId.create( report.getWorkerId().toInt() ),
                                 QuestionId.create( report.getEmeAndScenarioId().toString() ),
                                 ImmutableList.of( ChoiceId.create( report.getDefectType().toString() ) ) ) )
-                             .collect( ImmutableSet.toImmutableSet() ), 0.05 ); //TODO do not make it hard-coded
+                        .collect( ImmutableSet.toImmutableSet() ), 0.05 ); //TODO do not make it hard-coded
         return algorithm.run();
     }
 }

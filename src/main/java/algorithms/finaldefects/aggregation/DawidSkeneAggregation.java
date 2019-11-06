@@ -51,7 +51,7 @@ public class DawidSkeneAggregation implements FinalDefectAggregationAlgorithm {
                         id -> FinalDefect.builder( this.emes, emeAndScenarioId ) );
                 if (builder.getAgreementCoeff().toDouble() < estimation.getIndicatorEstimation()) {
                     builder.withFinalDefectType( FinalDefectType.valueOf( estimation.getLabel().getId() ) )
-                           .withAgreementCoeff( new AgreementCoefficient( estimation.getIndicatorEstimation() ) );
+                            .withAgreementCoeff( new AgreementCoefficient( estimation.getIndicatorEstimation() ) );
                 }
                 else if (builder.getAgreementCoeff().toDouble() == estimation.getIndicatorEstimation()) {
                     builder.withFinalDefectType( FinalDefectType.UNDECIDABLE );
@@ -90,7 +90,7 @@ public class DawidSkeneAggregation implements FinalDefectAggregationAlgorithm {
                         .create( ParticipantId.create( report.getWorkerId().toInt() ),
                                 QuestionId.create( report.getEmeAndScenarioId().toString() ),
                                 ImmutableList.of( ChoiceId.create( report.getDefectType().toString() ) ) ) )
-                             .collect( ImmutableSet.toImmutableSet() ) );
+                        .collect( ImmutableSet.toImmutableSet() ) );
         return dawidSkeneAlgorithm.run();
     }
 }

@@ -1,6 +1,5 @@
 package algorithms.truthinference;
 
-import algorithms.truthinference.*;
 import algorithms.truthinference.CrowdtruthAlgorithm.MetricsScores;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;

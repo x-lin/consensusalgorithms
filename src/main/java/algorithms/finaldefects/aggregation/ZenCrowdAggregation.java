@@ -85,7 +85,7 @@ public class ZenCrowdAggregation implements FinalDefectAggregationAlgorithm {
                         .create( ParticipantId.create( report.getWorkerId().toInt() ),
                                 QuestionId.create( report.getEmeAndScenarioId().toString() ),
                                 ImmutableList.of( ChoiceId.create( report.getDefectType().toString() ) ) ) )
-                             .collect( ImmutableSet.toImmutableSet() ) );
+                        .collect( ImmutableSet.toImmutableSet() ) );
         return algorithm.run();
     }
 }
