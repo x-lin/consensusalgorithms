@@ -1,4 +1,4 @@
-package algorithms.model;
+package algorithms.vericom.model;
 
 import java.sql.Connection;
 import java.sql.DriverManager;

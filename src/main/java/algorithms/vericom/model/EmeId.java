@@ -1,23 +1,17 @@
-package algorithms.model;
+package algorithms.vericom.model;
 
 import java.util.Objects;
 
 /**
  * @author LinX
  */
-public final class TaskWorkerId {
-    private final int id;
+public final class EmeId {
+    public static final EmeId EMPTY = new EmeId( "" );
 
-    public TaskWorkerId( final String id ) {
-        this( Integer.parseInt( id ) );
-    }
+    private final String id;
 
-    public TaskWorkerId( final int id ) {
+    public EmeId( final String id ) {
         this.id = id;
-    }
-
-    public int toInt() {
-        return this.id;
     }
 
     @Override
@@ -28,8 +22,8 @@ public final class TaskWorkerId {
         if (o == null || getClass() != o.getClass()) {
             return false;
         }
-        final TaskWorkerId that = (TaskWorkerId) o;
-        return this.id == that.id;
+        final EmeId emeId = (EmeId) o;
+        return Objects.equals( this.id, emeId.id );
     }
 
     @Override
@@ -39,6 +33,6 @@ public final class TaskWorkerId {
 
     @Override
     public String toString() {
-        return String.valueOf( this.id );
+        return this.id;
     }
 }

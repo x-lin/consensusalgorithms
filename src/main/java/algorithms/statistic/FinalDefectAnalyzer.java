@@ -1,10 +1,10 @@
 package algorithms.statistic;
 
 import algorithms.finaldefects.FinalDefectAggregationAlgorithm;
-import algorithms.model.EmeAndScenarioId;
-import algorithms.model.EmeId;
-import algorithms.model.FinalDefect;
-import algorithms.model.TrueDefect;
+import algorithms.vericom.model.EmeAndScenarioId;
+import algorithms.vericom.model.EmeId;
+import algorithms.vericom.model.FinalDefect;
+import algorithms.vericom.model.TrueDefect;
 import com.google.common.collect.ImmutableBiMap;
 import com.google.common.collect.ImmutableMap;
 

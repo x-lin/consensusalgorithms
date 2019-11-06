@@ -3,8 +3,8 @@ package algorithms.finaldefects.majorityvoting.adaptive;
 import algorithms.finaldefects.FinalDefectAggregationAlgorithm;
 import algorithms.finaldefects.SemesterSettings;
 import algorithms.finaldefects.WorkerDefectReports;
-import algorithms.finaldefects.majorityvoting.basic.MajorityVotingAlgorithm;
-import algorithms.model.*;
+import algorithms.finaldefects.aggregation.MajorityVotingAlgorithm;
+import algorithms.vericom.model.*;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Maps;
@@ -53,7 +53,7 @@ public class AdaptiveMajorityVoting implements FinalDefectAggregationAlgorithm {
                     finalDefectsFiltered );
 
             agreement.entrySet().stream().filter( a -> a.getValue() < this.threshold ).map( Map.Entry::getKey )
-                     .forEach( defectReportsPerWorker::remove );
+                    .forEach( defectReportsPerWorker::remove );
 
             lowestAgreement.set(
                     Collections.min( agreement.values().isEmpty() ? ImmutableSet.of( 0.0 ) : agreement.values() ) );

@@ -1,6 +1,6 @@
 package algorithms.finaldefects;
 
-import algorithms.model.DefectReport;
+import algorithms.vericom.model.DefectReport;
 import com.google.common.collect.ImmutableMap;
 
 import java.util.function.Predicate;

@@ -1,4 +1,4 @@
-package algorithms.model;
+package algorithms.vericom.model;
 
 import algorithms.finaldefects.Semester;
 import algorithms.finaldefects.SemesterSettings;
@@ -114,11 +114,11 @@ public class Participant {
         final String sql = "select * from " + PARTICIPANT_TABLE;
         try (Connection connection = DatabaseConnector.createConnection()) {
             return DSL.using( connection )
-                      .fetch( sql )
-                      .map( Participant::createValidParticipant ).stream().filter( Optional::isPresent ).map(
+                    .fetch( sql )
+                    .map( Participant::createValidParticipant ).stream().filter( Optional::isPresent ).map(
                             Optional::get ).filter(
                             p -> p.createdAt.startsWith( settings.getSemester() == Semester.WS2017 ? "2017" : "2018" ) )
-                      .collect( ImmutableSet.toImmutableSet() );
+                    .collect( ImmutableSet.toImmutableSet() );
         } catch (final SQLException e) {
             throw new UncheckedSQLException( e );
         }

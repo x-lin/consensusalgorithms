@@ -1,8 +1,8 @@
 package algorithms.finaldefects;
 
-import algorithms.model.EmeAndScenarioId;
-import algorithms.model.FinalDefect;
-import algorithms.model.TaskWorkerId;
+import algorithms.vericom.model.EmeAndScenarioId;
+import algorithms.vericom.model.FinalDefect;
+import algorithms.vericom.model.TaskWorkerId;
 import com.google.common.collect.ImmutableMap;
 
 /**

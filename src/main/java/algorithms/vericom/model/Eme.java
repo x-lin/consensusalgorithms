@@ -1,4 +1,4 @@
-package algorithms.model;
+package algorithms.vericom.model;
 
 import algorithms.finaldefects.SemesterSettings;
 import algorithms.utils.UncheckedSQLException;

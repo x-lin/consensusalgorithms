@@ -1,7 +1,7 @@
 package algorithms.finaldefects;
 
-import algorithms.model.DefectReport;
-import algorithms.model.TaskWorkerId;
+import algorithms.vericom.model.DefectReport;
+import algorithms.vericom.model.TaskWorkerId;
 import com.google.common.collect.ImmutableSet;
 
 /**

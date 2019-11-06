@@ -1,4 +1,4 @@
-package algorithms.model;
+package algorithms.vericom.model;
 
 import algorithms.finaldefects.SemesterSettings;
 import algorithms.utils.UncheckedSQLException;
@@ -171,9 +171,9 @@ public class DefectReport {
 
     public FinalDefect toFinalDefect( final Emes emes ) {
         return FinalDefect.builder( emes, getEmeAndScenarioId() )
-                          .withAgreementCoeff( new AgreementCoefficient( 1.0 ) )
-                          .withFinalDefectType( getDefectType().toFinalDefectType() )
-                          .build();
+                .withAgreementCoeff( new AgreementCoefficient( 1.0 ) )
+                .withFinalDefectType( getDefectType().toFinalDefectType() )
+                .build();
     }
 
     @Override
@@ -227,11 +227,11 @@ public class DefectReport {
 
     public DefectReport replaceScenarioId( final ScenarioId id ) {
         return DefectReport.builder( this.id ).withDefectType( this.defectType ).withEmeId( this.emeId )
-                           .withDefectDescription( this.defectDescription ).withTaskId( this.taskId )
-                           .withTaskInstanceId( this.taskInstanceId ).withWorkerId( this.workerId ).withWorkshopCode(
+                .withDefectDescription( this.defectDescription ).withTaskId( this.taskId )
+                .withTaskInstanceId( this.taskInstanceId ).withWorkerId( this.workerId ).withWorkshopCode(
                         this.workshopCode ).withWorkshopId( this.workshopId ).withEmeId( this.emeId ).withScenarioId(
                         id )
-                           .build();
+                .build();
     }
 
     public static ImmutableSet<DefectReport> fetchDefectReports( final SemesterSettings semesterSettings ) {
@@ -243,12 +243,12 @@ public class DefectReport {
         try (Connection connection = DatabaseConnector.createConnection()) {
             final String sql = "select * from " + DEFECT_REPORT_TABLE;
             final ImmutableSet<DefectReport> defectReports = DSL.using( connection )
-                                                                .fetch( sql )
-                                                                .map( DefectReport::new ).stream().filter( filter )
-                                                                .filter
-                                                                        ( e -> !Objects
-                                                                                .equals( e.getEmeId(), EmeId.EMPTY ) )
-                                                                .collect( ImmutableSet.toImmutableSet() );
+                    .fetch( sql )
+                    .map( DefectReport::new ).stream().filter( filter )
+                    .filter
+                            ( e -> !Objects
+                                    .equals( e.getEmeId(), EmeId.EMPTY ) )
+                    .collect( ImmutableSet.toImmutableSet() );
             final ImmutableSet<DefectReport> additionalDefectReportsFromCsv = getDefectReportsFromCsv();
 
             final Map<TaskWorkerId, List<DefectReport>> defectsByWorker = defectReports.stream().collect( Collectors
@@ -288,9 +288,9 @@ public class DefectReport {
             return csvReader.readAll().stream().map( r -> DefectReport.builder( Integer.parseInt( r[0] ) ).withEmeId(
                     new EmeId( r[12] ) ).withScenarioId( new ScenarioId( r[11] ) ).withWorkerId(
                     new TaskWorkerId( r[7] ) )
-                                                                      .withDefectType( DefectType.fromString( r[14] ) )
-                                                                      .withDefectReportCode( r[1] )
-                                                                      .build() ).collect(
+                    .withDefectType( DefectType.fromString( r[14] ) )
+                    .withDefectReportCode( r[1] )
+                    .build() ).collect(
                     ImmutableSet.toImmutableSet() );
         } catch (final IOException e) {
             throw new UncheckedIOException( e );

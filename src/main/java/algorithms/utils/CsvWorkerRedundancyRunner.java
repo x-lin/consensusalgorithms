@@ -1,7 +1,7 @@
 package algorithms.utils;
 
 import algorithms.finaldefects.SemesterSettings;
-import algorithms.model.DefectReports;
+import algorithms.vericom.model.DefectReports;
 import com.google.common.collect.ImmutableList;
 
 import java.io.IOException;
@@ -19,7 +19,7 @@ public class CsvWorkerRedundancyRunner {
             final ImmutableList<ImmutableList<String>> values =
                     defectReports.groupedByWorkerId().entrySet().stream().map(
                             e -> ImmutableList.of( e.getKey().toString(), String.valueOf( e.getValue().size() ) ) )
-                                 .collect( ImmutableList.toImmutableList() );
+                            .collect( ImmutableList.toImmutableList() );
 
             CsvAlgorithmRunner.write( ImmutableList.of( "workerId", "nrTasks" ), values,
                     Paths.get( BASE_OUT_PATH, "workerRedundancy_" + s.getSemester() + ".csv" ) );

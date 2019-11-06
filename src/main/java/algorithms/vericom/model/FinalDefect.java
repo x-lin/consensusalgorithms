@@ -1,4 +1,4 @@
-package algorithms.model;
+package algorithms.vericom.model;
 
 import algorithms.finaldefects.SemesterSettings;
 import algorithms.utils.UncheckedSQLException;
@@ -117,8 +117,8 @@ public class FinalDefect {
             final String sql = "select * from " + FINAL_DEFECT_TABLE + " where filter_code='" + settings
                     .getFinalDefectFilterCode() + "'";
             return DSL.using( connection )
-                      .fetch( sql )
-                      .map( FinalDefect::new ).stream().collect( ImmutableSet.toImmutableSet() );
+                    .fetch( sql )
+                    .map( FinalDefect::new ).stream().collect( ImmutableSet.toImmutableSet() );
         } catch (final SQLException e) {
             throw new UncheckedSQLException( e );
         }

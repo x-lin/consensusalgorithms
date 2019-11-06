@@ -5,9 +5,9 @@ import algorithms.finaldefects.SemesterSettings;
 import algorithms.finaldefects.aggregation.AbstractCrowdtruthAggregation.SamplingType;
 import algorithms.finaldefects.aggregation.CrowdtruthAggregation;
 import algorithms.finaldefects.aggregation.CrowdtruthFilteredWorkersAggregation;
-import algorithms.model.TaskWorkerId;
 import algorithms.statistic.QualityAnalyzer;
 import algorithms.truthinference.CrowdtruthAlgorithm;
+import algorithms.vericom.model.TaskWorkerId;
 import com.google.common.collect.ImmutableSet;
 import com.opencsv.CSVWriter;
 

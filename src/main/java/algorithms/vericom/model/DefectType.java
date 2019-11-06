@@ -1,4 +1,4 @@
-package algorithms.model;
+package algorithms.vericom.model;
 
 import java.util.Arrays;
 import java.util.NoSuchElementException;
@@ -31,7 +31,7 @@ public enum DefectType {
 
     public static DefectType fromString( final String defectType ) {
         return Arrays.stream( DefectType.values() ).filter( d -> Objects.equals( defectType, d.asString ) ).findAny()
-                     .orElseThrow(
-                             () -> new NoSuchElementException( "Unknown defect type " + defectType ) );
+                .orElseThrow(
+                        () -> new NoSuchElementException( "Unknown defect type " + defectType ) );
     }
 }

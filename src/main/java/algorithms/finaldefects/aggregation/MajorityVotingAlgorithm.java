@@ -1,10 +1,10 @@
-package algorithms.finaldefects.majorityvoting.basic;
+package algorithms.finaldefects.aggregation;
 
 import algorithms.finaldefects.FinalDefectAggregationAlgorithm;
 import algorithms.finaldefects.SemesterSettings;
 import algorithms.finaldefects.WorkerDefectReports;
 import algorithms.finaldefects.WorkerQuality;
-import algorithms.model.*;
+import algorithms.vericom.model.*;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Maps;
@@ -111,10 +111,10 @@ public class MajorityVotingAlgorithm implements FinalDefectAggregationAlgorithm 
             final List<DefectReport> defectReports ) {
         final double coefficient = BigDecimal.valueOf(
                 defectReports.stream()
-                             .map( r -> workerQuality.apply( r.getWorkerId() ) )
-                             .reduce( 0.0, ( oq, q ) -> oq + q.toDouble(), ( q1, q2 ) -> q1 + q2 ) )
-                                             .divide( BigDecimal.valueOf( nrOfReports ), ROUNDING_ACCURACY,
-                                                     RoundingMode.HALF_UP ).doubleValue();
+                        .map( r -> workerQuality.apply( r.getWorkerId() ) )
+                        .reduce( 0.0, ( oq, q ) -> oq + q.toDouble(), ( q1, q2 ) -> q1 + q2 ) )
+                .divide( BigDecimal.valueOf( nrOfReports ), ROUNDING_ACCURACY,
+                        RoundingMode.HALF_UP ).doubleValue();
         return new AgreementCoefficient( coefficient );
     }
 

@@ -1,4 +1,4 @@
-package algorithms.model;
+package algorithms.vericom.model;
 
 import com.google.common.collect.ImmutableSet;
 import org.jooq.Record;
@@ -163,8 +163,8 @@ public class TrueDefect {
         if (CACHED_TRUE_DEFECTS == null) {
             final String sql = "select * from " + TRUE_DEFECT_TABLE;
             CACHED_TRUE_DEFECTS = DSL.using( connection )
-                                     .fetch( sql )
-                                     .map( TrueDefect::new ).stream().collect( ImmutableSet.toImmutableSet() );
+                    .fetch( sql )
+                    .map( TrueDefect::new ).stream().collect( ImmutableSet.toImmutableSet() );
         }
         return CACHED_TRUE_DEFECTS;
     }

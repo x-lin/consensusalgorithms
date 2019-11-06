@@ -1,7 +1,7 @@
 package algorithms.finaldefects.aggregation;
 
 import algorithms.finaldefects.SemesterSettings;
-import algorithms.model.DefectReports;
+import algorithms.vericom.model.DefectReports;
 import com.google.common.collect.ImmutableMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

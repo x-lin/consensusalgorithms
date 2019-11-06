@@ -3,9 +3,9 @@ package algorithms.web;
 import algorithms.finaldefects.FinalDefectAggregationAlgorithm;
 import algorithms.finaldefects.Semester;
 import algorithms.finaldefects.WorkerDefectReports;
-import algorithms.model.EmeAndScenarioId;
-import algorithms.model.TaskWorkerId;
 import algorithms.statistic.*;
+import algorithms.vericom.model.EmeAndScenarioId;
+import algorithms.vericom.model.TaskWorkerId;
 import com.google.common.collect.ImmutableBiMap;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
@@ -47,7 +47,7 @@ public class WebFinalDefects {
         this.workerPearsonScores = new PearsonScores( this.workerConfusionMatrix );
         this.algorithmType = algorithmType;
         this.nrEvaluatedEmes = (int) algorithm.getFinalDefects().keySet().stream().map( EmeAndScenarioId::getEmeId )
-                                              .distinct().count();
+                .distinct().count();
         this.nrWorkers = this.defectReportsByWorker.size();
         this.nrJudgements = (int) this.defectReportsByWorker.values().stream().mapToLong(
                 d -> d.getDefectReports().size() ).sum();

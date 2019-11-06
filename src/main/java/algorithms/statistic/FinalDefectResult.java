@@ -1,9 +1,9 @@
 package algorithms.statistic;
 
-import algorithms.model.DefectType;
-import algorithms.model.FinalDefect;
-import algorithms.model.FinalDefectType;
-import algorithms.model.TrueDefect;
+import algorithms.vericom.model.DefectType;
+import algorithms.vericom.model.FinalDefect;
+import algorithms.vericom.model.FinalDefectType;
+import algorithms.vericom.model.TrueDefect;
 import com.google.common.base.Preconditions;
 
 import java.util.Objects;

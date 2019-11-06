@@ -1,8 +1,8 @@
 package algorithms.majorityvoting.basic;
 
 import algorithms.finaldefects.SemesterSettings;
-import algorithms.finaldefects.majorityvoting.basic.MajorityVotingAlgorithm;
-import algorithms.model.*;
+import algorithms.finaldefects.aggregation.MajorityVotingAlgorithm;
+import algorithms.vericom.model.*;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableBiMap;
 import com.google.common.collect.ImmutableMap;
@@ -31,9 +31,9 @@ public class MajorityVotingAlgorithmTest {
     @Before
     public void setup() {
         this.eme = Eme.builder( EME_ID )
-                      .withEmeText( "test" )
-                      .withEmeGroupId( 1 )
-                      .withEmeType( EmeType.RELATIONSHIP_MULTIPLICITY ).build();
+                .withEmeText( "test" )
+                .withEmeGroupId( 1 )
+                .withEmeType( EmeType.RELATIONSHIP_MULTIPLICITY ).build();
     }
 
     @Test
@@ -130,13 +130,13 @@ public class MajorityVotingAlgorithmTest {
 
         dbFinalDefects.forEach( db -> {
             final FinalDefect calculated = Optional.ofNullable( calculatedUnmatched.remove( db.getEmeAndScenarioId() ) )
-                                                   .orElseThrow( () -> new
-                                                           NoSuchElementException(
-                                                           "No defect with eme/scenariod id " +
-                                                                   db.getEmeAndScenarioId() +
-                                                                   " found in calculated " +
-                                                                   "final " +
-                                                                   "defects." ) );
+                    .orElseThrow( () -> new
+                            NoSuchElementException(
+                            "No defect with eme/scenariod id " +
+                                    db.getEmeAndScenarioId() +
+                                    " found in calculated " +
+                                    "final " +
+                                    "defects." ) );
             Preconditions.checkArgument( Objects.equals( calculated.getAgreementCoeff(), db.getAgreementCoeff() ),
                     "Agreement " +
                             "coefficient for eme " + db.getEmeId() + " doesn't match. Expected '%s', but was '%s'.", db
@@ -178,14 +178,14 @@ public class MajorityVotingAlgorithmTest {
     private static DefectReports getDefectReports( final DefectType... types ) {
         final AtomicInteger defectReportIdCounter = new AtomicInteger( 0 );
         return new DefectReports( Arrays.stream( types )
-                                        .map( t -> getDefectReport( t, defectReportIdCounter.incrementAndGet() ) )
-                                        .collect( ImmutableSet.toImmutableSet() ) );
+                .map( t -> getDefectReport( t, defectReportIdCounter.incrementAndGet() ) )
+                .collect( ImmutableSet.toImmutableSet() ) );
     }
 
     private static DefectReport getDefectReport( final DefectType type, final int id ) {
         return DefectReport.builder( id )
-                           .withEmeId( EME_ID )
-                           .withScenarioId( SCENARIO_ID )
-                           .withDefectType( type ).build();
+                .withEmeId( EME_ID )
+                .withScenarioId( SCENARIO_ID )
+                .withDefectType( type ).build();
     }
 }

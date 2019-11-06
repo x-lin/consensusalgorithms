@@ -2,8 +2,8 @@ package algorithms.finaldefects.majorityvoting.experiencequestionnaire;
 
 import algorithms.finaldefects.Semester;
 import algorithms.finaldefects.SemesterSettings;
-import algorithms.model.Participant;
-import algorithms.model.TaskWorkerId;
+import algorithms.vericom.model.Participant;
+import algorithms.vericom.model.TaskWorkerId;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Maps;
@@ -174,13 +174,13 @@ public class ExperienceQuestionnaire {
                 () -> participants.stream().filter(
                         p -> Objects.equals( ImmutableSet.copyOf( p.getName().toLowerCase().split( " " ) ),
                                 ImmutableSet.copyOf( name.toLowerCase().split( " " ) ) ) ).findFirst()
-                                  .orElseGet( () -> participants.stream().filter( p -> participantIdCandidates.stream()
-                                                                                                              .anyMatch(
-                                                                                                                      c -> p
-                                                                                                                              .getParticipantId()
-                                                                                                                              .contains(
-                                                                                                                                      c ) ) )
-                                                                .findFirst().orElse( null ) ) );
+                        .orElseGet( () -> participants.stream().filter( p -> participantIdCandidates.stream()
+                                .anyMatch(
+                                        c -> p
+                                                .getParticipantId()
+                                                .contains(
+                                                        c ) ) )
+                                .findFirst().orElse( null ) ) );
         if (participant == null) {
             LOG.warn( "Participant from questionnaire {} could not be matched to workerId!", name );
         }

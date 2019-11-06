@@ -4,15 +4,15 @@ import algorithms.finaldefects.FinalDefectAggregationAlgorithm;
 import algorithms.finaldefects.Semester;
 import algorithms.finaldefects.SemesterSettings;
 import algorithms.finaldefects.WorkerQualityInfluence;
-import algorithms.finaldefects.crowdtruth.CrowdtruthAggregationAlgorithm;
+import algorithms.finaldefects.aggregation.CrowdtruthAggregation;
 import algorithms.finaldefects.majorityvoting.adaptive.AdaptiveMajorityVoting;
-import algorithms.finaldefects.majorityvoting.basic.MajorityVotingAlgorithm;
+import algorithms.finaldefects.aggregation.MajorityVotingAlgorithm;
 import algorithms.finaldefects.majorityvoting.experiencequestionnaire.ExperienceQuestionType;
 import algorithms.finaldefects.majorityvoting.experiencequestionnaire.MajorityVotingWithExperienceQuestionnaire;
 import algorithms.finaldefects.majorityvoting.experiencequestionnaire.Weight;
 import algorithms.finaldefects.majorityvoting.qualitficationreport.MajorityVotingWithQualificationReport;
-import algorithms.model.EmeAndScenarioId;
 import algorithms.statistic.*;
+import algorithms.vericom.model.EmeAndScenarioId;
 import com.google.common.collect.ImmutableBiMap;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
@@ -30,7 +30,7 @@ import java.util.Map;
 @RestController
 @RequestMapping("algorithms")
 public class AlgorithmController {
-    private final Map<Semester, CrowdtruthAggregationAlgorithm> crowdtruthAlgorithm;
+    private final Map<Semester, CrowdtruthAggregation> crowdtruthAlgorithm;
 
     public AlgorithmController() {
         this.crowdtruthAlgorithm = Maps.newHashMap();
@@ -98,20 +98,19 @@ public class AlgorithmController {
     @GetMapping("/workers")
     public CrowdtruthScores workers(
             @RequestParam(value = "semester", defaultValue = "WS2017") final Semester semester ) {
-        final CrowdtruthAggregationAlgorithm crowdtruthAggregation = this.crowdtruthAlgorithm.get( semester );
+        final CrowdtruthAggregation crowdtruthAggregation = this.crowdtruthAlgorithm.get( semester );
         final ImmutableSet<ArtifactWithConfusionMatrix> workerScores =
-                QualityAnalyzer.create().getConfusionMatrixForWorkers(
-                        crowdtruthAggregationAlgorithm );
+                QualityAnalyzer.create().getConfusionMatrixForWorkers( crowdtruthAggregation );
         final ImmutableSet<ArtifactWithConfusionMatrix> annotationScores =
-                QualityAnalyzer.create().getConfusionMatrix( crowdtruthAggregationAlgorithm.getSettings(),
-                        crowdtruthAggregationAlgorithm.getAllAnnotationScores() );
+                QualityAnalyzer.create().getConfusionMatrix( crowdtruthAggregation.getSettings(),
+                        crowdtruthAggregation.getAllAnnotationScores() );
         final ImmutableSet<ArtifactWithConfusionMatrix> mediaUnitScores =
-                QualityAnalyzer.create().getConfusionMatrix( crowdtruthAggregationAlgorithm.getSettings(),
-                        crowdtruthAggregationAlgorithm.getAllMediaUnitScores() );
+                QualityAnalyzer.create().getConfusionMatrix( crowdtruthAggregation.getSettings(),
+                        crowdtruthAggregation.getAllMediaUnitScores() );
         return new CrowdtruthScores( workerScores, new PearsonScores( workerScores ),
                 annotationScores, new PearsonScores( annotationScores ),
                 mediaUnitScores, new PearsonScores( mediaUnitScores ),
-                new WebMetricsScores( crowdtruthAggregationAlgorithm.getMetricsScores() ) );
+                new WebMetricsScores( crowdtruthAggregation.getMetricsScores() ) );
     }
 
     //TODO remove

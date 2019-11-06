@@ -1,10 +1,10 @@
 package algorithms.finaldefects.majorityvoting.experiencequestionnaire;
 
 import algorithms.finaldefects.*;
-import algorithms.finaldefects.majorityvoting.basic.MajorityVotingAlgorithm;
-import algorithms.model.EmeAndScenarioId;
-import algorithms.model.FinalDefect;
-import algorithms.model.TaskWorkerId;
+import algorithms.finaldefects.aggregation.MajorityVotingAlgorithm;
+import algorithms.vericom.model.EmeAndScenarioId;
+import algorithms.vericom.model.FinalDefect;
+import algorithms.vericom.model.TaskWorkerId;
 import com.google.common.collect.ImmutableMap;
 
 import java.util.List;

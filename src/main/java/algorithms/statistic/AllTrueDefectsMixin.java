@@ -1,11 +1,11 @@
 package algorithms.statistic;
 
 import algorithms.finaldefects.SemesterSettings;
-import algorithms.model.DatabaseConnector;
-import algorithms.model.EmeId;
-import algorithms.model.Emes;
-import algorithms.model.TrueDefect;
 import algorithms.utils.UncheckedSQLException;
+import algorithms.vericom.model.DatabaseConnector;
+import algorithms.vericom.model.EmeId;
+import algorithms.vericom.model.Emes;
+import algorithms.vericom.model.TrueDefect;
 import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
@@ -44,9 +44,9 @@ public class AllTrueDefectsMixin {
         try (Connection connection = DatabaseConnector.createConnection()) {
             Files.createDirectories( Paths.get( "output" ) );
             final Map<EmeId, Set<TrueDefect>> trueDefectsByEme = TrueDefect.fetchTrueDefects( connection ).stream()
-                                                                           .collect( Collectors.groupingBy(
-                                                                                   TrueDefect::getAboutEmEid,
-                                                                                   Collectors.toSet() ) );
+                    .collect( Collectors.groupingBy(
+                            TrueDefect::getAboutEmEid,
+                            Collectors.toSet() ) );
 
             try (Reader reader = Files.newBufferedReader( Paths.get( ADDITIONAL_TRUE_DEFECTS_IN_CSV ) ); CSVReader
                     additionalTdReader = new CSVReaderBuilder( reader ).withSkipLines( 1 ).build()) {

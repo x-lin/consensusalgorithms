@@ -1,8 +1,8 @@
 package algorithms.finaldefects.aggregation;
 
-import algorithms.model.DefectReport;
-import algorithms.model.DefectReports;
-import algorithms.model.TaskWorkerId;
+import algorithms.vericom.model.DefectReport;
+import algorithms.vericom.model.DefectReports;
+import algorithms.vericom.model.TaskWorkerId;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 

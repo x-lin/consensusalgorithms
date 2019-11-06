@@ -1,7 +1,7 @@
 package algorithms.web;
 
-import algorithms.model.DefectType;
-import algorithms.model.FinalDefectType;
+import algorithms.vericom.model.DefectType;
+import algorithms.vericom.model.FinalDefectType;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableMap;
 

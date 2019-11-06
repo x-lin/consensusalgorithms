@@ -1,4 +1,4 @@
-package algorithms.model;
+package algorithms.vericom.model;
 
 import algorithms.finaldefects.SemesterSettings;
 import com.google.common.collect.ImmutableBiMap;
@@ -54,8 +54,8 @@ public final class Emes {
 
     public static Emes fetchFromDb( final SemesterSettings settings ) {
         return CACHED_EMES.computeIfAbsent( settings, s -> new Emes( Eme.fetchEmes( settings )
-                                                                        .collect( ImmutableBiMap
-                                                                                .toImmutableBiMap( Eme::getEmeId,
-                                                                                        Function.identity() ) ) ) );
+                .collect( ImmutableBiMap
+                        .toImmutableBiMap( Eme::getEmeId,
+                                Function.identity() ) ) ) );
     }
 }

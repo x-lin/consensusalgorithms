@@ -1,8 +1,8 @@
 package algorithms.finaldefects;
 
-import algorithms.model.EmeAndScenarioId;
 import algorithms.statistic.FinalDefectAnalyzer;
 import algorithms.statistic.FinalDefectResult;
+import algorithms.vericom.model.EmeAndScenarioId;
 import com.opencsv.CSVWriter;
 
 import java.io.IOException;

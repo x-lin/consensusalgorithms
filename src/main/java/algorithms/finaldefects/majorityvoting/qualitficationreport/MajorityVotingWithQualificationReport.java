@@ -1,10 +1,10 @@
 package algorithms.finaldefects.majorityvoting.qualitficationreport;
 
 import algorithms.finaldefects.*;
-import algorithms.finaldefects.majorityvoting.basic.MajorityVotingAlgorithm;
-import algorithms.model.EmeAndScenarioId;
-import algorithms.model.FinalDefect;
-import algorithms.model.TaskWorkerId;
+import algorithms.finaldefects.aggregation.MajorityVotingAlgorithm;
+import algorithms.vericom.model.EmeAndScenarioId;
+import algorithms.vericom.model.FinalDefect;
+import algorithms.vericom.model.TaskWorkerId;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableMap;
 
@@ -33,8 +33,8 @@ public class MajorityVotingWithQualificationReport implements FinalDefectAggrega
 //                    qualificationReports );
             return Optional.ofNullable( qualificationReports.get( wid ) ).map(
                     r -> influence.calculateWorkerQuality( r.getNrResults(), r.getNrFalseResults(), alpha ) )
-                           .orElseThrow(
-                                   () -> new NoSuchElementException( "Unknown qualifaction test worker " + wid ) );
+                    .orElseThrow(
+                            () -> new NoSuchElementException( "Unknown qualifaction test worker " + wid ) );
         } );
     }
 
@@ -66,7 +66,7 @@ public class MajorityVotingWithQualificationReport implements FinalDefectAggrega
     private static WorkerQuality getAverageWorkerQuality( final WorkerQualityInfluence influence, final double alpha,
             final ImmutableMap<TaskWorkerId, QualificationReport> qualificationReports ) {
         final double averageNrResults = qualificationReports.values().stream().map( QualificationReport::getNrResults )
-                                                            .count() / (double) qualificationReports.size();
+                .count() / (double) qualificationReports.size();
         final double averageFalseResults = qualificationReports.values().stream().map(
                 QualificationReport::getNrFalseResults ).count() / (double) qualificationReports.size();
         return influence.calculateWorkerQuality( averageNrResults, averageFalseResults, alpha );
