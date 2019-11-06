@@ -1,17 +1,17 @@
-package algorithms.finaldefects.crowdtruth;
+package algorithms.finaldefects.aggregation;
 
-import algorithms.crowdtruth.*;
-import algorithms.crowdtruth.CrowdtruthMetrics.MetricsScores;
 import algorithms.finaldefects.FinalDefectAggregationAlgorithm;
 import algorithms.finaldefects.SemesterSettings;
 import algorithms.finaldefects.WorkerDefectReports;
 import algorithms.finaldefects.WorkerQuality;
 import algorithms.model.*;
+import algorithms.truthinference.*;
+import algorithms.truthinference.CrowdtruthAlgorithm.MetricsScores;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Maps;
 
-import java.util.Arrays;
 import java.util.Map;
 import java.util.Objects;
 import java.util.stream.IntStream;
@@ -20,10 +20,6 @@ import java.util.stream.IntStream;
  * @author LinX
  */
 public abstract class AbstractCrowdtruthAggregation implements FinalDefectAggregationAlgorithm {
-    private static final AnnotationName[] KNOWN_ANNOTATION_OPTIONS = Arrays.stream( DefectType.values() ).map(
-            Enum::name
-    ).map( AnnotationName::create ).toArray( AnnotationName[]::new );
-
     private final MetricsScores metricsScores;
 
     private final Emes emes;
@@ -43,10 +39,9 @@ public abstract class AbstractCrowdtruthAggregation implements FinalDefectAggreg
     @Override
     public final ImmutableMap<EmeAndScenarioId, FinalDefect> getFinalDefects() {
         final Map<EmeAndScenarioId, FinalDefect.Builder> finalDefects = Maps.newHashMap();
-        this.metricsScores.getMediaUnitAnnotationScores().forEach( ( annotation, score ) -> {
-            final EmeAndScenarioId emeAndScenarioId = EmeAndScenarioId.fromString(
-                    annotation.getId().getMediaUnitId().toString() );
-            final DefectType defectType = DefectType.fromString( annotation.getId().getName().toString() );
+        this.metricsScores.getMediaUnitAnnotationScores().forEach( ( mua, score ) -> {
+            final EmeAndScenarioId emeAndScenarioId = EmeAndScenarioId.fromString( mua.getKey().getId() );
+            final DefectType defectType = DefectType.fromString( mua.getValue().getId() );
 
             final FinalDefect.Builder builder = finalDefects.computeIfAbsent( emeAndScenarioId,
                     e -> FinalDefect.builder( this.emes, emeAndScenarioId ) );
@@ -79,61 +74,61 @@ public abstract class AbstractCrowdtruthAggregation implements FinalDefectAggreg
     public ImmutableMap<TaskWorkerId, WorkerDefectReports> getWorkerDefectReports() {
         final ImmutableMap<TaskWorkerId, WorkerQuality> workerQualityScores =
                 this.metricsScores.getWorkerQualityScores().entrySet().stream().collect( ImmutableMap
-                        .toImmutableMap( e -> new TaskWorkerId( e.getKey().getId().toString() ),
+                        .toImmutableMap( e -> new TaskWorkerId( e.getKey().getId() ),
                                 e -> new WorkerQuality( e.getValue() ) ) );
         return this.defectReports.toWorkerDefectReports( workerQualityScores::get );
     }
 
     public ImmutableSet<Sample> getAllWorkerScores() {
-        final ImmutableMap<Worker, Double> workerQualityScores = this.metricsScores.getWorkerQualityScores();
+        final ImmutableMap<ParticipantId, Double> workerQualityScores = this.metricsScores.getWorkerQualityScores();
         return workerQualityScores.entrySet().stream().map( w -> {
-            final TaskWorkerId workerId = new TaskWorkerId( w.getKey().getId().toString() );
-            return new Sample( w.getKey().getId().toString(), w.getValue(), getFinalDefectForWorker( workerId ) );
+            final TaskWorkerId workerId = new TaskWorkerId( w.getKey().getId() );
+            return new Sample( w.getKey().getId(), w.getValue(), getFinalDefectForWorker( workerId ) );
         } ).collect( ImmutableSet.toImmutableSet() );
     }
 
     public ImmutableSet<Sample> getAllAnnotationScores() {
-        final ImmutableMap<Annotation, Double> annotationQualityScores = this.metricsScores
+        final ImmutableMap<ChoiceId, Double> annotationQualityScores = this.metricsScores
                 .getAnnotationQualityScores();
         return annotationQualityScores.entrySet().stream().map( w -> {
-            final String name = w.getKey().getName().toString();
+            final String name = w.getKey().getId();
             return new Sample( name, w.getValue(), getFinalDefectForAnnotation( DefectType.fromString( name ) ) );
         } ).collect( ImmutableSet.toImmutableSet() );
     }
 
     public ImmutableSet<Sample> getAllMediaUnitScores() {
-        final ImmutableMap<MediaUnit, Double> mediaUnitQualityScores = this.metricsScores
+        final ImmutableMap<QuestionId, Double> mediaUnitQualityScores = this.metricsScores
                 .getMediaUnitQualityScores();
         return mediaUnitQualityScores.entrySet().stream().map( w -> {
-            final String name = w.getKey().getId().toString();
+            final String name = w.getKey().getId();
             return new Sample( name, w.getValue(), getFinalDefectForMediaUnit( EmeAndScenarioId.fromString( name ) ) );
         } ).collect( ImmutableSet.toImmutableSet() );
     }
 
     public ImmutableSet<Sample> sampleWorkers( final SamplingType samplingType, final int
             nrWorkers ) {
-        final ImmutableMap<Worker, Double> orderedByQuality = Maps.newHashMap(
+        final ImmutableMap<ParticipantId, Double> orderedByQuality = Maps.newHashMap(
                 this.metricsScores.getWorkerQualityScores() )
-                                                                  .entrySet().stream().sorted(
+                .entrySet().stream().sorted(
                         ( c1, c2 ) -> samplingType == SamplingType.LOWEST ?
                                 c1.getValue().compareTo( c2.getValue() ) :
                                 c2.getValue().compareTo( c1.getValue() ) ).collect(
                         ImmutableMap.toImmutableMap( Map.Entry::getKey, Map.Entry::getValue ) );
 
         return IntStream.range( 0, nrWorkers ).mapToObj( n -> orderedByQuality.entrySet().stream().skip( n ).findFirst()
-                                                                              .get() )
-                        .map( w -> {
-                            final TaskWorkerId workerId = new TaskWorkerId( w.getKey().getId().toString() );
-                            return new Sample( w.getKey().getId().toString(), w.getValue(),
-                                    getFinalDefectForWorker( workerId ) );
-                        } ).collect( ImmutableSet.toImmutableSet() );
+                .get() )
+                .map( w -> {
+                    final TaskWorkerId workerId = new TaskWorkerId( w.getKey().getId() );
+                    return new Sample( w.getKey().getId(), w.getValue(),
+                            getFinalDefectForWorker( workerId ) );
+                } ).collect( ImmutableSet.toImmutableSet() );
     }
 
     private ImmutableSet<FinalDefect> getFinalDefectForMediaUnit( final EmeAndScenarioId emeAndScenarioId ) {
         return this.defectReports.getDefectReports().stream().filter(
                 d -> Objects.equals( d.getEmeAndScenarioId(), emeAndScenarioId ) )
-                                 .map( this::getFinalDefect )
-                                 .collect( ImmutableSet.toImmutableSet() );
+                .map( this::getFinalDefect )
+                .collect( ImmutableSet.toImmutableSet() );
     }
 
     private ImmutableSet<FinalDefect> getFinalDefectForAnnotation( final DefectType defectType ) {
@@ -144,23 +139,24 @@ public abstract class AbstractCrowdtruthAggregation implements FinalDefectAggreg
 
     private ImmutableSet<FinalDefect> getFinalDefectForWorker( final TaskWorkerId workerId ) {
         return this.defectReports.getDefectReports().stream().filter( d -> Objects.equals( d.getWorkerId(), workerId ) )
-                                 .map(
-                                         this::getFinalDefect ).collect( ImmutableSet.toImmutableSet() );
+                .map(
+                        this::getFinalDefect ).collect( ImmutableSet.toImmutableSet() );
     }
 
     private FinalDefect getFinalDefect( final DefectReport defectReport ) {
         return FinalDefect.builder( this.emes, defectReport.getEmeAndScenarioId() )
-                          .withAgreementCoeff( new AgreementCoefficient( 1.0 ) )
-                          .withFinalDefectType( defectReport.getDefectType().toFinalDefectType() )
-                          .build();
+                .withAgreementCoeff( new AgreementCoefficient( 1.0 ) )
+                .withFinalDefectType( defectReport.getDefectType().toFinalDefectType() )
+                .build();
     }
 
     private static MetricsScores getMetricsScores( final ImmutableSet<DefectReport> defectReports ) {
-        final ImmutableSet<CrowdtruthData> data = defectReports.stream().map( r -> new CrowdtruthData(
-                new MediaUnitId( r.getEmeAndScenarioId().toString() ), new WorkerId( r.getWorkerId().toString() ),
-                AnnotationName.create( r.getDefectType().name() ) ) ).collect( ImmutableSet.toImmutableSet() );
-        final ImmutableSet<MediaUnit> annotatedData = CrowdtruthData.annotate( data, KNOWN_ANNOTATION_OPTIONS );
-        return CrowdtruthMetrics.calculateClosed( annotatedData );
+        final ImmutableSet<Answer> data = defectReports.stream().map( r -> new Answer(
+                ParticipantId.create( r.getWorkerId().toString() ),
+                QuestionId.create( r.getEmeAndScenarioId().toString() ),
+                ImmutableList.of( ChoiceId.create( r.getDefectType().name() ) ) ) ).collect(
+                ImmutableSet.toImmutableSet() );
+        return CrowdtruthAlgorithm.calculateClosed( data );
     }
 
     public enum SamplingType {

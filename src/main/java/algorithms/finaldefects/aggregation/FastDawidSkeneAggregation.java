@@ -1,4 +1,4 @@
-package algorithms.finaldefects.dawidskene;
+package algorithms.finaldefects.aggregation;
 
 import algorithms.finaldefects.FinalDefectAggregationAlgorithm;
 import algorithms.finaldefects.SemesterSettings;

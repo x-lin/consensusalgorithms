@@ -1,6 +1,9 @@
 package algorithms.web;
 
-import algorithms.crowdtruth.*;
+import algorithms.truthinference.ChoiceId;
+import algorithms.truthinference.CrowdtruthAlgorithm;
+import algorithms.truthinference.ParticipantId;
+import algorithms.truthinference.QuestionId;
 import com.google.common.collect.ImmutableMap;
 
 import java.util.Map;
@@ -9,38 +12,34 @@ import java.util.Map;
  * @author LinX
  */
 public class WebMetricsScores {
-    private final ImmutableMap<AnnotationName, Double> annotationQualityScores;
+    private final ImmutableMap<ChoiceId, Double> annotationQualityScores;
 
-    private final ImmutableMap<WorkerId, Double> workerQualityScores;
+    private final ImmutableMap<ParticipantId, Double> workerQualityScores;
 
-    private final ImmutableMap<MediaUnitId, Double> mediaUnitQualityScores;
+    private final ImmutableMap<QuestionId, Double> mediaUnitQualityScores;
 
-    private final ImmutableMap<MediaUnitAnnotationId, Double> mediaUnitAnnotationScores;
+    private final ImmutableMap<Map.Entry<QuestionId, ChoiceId>, Double> mediaUnitAnnotationScores;
 
-    WebMetricsScores( final CrowdtruthMetrics.MetricsScores scores ) {
-        this.annotationQualityScores = scores.getAnnotationQualityScores().entrySet().stream().collect( ImmutableMap
-                .toImmutableMap( e -> e.getKey().getName(), Map.Entry::getValue ) );
-        this.workerQualityScores = scores.getWorkerQualityScores().entrySet().stream().collect( ImmutableMap
-                .toImmutableMap( e -> e.getKey().getId(), Map.Entry::getValue ) );
-        this.mediaUnitQualityScores = scores.getMediaUnitQualityScores().entrySet().stream().collect( ImmutableMap
-                .toImmutableMap( e -> e.getKey().getId(), Map.Entry::getValue ) );
-        this.mediaUnitAnnotationScores = scores.getMediaUnitAnnotationScores().entrySet().stream().collect( ImmutableMap
-                .toImmutableMap( e -> e.getKey().getId(), Map.Entry::getValue ) );
+    WebMetricsScores( final CrowdtruthAlgorithm.MetricsScores scores ) {
+        this.annotationQualityScores = scores.getAnnotationQualityScores();
+        this.workerQualityScores = scores.getWorkerQualityScores();
+        this.mediaUnitQualityScores = scores.getMediaUnitQualityScores();
+        this.mediaUnitAnnotationScores = scores.getMediaUnitAnnotationScores();
     }
 
-    public ImmutableMap<AnnotationName, Double> getAnnotationQualityScores() {
+    public ImmutableMap<ChoiceId, Double> getAnnotationQualityScores() {
         return this.annotationQualityScores;
     }
 
-    public ImmutableMap<WorkerId, Double> getWorkerQualityScores() {
+    public ImmutableMap<ParticipantId, Double> getWorkerQualityScores() {
         return this.workerQualityScores;
     }
 
-    public ImmutableMap<MediaUnitId, Double> getMediaUnitQualityScores() {
+    public ImmutableMap<QuestionId, Double> getMediaUnitQualityScores() {
         return this.mediaUnitQualityScores;
     }
 
-    public ImmutableMap<MediaUnitAnnotationId, Double> getMediaUnitAnnotationScores() {
+    public ImmutableMap<Map.Entry<QuestionId, ChoiceId>, Double> getMediaUnitAnnotationScores() {
         return this.mediaUnitAnnotationScores;
     }
 

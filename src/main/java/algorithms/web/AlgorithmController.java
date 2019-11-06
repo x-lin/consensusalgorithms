@@ -98,7 +98,7 @@ public class AlgorithmController {
     @GetMapping("/workers")
     public CrowdtruthScores workers(
             @RequestParam(value = "semester", defaultValue = "WS2017") final Semester semester ) {
-        final CrowdtruthAggregationAlgorithm crowdtruthAggregationAlgorithm = this.crowdtruthAlgorithm.get( semester );
+        final CrowdtruthAggregationAlgorithm crowdtruthAggregation = this.crowdtruthAlgorithm.get( semester );
         final ImmutableSet<ArtifactWithConfusionMatrix> workerScores =
                 QualityAnalyzer.create().getConfusionMatrixForWorkers(
                         crowdtruthAggregationAlgorithm );
@@ -137,7 +137,7 @@ public class AlgorithmController {
 
         finalDefectResults.forEach( ( algo, results ) -> results.forEach(
                 ( id, result ) -> defectReportsByEme.computeIfAbsent( id, i -> Maps.newHashMap() )
-                                                    .put( algo, result ) ) );
+                        .put( algo, result ) ) );
 
         return defectReportsByEme.entrySet().stream().map(
                 e -> new FinalDefectComparison( e.getKey().getEmeId().toString(), e.getKey().getScenarioId().toString(),
@@ -169,12 +169,12 @@ public class AlgorithmController {
             builder.put( AlgorithmType.MajorityVotingWithQualificationReport + ";exp;alpha=0.1",
                     MajorityVotingWithQualificationReport
                             .create( settings, WorkerQualityInfluence.EXPONENTIAL, 0.1 ) )
-                   .put( AlgorithmType.MajorityVotingWithQualificationReport + ";exp;alpha=0.5",
-                           MajorityVotingWithQualificationReport
-                                   .create( settings, WorkerQualityInfluence.EXPONENTIAL, 0.5 ) )
-                   .put( AlgorithmType.MajorityVotingWithQualificationReport + ";linear",
-                           MajorityVotingWithQualificationReport
-                                   .create( settings, WorkerQualityInfluence.LINEAR, 0.1 ) );
+                    .put( AlgorithmType.MajorityVotingWithQualificationReport + ";exp;alpha=0.5",
+                            MajorityVotingWithQualificationReport
+                                    .create( settings, WorkerQualityInfluence.EXPONENTIAL, 0.5 ) )
+                    .put( AlgorithmType.MajorityVotingWithQualificationReport + ";linear",
+                            MajorityVotingWithQualificationReport
+                                    .create( settings, WorkerQualityInfluence.LINEAR, 0.1 ) );
         }
         return builder.build();
     }

@@ -1,4 +1,4 @@
-package algorithms.finaldefects.dawidskene;
+package algorithms.finaldefects.aggregation;
 
 import algorithms.finaldefects.FinalDefectAggregationAlgorithm;
 import algorithms.finaldefects.SemesterSettings;
@@ -11,17 +11,16 @@ import com.google.common.collect.ImmutableSet;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.Comparator;
 import java.util.function.Function;
 
 /**
  * @author LinX
  */
-public class ZenCrowdAggregation implements FinalDefectAggregationAlgorithm {
-    private static final Logger LOG = LoggerFactory.getLogger( ZenCrowdAggregation.class );
+public class CatdAggregation implements FinalDefectAggregationAlgorithm {
+    private static final Logger LOG = LoggerFactory.getLogger( CatdAggregation.class );
 
-    //click = task(emeAndScenarioId), source = worker, link= final defect
-    private final ZenCrowdAlgorithm.Output output;
+    //entity = task(emeAndScenarioId), source = worker, information = final defect
+    private final CatdAlgorithm.Output output;
 
     private final Emes emes;
 
@@ -29,7 +28,7 @@ public class ZenCrowdAggregation implements FinalDefectAggregationAlgorithm {
 
     private final SemesterSettings settings;
 
-    protected ZenCrowdAggregation( final SemesterSettings settings,
+    protected CatdAggregation( final SemesterSettings settings,
             final DefectReports defectReports ) {
         this.settings = settings;
         this.defectReports = defectReports;
@@ -38,25 +37,22 @@ public class ZenCrowdAggregation implements FinalDefectAggregationAlgorithm {
     }
 
     public static void main( final String[] args ) {
-        final ZenCrowdAggregation aggregation = new ZenCrowdAggregation( SemesterSettings.ws2017(),
+        final CatdAggregation aggregation = new CatdAggregation( SemesterSettings.ws2017(),
                 DefectReports.fetchFromDb( SemesterSettings.ws2017() ) );
         LOG.info( "Final defects: " + aggregation.getFinalDefects() );
     }
 
     @Override
     public final ImmutableMap<EmeAndScenarioId, FinalDefect> getFinalDefects() {
-        return this.output.getClassProbabilities().entrySet().stream().map( e -> {
-            final ZenCrowdAlgorithm.ClassEstimation highest = e.getValue().stream().max(
-                    Comparator.comparingDouble( ZenCrowdAlgorithm.ClassEstimation::getEstimation ) ).get();
-
-            final EmeAndScenarioId emeAndScenarioId = EmeAndScenarioId.fromString( e.getKey().getId() );
+        return this.output.getTruths().entrySet().stream().map( truth -> {
+            final EmeAndScenarioId emeAndScenarioId = EmeAndScenarioId.fromString( truth.getKey().getId() );
             return FinalDefect.builder( this.emes, emeAndScenarioId ).withFinalDefectType(
-                    FinalDefectType.valueOf( highest.getChoice().getId() ) ).withAgreementCoeff(
-                    new AgreementCoefficient( highest.getEstimation() ) ).build();
+                    FinalDefectType.valueOf( truth.getValue().getId() ) ).withAgreementCoeff(
+                    new AgreementCoefficient( 0.0 ) ).build(); //TODO fill in agreement coefficient
         } ).collect( ImmutableMap.toImmutableMap( FinalDefect::getEmeAndScenarioId, Function.identity() ) );
     }
 
-    public ZenCrowdAlgorithm.Output runAlgorithm() {
+    public CatdAlgorithm.Output runAlgorithm() {
         return this.output;
     }
 
@@ -79,13 +75,13 @@ public class ZenCrowdAggregation implements FinalDefectAggregationAlgorithm {
         return ImmutableMap.of(); //TODO
     }
 
-    private static ZenCrowdAlgorithm.Output runAlgorithm( final ImmutableSet<DefectReport> defectReports ) {
-        final ZenCrowdAlgorithm algorithm = new ZenCrowdAlgorithm(
+    private static CatdAlgorithm.Output runAlgorithm( final ImmutableSet<DefectReport> defectReports ) {
+        final CatdAlgorithm algorithm = new CatdAlgorithm(
                 defectReports.stream().map( report -> Answer
                         .create( ParticipantId.create( report.getWorkerId().toInt() ),
                                 QuestionId.create( report.getEmeAndScenarioId().toString() ),
                                 ImmutableList.of( ChoiceId.create( report.getDefectType().toString() ) ) ) )
                              .collect( ImmutableSet.toImmutableSet() ) );
-        return algorithm.run();
+        return algorithm.run( 0.05 );
     }
 }

@@ -1,6 +1,7 @@
 package algorithms.crowdtruth;
 
-import algorithms.crowdtruth.CrowdtruthMetrics.MetricsScores;
+import algorithms.truthinference.*;
+import algorithms.truthinference.CrowdtruthAlgorithm.MetricsScores;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
@@ -26,17 +27,17 @@ import static org.hamcrest.MatcherAssert.assertThat;
  * @author LinX
  */
 @RunWith(JUnitParamsRunner.class)
-public class CrowdtruthMetricsTest {
-    private static final AnnotationName[] TEST_DATA_ANNOTATION_OPTIONS = Arrays.stream( new String[]{"A", "B", "C", "D",
+public class CrowdtruthAlgorithmTest {
+    private static final ChoiceId[] TEST_DATA_ANNOTATION_OPTIONS = Arrays.stream( new String[]{"A", "B", "C", "D",
             "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y",
-            "Z"} ).map( AnnotationName::create ).toArray( AnnotationName[]::new );
+            "Z"} ).map( ChoiceId::create ).toArray( ChoiceId[]::new );
 
-    private static final AnnotationName[] TUTORIAL_ANNOTATION_OPTIONS = Arrays.stream(
+    private static final ChoiceId[] TUTORIAL_ANNOTATION_OPTIONS = Arrays.stream(
             new String[]{"causes", "manifestation", "treats",
                     "prevents",
                     "symptom", "diagnose_by_test_or_drug",
                     "location", "side_effect", "contraindicates", "associated_with", "is_a", "part_of",
-                    "other", "none"} ).map( AnnotationName::create ).toArray( AnnotationName[]::new );
+                    "other", "none"} ).map( ChoiceId::create ).toArray( ChoiceId[]::new );
 
     @Test
     @Parameters({"2work_agr.csv", "3work_agr.csv", "4work_agr.csv", "5work_agr.csv", "6work_agr.csv", "7work_agr" +
@@ -92,6 +93,7 @@ public class CrowdtruthMetricsTest {
                 TEST_DATA_ANNOTATION_OPTIONS );
 
         //THEN
+        System.err.println( "" );
         //TODO add assertions
     }
 
@@ -150,17 +152,15 @@ public class CrowdtruthMetricsTest {
     public void tutorialData() {
         //GIVEN
         final List<TutorialData> data = parseData( "relex_example.csv", TutorialData.class );
-        final ImmutableList<CrowdtruthData> processedData = data.stream().flatMap( d -> Arrays.stream( d
+        final ImmutableSet<Answer> processedData = data.stream().flatMap( d -> Arrays.stream( d
                 .getChosenAnnotation().toString()
                 .split( " " ) ).map( a -> a.substring( 1,
                 a.length() - 1 ) ).map( String::toLowerCase ).map( a -> new
-                CrowdtruthData( d.getMediaUnitId(), d.getWorkerId(), AnnotationName.create( a ) ) ) )
-                                                                .collect( ImmutableList.toImmutableList() );
+                Answer( d.getWorkerId(), d.getMediaUnitId(), ImmutableList.of( ChoiceId.create( a ) ) ) ) )
+                .collect( ImmutableSet.toImmutableSet() );
 
         //WHEN
-        final ImmutableSet<MediaUnit> annotatedUnits = CrowdtruthData.annotate( processedData,
-                TUTORIAL_ANNOTATION_OPTIONS );
-        final MetricsScores metricsScores = CrowdtruthMetrics.calculateClosed( annotatedUnits );
+        final MetricsScores metricsScores = CrowdtruthAlgorithm.calculateClosed( processedData );
 
         //THEN
         //TODO add assertions
@@ -170,17 +170,15 @@ public class CrowdtruthMetricsTest {
     public void tutorialDataCustom() {
         //GIVEN
         final List<CustomTutorialData> data = parseData( "relex_example_custom.csv", CustomTutorialData.class );
-        final ImmutableList<CrowdtruthData> processedData = data.stream().flatMap( d -> Arrays.stream( d
+        final ImmutableSet<Answer> processedData = data.stream().flatMap( d -> Arrays.stream( d
                 .getChosenAnnotation().toString()
                 .split( " " ) ).map( a -> a.substring( 1,
                 a.length() - 1 ) ).map( String::toLowerCase ).map( a -> new
-                CrowdtruthData( d.getMediaUnitId(), d.getWorkerId(), AnnotationName.create( a ) ) ) ).collect(
-                ImmutableList.toImmutableList() );
+                Answer( d.getWorkerId(), d.getMediaUnitId(), ImmutableList.of( ChoiceId.create( a ) ) ) ) ).collect(
+                ImmutableSet.toImmutableSet() );
 
         //WHEN
-        final ImmutableSet<MediaUnit> annotatedUnits = CrowdtruthData.annotate( processedData,
-                TUTORIAL_ANNOTATION_OPTIONS );
-        final MetricsScores metricsScores = CrowdtruthMetrics.calculateClosed( annotatedUnits );
+        final MetricsScores metricsScores = CrowdtruthAlgorithm.calculateClosed( processedData );
 
         //THEN
         //TODO add assertions
@@ -191,17 +189,17 @@ public class CrowdtruthMetricsTest {
     }
 
     private static void assertAnnotationQuality( final MetricsScores metricsScores, final Matcher<Double>
-            matcher, final Predicate<AnnotationName> annotationFilter ) {
+            matcher, final Predicate<ChoiceId> annotationFilter ) {
         metricsScores.getAnnotationQualityScores().entrySet().stream().filter( e -> annotationFilter.test( e
-                .getKey().getName() ) ).forEach( e -> assertThat( "AQS does not match for " + e.getKey(), e.getValue(),
+                .getKey() ) ).forEach( e -> assertThat( "AQS does not match for " + e.getKey(), e.getValue(),
                 matcher ) );
     }
 
     private static void assertWorkerQuality( final MetricsScores metricsScores, final Matcher<Double> matcher,
-            final Predicate<WorkerId>
-                    workerFilter ) {
-        metricsScores.getWorkerQualityScores().entrySet().stream().filter( e -> workerFilter.test( e.getKey().getId()
-        ) ).forEach( e -> assertThat( "WQS does not match for worker " + e.getKey(), e.getValue(), matcher ) );
+            final Predicate<ParticipantId> workerFilter ) {
+        metricsScores.getWorkerQualityScores().entrySet().stream().filter( e -> workerFilter.test( e.getKey() ) )
+                .forEach(
+                        e -> assertThat( "WQS does not match for worker " + e.getKey(), e.getValue(), matcher ) );
     }
 
     private static void assertWorkerQuality( final MetricsScores metricsScores, final Matcher<Double> matcher ) {
@@ -215,24 +213,24 @@ public class CrowdtruthMetricsTest {
     }
 
     private static <T extends Data> MetricsScores calculateClosedMetricsScores( final String filename, final Class<T>
-            deserializedType, final AnnotationName... allAnnotations ) {
+            deserializedType, final ChoiceId... allAnnotations ) {
         final List<T> data = parseData( filename, deserializedType );
-        final ImmutableSet<CrowdtruthData> convertedData = convertData( data );
-        final ImmutableSet<MediaUnit> annotatedUnits = CrowdtruthData.annotate( convertedData, allAnnotations );
-        return CrowdtruthMetrics.calculateClosed( annotatedUnits );
+        final ImmutableSet<Answer> convertedData = convertData( data );
+        return CrowdtruthAlgorithm.calculateClosed( convertedData );
     }
 
     private static <T extends Data> MetricsScores calculateOpenMetricsScores( final String filename, final Class<T>
             deserializedType ) {
         final List<T> data = parseData( filename, deserializedType );
-        final ImmutableSet<MediaUnit> annotatedUnits = CrowdtruthData.annotate( convertData( data ) );
-        return CrowdtruthMetrics.calculateOpen( annotatedUnits );
+        final ImmutableSet<Answer> annotatedUnits = convertData( data );
+        return CrowdtruthAlgorithm.calculateOpen( annotatedUnits );
     }
 
-    public static <T extends Data> ImmutableSet<CrowdtruthData> convertData( final List<T> data ) {
+    public static <T extends Data> ImmutableSet<Answer> convertData( final List<T> data ) {
         return data.stream().map(
-                d -> new CrowdtruthData( d.getMediaUnitId(), d.getWorkerId(), d.getChosenAnnotation() ) ).collect(
-                ImmutableSet.toImmutableSet() );
+                d -> new Answer( d.getWorkerId(), d.getMediaUnitId(), ImmutableList.of( d.getChosenAnnotation() ) ) )
+                .collect(
+                        ImmutableSet.toImmutableSet() );
     }
 
     private static <T extends Data> ImmutableList<T> parseData( final String filename, final Class<T>
@@ -248,11 +246,11 @@ public class CrowdtruthMetricsTest {
     }
 
     private interface Data {
-        MediaUnitId getMediaUnitId();
+        QuestionId getMediaUnitId();
 
-        WorkerId getWorkerId();
+        ParticipantId getWorkerId();
 
-        AnnotationName getChosenAnnotation();
+        ChoiceId getChosenAnnotation();
     }
 
     public static class CustomTutorialData implements Data {
@@ -269,18 +267,18 @@ public class CrowdtruthMetricsTest {
         private String chosenAnnotation;
 
         @Override
-        public MediaUnitId getMediaUnitId() {
-            return new MediaUnitId( this.mediaUnitId );
+        public QuestionId getMediaUnitId() {
+            return QuestionId.create( this.mediaUnitId );
         }
 
         @Override
-        public WorkerId getWorkerId() {
-            return new WorkerId( this.workerId );
+        public ParticipantId getWorkerId() {
+            return ParticipantId.create( this.workerId );
         }
 
         @Override
-        public AnnotationName getChosenAnnotation() {
-            return AnnotationName.create( this.chosenAnnotation );
+        public ChoiceId getChosenAnnotation() {
+            return ChoiceId.create( this.chosenAnnotation );
         }
 
         @Override
@@ -308,18 +306,18 @@ public class CrowdtruthMetricsTest {
         private String chosenAnnotation;
 
         @Override
-        public MediaUnitId getMediaUnitId() {
-            return new MediaUnitId( this.mediaUnitId );
+        public QuestionId getMediaUnitId() {
+            return QuestionId.create( this.mediaUnitId );
         }
 
         @Override
-        public WorkerId getWorkerId() {
-            return new WorkerId( this.workerId );
+        public ParticipantId getWorkerId() {
+            return ParticipantId.create( this.workerId );
         }
 
         @Override
-        public AnnotationName getChosenAnnotation() {
-            return AnnotationName.create( this.chosenAnnotation );
+        public ChoiceId getChosenAnnotation() {
+            return ChoiceId.create( this.chosenAnnotation );
         }
 
         @Override
@@ -357,18 +355,19 @@ public class CrowdtruthMetricsTest {
         }
 
         @Override
-        public MediaUnitId getMediaUnitId() {
-            return new MediaUnitId( this.mediaUnitId );
+        public QuestionId getMediaUnitId() {
+            return QuestionId.create( this.mediaUnitId );
         }
 
         @Override
-        public WorkerId getWorkerId() {
-            return new WorkerId( this.workerId );
+        public ParticipantId getWorkerId() {
+            return ParticipantId.create( this.workerId );
         }
 
         @Override
-        public AnnotationName getChosenAnnotation() {
-            return AnnotationName.create( this.chosenAnnotation );
+        public ChoiceId getChosenAnnotation() {
+            return ChoiceId.create( this.chosenAnnotation );
         }
+
     }
 }

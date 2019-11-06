@@ -2,11 +2,12 @@ package algorithms.crowdtruth;
 
 import algorithms.finaldefects.FinalDefectCsvWriter;
 import algorithms.finaldefects.SemesterSettings;
-import algorithms.finaldefects.crowdtruth.AbstractCrowdtruthAggregation.SamplingType;
 import algorithms.finaldefects.crowdtruth.CrowdtruthAggregationAlgorithm;
-import algorithms.finaldefects.crowdtruth.CrowdtruthFilteredWorkersAggregation;
+import algorithms.finaldefects.aggregation.AbstractCrowdtruthAggregation.SamplingType;
+import algorithms.finaldefects.aggregation.CrowdtruthFilteredWorkersAggregation;
 import algorithms.model.TaskWorkerId;
 import algorithms.statistic.QualityAnalyzer;
+import algorithms.truthinference.CrowdtruthAlgorithm;
 import com.google.common.collect.ImmutableSet;
 import com.opencsv.CSVWriter;
 
@@ -34,23 +35,23 @@ public class CsvCrowdtruthWriter {
 
     public static void main( final String[] args ) {
         final CrowdtruthAggregationAlgorithm
-                crowdtruthAggregationAlgorithm = CrowdtruthAggregationAlgorithm.create( SemesterSettings.ws2017() );
+                crowdtruthAggregation = CrowdtruthAggregationAlgorithm.create( SemesterSettings.ws2017() );
         runFullAnalysis( crowdtruthAggregationAlgorithm );
         runSamplingWorkers( crowdtruthAggregationAlgorithm );
         runWorkerAnalysis( crowdtruthAggregationAlgorithm );
     }
 
-    private static void runFullAnalysis( final CrowdtruthAggregationAlgorithm crowdtruthAggregationAlgorithm ) {
+    private static void runFullAnalysis( final CrowdtruthAggregationAlgorithm crowdtruthAggregation ) {
         FinalDefectCsvWriter.analyzeAndWrite( crowdtruthAggregationAlgorithm, ANALYSIS_OUT_CSV );
     }
 
-    private static void runWorkerAnalysis( final CrowdtruthAggregationAlgorithm crowdtruthAggregationAlgorithm ) {
+    private static void runWorkerAnalysis( final CrowdtruthAggregationAlgorithm crowdtruthAggregation ) {
         QualityAnalyzer.create().writeConfusionMatrix( crowdtruthAggregationAlgorithm.getSettings(),
                 crowdtruthAggregationAlgorithm.getAllWorkerScores(),
                 "workerId", ANAYLSIS_ALL_WORKERS_OUT_CSV );
     }
 
-    private static void runSamplingWorkers( final CrowdtruthAggregationAlgorithm crowdtruthAggregationAlgorithm ) {
+    private static void runSamplingWorkers( final CrowdtruthAggregationAlgorithm crowdtruthAggregation ) {
         final int nrWorkers = 5;
         final ImmutableSet<TaskWorkerId> highestQualityWorkerIds = sampleHighestQualityWorkers(
                 crowdtruthAggregationAlgorithm, nrWorkers );
@@ -65,7 +66,7 @@ public class CsvCrowdtruthWriter {
     }
 
     private static ImmutableSet<TaskWorkerId> sampleHighestQualityWorkers( final CrowdtruthAggregationAlgorithm
-            crowdtruthAggregationAlgorithm, final int
+            crowdtruthAggregation, final int
             nrWorkers ) {
         final ImmutableSet<CrowdtruthAggregationAlgorithm.Sample> sampleHighestWorkers =
                 crowdtruthAggregationAlgorithm.sampleWorkers(
@@ -81,7 +82,7 @@ public class CsvCrowdtruthWriter {
     }
 
     private static ImmutableSet<TaskWorkerId> sampleLowestQualityWorkers( final CrowdtruthAggregationAlgorithm
-            crowdtruthAggregationAlgorithm,
+            crowdtruthAggregation,
             final int nrWorkers ) {
         final ImmutableSet<CrowdtruthAggregationAlgorithm.Sample> sampleLowestWorkers =
                 crowdtruthAggregationAlgorithm.sampleWorkers(
@@ -91,9 +92,9 @@ public class CsvCrowdtruthWriter {
                 w2.getQuality() ) ).forEach( w -> FinalDefectCsvWriter.analyzeAndWrite( crowdtruthAggregationAlgorithm,
                 getCsvFilenameAnalysisSingleLowest( Integer.valueOf( w.getId() ), counter.getAndIncrement() ) ) );
         return sampleLowestWorkers.stream().map( CrowdtruthAggregationAlgorithm.Sample::getId ).map( TaskWorkerId::new )
-                                  .collect(
-                                          ImmutableSet
-                                                  .toImmutableSet() );
+                .collect(
+                        ImmutableSet
+                                .toImmutableSet() );
     }
 
     private static String getCsvFilenameAnalysisHighest( final int nr ) {
@@ -112,35 +113,36 @@ public class CsvCrowdtruthWriter {
         return "output/crowdtruth/analysis_worker_lowest" + nr + "-" + workerId + ".csv";
     }
 
-    public static void writeMetrics( final CrowdtruthMetrics.MetricsScores metricsScores ) throws IOException {
+    public static void writeMetrics( final CrowdtruthAlgorithm.MetricsScores metricsScores )
+            throws IOException {
         Files.createDirectories( Paths.get( "output/crowdtruth" ) );
 
         try (CSVWriter workerQualityWriter = new CSVWriter( Files.newBufferedWriter( Paths.get(
                 CROWDTRUTH_OUT_WORKER_QUALITY_CSV ) ) )) {
             workerQualityWriter.writeNext( new String[]{"workerId", "Worker Quality Score (WSQ)"} );
             metricsScores.getWorkerQualityScores().forEach( ( w, q ) -> workerQualityWriter.writeNext( new
-                    String[]{w.getId().toString(), q.toString()} ) );
+                    String[]{w.getId(), q.toString()} ) );
         }
 
         try (CSVWriter annotationQualityWriter = new CSVWriter( Files.newBufferedWriter( Paths.get(
                 CROWDTRUTH_OUT_ANNOTATION_QUALITY_CSV ) ) )) {
             annotationQualityWriter.writeNext( new String[]{"annotationId", "Annotation Quality Score (AQS)"} );
             metricsScores.getAnnotationQualityScores().forEach( ( w, q ) -> annotationQualityWriter.writeNext( new
-                    String[]{w.getName().toString(), q.toString()} ) );
+                    String[]{w.getId(), q.toString()} ) );
         }
 
         try (CSVWriter workerQualityWriter = new CSVWriter( Files.newBufferedWriter( Paths.get(
                 CROWDTRUTH_OUT_MEDIA_UNIT_QUALITY_CSV ) ) )) {
             workerQualityWriter.writeNext( new String[]{"emeId", "Media Unit Quality Score (UQS)"} );
             metricsScores.getMediaUnitQualityScores().forEach( ( w, q ) -> workerQualityWriter.writeNext( new
-                    String[]{w.getId().toString(), q.toString()} ) );
+                    String[]{w.getId(), q.toString()} ) );
         }
 
         try (CSVWriter workerQualityWriter = new CSVWriter( Files.newBufferedWriter( Paths.get(
                 CROWDTRUTH_OUT_MEDIA_UNIT_ANNOTATION_SCORE_CSV ) ) )) {
             workerQualityWriter.writeNext( new String[]{"emeId", "defectType", "Media Unit Quality Score (UQS)"} );
             metricsScores.getMediaUnitAnnotationScores().forEach( ( w, q ) -> workerQualityWriter.writeNext( new
-                    String[]{w.getId().getMediaUnitId().toString(), w.getId().getName().toString(), q.toString()}
+                    String[]{w.getKey().getId(), w.getValue().getId(), q.toString()}
             ) );
         }
     }
