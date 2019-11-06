@@ -2,7 +2,6 @@ package algorithms.truthinference;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Maps;
 import com.opencsv.CSVReader;
 import com.opencsv.CSVReaderBuilder;
@@ -24,7 +23,7 @@ public class CrhAlgorithmTest {
 
         for (int dataset = 0; dataset <= maxDataset; dataset++) {
             //GIVEN
-            final ImmutableSet<Answer> answers = parseData( dataset );
+            final Answers answers = parseData( dataset );
 
             //WHEN
             final CrhAlgorithm algorithm = new CrhAlgorithm( answers );
@@ -37,17 +36,17 @@ public class CrhAlgorithmTest {
         }
     }
 
-    private static ImmutableSet<Answer> parseData( final int dataset ) {
+    private static Answers parseData( final int dataset ) {
         try {
             final CSVReader csvReader = new CSVReaderBuilder( new FileReader(
                     "src/test/resources/algorithms/catd/s4_Dog data/0/answer_" + dataset + ".csv" ) )
                     .withSkipLines( 1 )
                     .build();
 
-            return csvReader.readAll().stream().map(
+            return new Answers( csvReader.readAll().stream().map(
                     line -> Answer.create( ParticipantId.create( line[1] ), QuestionId.create( line[0] ),
-                            ImmutableList.of( ChoiceId.create( line[2] ) ) ) ).collect(
-                    ImmutableSet.toImmutableSet() );
+                            ChoiceId.create( line[2] ) ) ).collect(
+                    ImmutableList.toImmutableList() ) );
         } catch (final IOException e) {
             throw new AssertionError( "Cannot parse data.", e );
         }

@@ -7,8 +7,6 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import org.junit.Test;
 
-import java.util.Arrays;
-
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.closeTo;
 import static org.hamcrest.Matchers.equalTo;
@@ -67,16 +65,17 @@ public class DawidSkeneAlgorithmTest {
             {{2, 2, 2}, {2}, {2}, {2}, {2}}     //45
     };
 
-    private static final ImmutableSet<Answer> OBSERVATIONS = createObservationsFromRawData();
+    static final Answers OBSERVATIONS = new Answers( createObservationsFromRawData() );
 
-    private static ImmutableSet<Answer> createObservationsFromRawData() {
-        final ImmutableSet.Builder<Answer> observations = ImmutableSet.builder();
+    private static ImmutableList<Answer> createObservationsFromRawData() {
+        final ImmutableList.Builder<Answer> observations = ImmutableList.builder();
         for (int patientIdx = 0; patientIdx < RAW_DATA.length; patientIdx++) {
             for (int observerIdx = 0; observerIdx < RAW_DATA[patientIdx].length; observerIdx++) {
-                observations.add(
-                        Answer.create( ParticipantId.create( observerIdx + 1 ), QuestionId.create( patientIdx + 1 ),
-                                Arrays.stream( RAW_DATA[patientIdx][observerIdx] ).mapToObj( ChoiceId::create )
-                                      .collect( ImmutableList.toImmutableList() ) ) );
+                for (int choiceIdx = 0; choiceIdx < RAW_DATA[patientIdx][observerIdx].length; choiceIdx++) {
+                    observations.add(
+                            Answer.create( ParticipantId.create( observerIdx + 1 ), QuestionId.create( patientIdx + 1 ),
+                                    ChoiceId.create( RAW_DATA[patientIdx][observerIdx][choiceIdx] ) ) );
+                }
             }
         }
         return observations.build();

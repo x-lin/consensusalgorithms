@@ -1,7 +1,5 @@
 package algorithms.truthinference;
 
-import com.google.common.collect.ImmutableList;
-
 import java.util.Objects;
 
 /**
@@ -12,13 +10,13 @@ public final class Answer {
 
     private final QuestionId questionId;
 
-    private final ImmutableList<ChoiceId> choices;
+    private final ChoiceId choice;
 
     public Answer( final ParticipantId participantId, final QuestionId questionId,
-            final ImmutableList<ChoiceId> choices ) {
+            final ChoiceId choice ) {
         this.participantId = participantId;
         this.questionId = questionId;
-        this.choices = choices;
+        this.choice = choice;
     }
 
     public ParticipantId getParticipantId() {
@@ -29,8 +27,8 @@ public final class Answer {
         return this.questionId;
     }
 
-    public ImmutableList<ChoiceId> getChoices() {
-        return this.choices;
+    public ChoiceId getChoice() {
+        return this.choice;
     }
 
     @Override
@@ -44,12 +42,12 @@ public final class Answer {
         final Answer answer = (Answer) o;
         return Objects.equals( this.participantId, answer.participantId ) &&
                 Objects.equals( this.questionId, answer.questionId ) &&
-                Objects.equals( this.choices, answer.choices );
+                Objects.equals( this.choice, answer.choice );
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash( this.participantId, this.questionId, this.choices );
+        return Objects.hash( this.participantId, this.questionId, this.choice );
     }
 
     @Override
@@ -57,12 +55,12 @@ public final class Answer {
         return "Answer{" +
                 "participantId=" + this.participantId +
                 ", questionId=" + this.questionId +
-                ", choices=" + this.choices +
+                ", choice=" + this.choice +
                 '}';
     }
 
     public static Answer create( final ParticipantId participantId, final QuestionId questionId,
-            final ImmutableList<ChoiceId> choices ) {
-        return new Answer( participantId, questionId, choices );
+            final ChoiceId choice ) {
+        return new Answer( participantId, questionId, choice );
     }
 }

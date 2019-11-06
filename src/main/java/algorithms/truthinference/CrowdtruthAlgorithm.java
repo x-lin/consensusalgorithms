@@ -40,8 +40,8 @@ public class CrowdtruthAlgorithm {
 
     private final ImmutableMap<ParticipantId, Map<QuestionId, Map<ChoiceId, Long>>> workers;
 
-    private CrowdtruthAlgorithm( final Set<Answer> answers ) {
-        this.answers = new Answers( answers );
+    private CrowdtruthAlgorithm( final Answers answers ) {
+        this.answers = answers;
         this.mediaUnitQualityScores = this.answers.getQuestions().stream().collect(
                 Collectors.toMap( Function.identity(), m -> 1.0 ) );
         this.annotationQualityScores = this.answers.getChoices().stream().collect(
@@ -50,7 +50,7 @@ public class CrowdtruthAlgorithm {
                 Collectors.toMap( Function.identity(), m -> 1.0 ) );
         this.workers = Maps.toMap( this.answers.getParticipants(), worker -> this.answers.getAnswers( worker ).stream()
                 .collect( Collectors.groupingBy( Answer::getQuestionId, Collectors
-                        .groupingBy( a -> a.getChoices().iterator().next(), Collectors.counting() ) ) ) );
+                        .groupingBy( Answer::getChoice, Collectors.counting() ) ) ) );
     }
 
     private MetricsScores calculate( final boolean closedTask ) {
@@ -98,7 +98,7 @@ public class CrowdtruthAlgorithm {
                 ImmutableMap.builder();
         this.answers.getQuestions().forEach( mediaUnit -> {
             final ImmutableSet<ChoiceId> annotations = this.answers.getAnswers( mediaUnit ).stream().map(
-                    m -> m.getChoices().iterator().next() ).collect( ImmutableSet.toImmutableSet() );
+                    m -> m.getChoice() ).collect( ImmutableSet.toImmutableSet() );
             annotations.forEach( annotation -> {
                 mediaUnitAnnotationScores.put( new SimpleImmutableEntry<>( mediaUnit, annotation ),
                         getMediaUnitAnnotationScore( mediaUnit, annotation ) );
@@ -273,11 +273,11 @@ public class CrowdtruthAlgorithm {
         return denominator == 0.0 ? 0 : (dotProduct.get() / denominator);
     }
 
-    public static MetricsScores calculateClosed( final Set<Answer> mediaUnits ) {
+    public static MetricsScores calculateClosed( final Answers mediaUnits ) {
         return new CrowdtruthAlgorithm( mediaUnits ).calculate( true );
     }
 
-    public static MetricsScores calculateOpen( final Set<Answer> mediaUnits ) {
+    public static MetricsScores calculateOpen( final Answers mediaUnits ) {
         return new CrowdtruthAlgorithm( mediaUnits ).calculate( false );
     }
 

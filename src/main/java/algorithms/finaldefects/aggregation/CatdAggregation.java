@@ -3,9 +3,9 @@ package algorithms.finaldefects.aggregation;
 import algorithms.finaldefects.FinalDefectAggregationAlgorithm;
 import algorithms.finaldefects.SemesterSettings;
 import algorithms.finaldefects.WorkerDefectReports;
-import algorithms.truthinference.*;
+import algorithms.truthinference.Answers;
+import algorithms.truthinference.CatdAlgorithm;
 import algorithms.vericom.model.*;
-import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import org.slf4j.Logger;
@@ -76,12 +76,7 @@ public class CatdAggregation implements FinalDefectAggregationAlgorithm {
     }
 
     private static CatdAlgorithm.Output runAlgorithm( final ImmutableSet<DefectReport> defectReports ) {
-        final CatdAlgorithm algorithm = new CatdAlgorithm(
-                defectReports.stream().map( report -> Answer
-                        .create( ParticipantId.create( report.getWorkerId().toInt() ),
-                                QuestionId.create( report.getEmeAndScenarioId().toString() ),
-                                ImmutableList.of( ChoiceId.create( report.getDefectType().toString() ) ) ) )
-                        .collect( ImmutableSet.toImmutableSet() ) );
+        final CatdAlgorithm algorithm = new CatdAlgorithm( Answers.fromDefectReports( defectReports ) );
         return algorithm.run( 0.05 );
     }
 }

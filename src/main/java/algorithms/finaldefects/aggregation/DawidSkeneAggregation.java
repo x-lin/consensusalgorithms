@@ -3,9 +3,9 @@ package algorithms.finaldefects.aggregation;
 import algorithms.finaldefects.FinalDefectAggregationAlgorithm;
 import algorithms.finaldefects.SemesterSettings;
 import algorithms.finaldefects.WorkerDefectReports;
-import algorithms.truthinference.*;
+import algorithms.truthinference.Answers;
+import algorithms.truthinference.DawidSkeneAlgorithm;
 import algorithms.vericom.model.*;
-import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Maps;
@@ -86,11 +86,7 @@ public class DawidSkeneAggregation implements FinalDefectAggregationAlgorithm {
 
     private static DawidSkeneAlgorithm.Output runDawidSkeneAlgorithm( final ImmutableSet<DefectReport> defectReports ) {
         final DawidSkeneAlgorithm dawidSkeneAlgorithm = new DawidSkeneAlgorithm(
-                defectReports.stream().map( report -> Answer
-                        .create( ParticipantId.create( report.getWorkerId().toInt() ),
-                                QuestionId.create( report.getEmeAndScenarioId().toString() ),
-                                ImmutableList.of( ChoiceId.create( report.getDefectType().toString() ) ) ) )
-                        .collect( ImmutableSet.toImmutableSet() ) );
+                Answers.fromDefectReports( defectReports ) );
         return dawidSkeneAlgorithm.run();
     }
 }

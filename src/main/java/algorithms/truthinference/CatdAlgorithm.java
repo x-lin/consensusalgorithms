@@ -1,7 +1,7 @@
 package algorithms.truthinference;
 
 import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.ImmutableMultiset;
 import com.google.common.collect.Maps;
 import org.apache.commons.math3.distribution.ChiSquaredDistribution;
 import org.slf4j.Logger;
@@ -10,7 +10,6 @@ import org.slf4j.LoggerFactory;
 import java.util.Comparator;
 import java.util.Map;
 import java.util.Optional;
-import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
@@ -34,8 +33,8 @@ public class CatdAlgorithm {
     private static final double CONVERGENCE_THRESHOLD = 0.00001;
 
     //question=entity, participant=source, choice=information
-    public CatdAlgorithm( final Set<Answer> answers ) {
-        this.answers = new Answers( answers );
+    public CatdAlgorithm( final Answers answers ) {
+        this.answers = answers;
     }
 
     public Output run( final double alpha ) {
@@ -62,9 +61,9 @@ public class CatdAlgorithm {
      */
     private ImmutableMap<QuestionId, ChoiceId> estimateInitialEntityTruths() {
         return Maps.toMap( this.answers.getQuestions(), entity -> {
-            final ImmutableSet<Answer> answers = this.answers.getAnswers( entity );
-            final Map<ChoiceId, Long> nrAnswersPerChoice = answers.stream().flatMap(
-                    o -> o.getChoices().stream() ).collect( Collectors.groupingBy( o -> o, Collectors.counting() ) );
+            final ImmutableMultiset<Answer> answers = this.answers.getAnswers( entity );
+            final Map<ChoiceId, Long> nrAnswersPerChoice = answers.stream().collect(
+                    Collectors.groupingBy( Answer::getChoice, Collectors.counting() ) );
             return nrAnswersPerChoice.entrySet().stream().max(
                     Comparator.comparingLong( Map.Entry::getValue ) ).get().getKey();
         } );
@@ -78,14 +77,12 @@ public class CatdAlgorithm {
             final ImmutableMap<QuestionId, ChoiceId> currentTruths, final double alpha ) {
         final ImmutableMap<ParticipantId, Double> initialSourceWeightEstimation = Maps.toMap(
                 this.answers.getParticipants(), source -> {
-                    final ImmutableSet<Answer> claimsFromSource = this.answers.getAnswers(
-                            source ); //TODO assumes each claim only has one information -> fix value class to only allow one choice per answer
+                    final ImmutableMultiset<Answer> claimsFromSource = this.answers.getAnswers( source );
                     final double numerator = new ChiSquaredDistribution( claimsFromSource.size() )
                             .inverseCumulativeProbability( alpha / 2 );
 
                     final long diffs = claimsFromSource.stream().filter( claim -> !currentTruths.get(
-                            claim.getQuestionId() ).equals(
-                            claim.getChoices().iterator().next() ) ).count();
+                            claim.getQuestionId() ).equals( claim.getChoice() ) ).count();
 
                     return numerator / ((double) diffs + 0.000000001);
                 } );
@@ -102,16 +99,16 @@ public class CatdAlgorithm {
     private ImmutableMap<QuestionId, ChoiceId> estimateEntityTruths(
             final ImmutableMap<ParticipantId, Double> sourceWeights ) {
         return Maps.toMap( this.answers.getQuestions(), entity -> {
-            final ImmutableSet<Answer> answers = this.answers.getAnswers( entity );
+            final ImmutableMultiset<Answer> answers = this.answers.getAnswers( entity );
             final Map<ChoiceId, Double> weightedAnswersPerChoice = Maps.newHashMap();
             answers.forEach( claim -> {
-                weightedAnswersPerChoice.compute( claim.getChoices().iterator().next(),
+                weightedAnswersPerChoice.compute( claim.getChoice(),
                         ( k, v ) -> {
                             final double v1 = Optional.ofNullable( v ).orElse( 0.0 ) +
                                     sourceWeights.get( claim.getParticipantId() );
                             if (entity.getId().equals( "421" )) {
                                 LOG.info( "claim {} {} weight {}. overall weight {}", claim.getParticipantId(),
-                                        claim.getChoices().iterator().next(),
+                                        claim.getChoice(),
                                         sourceWeights.get( claim.getParticipantId() ), v1 );
                             }
                             return v1;

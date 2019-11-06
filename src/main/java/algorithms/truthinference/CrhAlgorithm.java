@@ -1,7 +1,7 @@
 package algorithms.truthinference;
 
 import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.ImmutableMultiset;
 import com.google.common.collect.Maps;
 import com.google.common.util.concurrent.AtomicDouble;
 import org.slf4j.Logger;
@@ -9,7 +9,6 @@ import org.slf4j.LoggerFactory;
 
 import java.util.Comparator;
 import java.util.Map;
-import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
@@ -33,8 +32,8 @@ public class CrhAlgorithm {
     private final Answers answers;
 
     //question=object, participant=source, choice=entry, answer=observation
-    public CrhAlgorithm( final Set<Answer> answers ) {
-        this.answers = new Answers( answers );
+    public CrhAlgorithm( final Answers answers ) {
+        this.answers = answers;
     }
 
     public Output run() {
@@ -65,11 +64,11 @@ public class CrhAlgorithm {
     private ImmutableMap<QuestionId, ChoiceId> estimateTruths(
             final ImmutableMap<ParticipantId, Double> sourceWeights ) {
         return Maps.toMap( this.answers.getQuestions(), entry -> {
-            final ImmutableSet<Answer> answers = this.answers.getAnswers( entry );
+            final ImmutableMultiset<Answer> answers = this.answers.getAnswers( entry );
             final Map<ChoiceId, AtomicDouble> score = Maps.newLinkedHashMap();
             answers.forEach(
-                    o -> score.computeIfAbsent( o.getChoices().iterator().next(), k -> new AtomicDouble( 0 ) )
-                              .addAndGet( sourceWeights.get( o.getParticipantId() ) ) );
+                    o -> score.computeIfAbsent( o.getChoice(), k -> new AtomicDouble( 0 ) )
+                            .addAndGet( sourceWeights.get( o.getParticipantId() ) ) );
             return score.entrySet().stream().max(
                     Comparator.comparingDouble( e -> e.getValue().get() ) ).get().getKey();
         } );
@@ -87,7 +86,7 @@ public class CrhAlgorithm {
                 this.answers.getParticipants(),
                 source -> {
                     final int sum = this.answers.getAnswers( source ).stream().mapToInt( observation -> {
-                        return observation.getChoices().iterator().next().equals(
+                        return observation.getChoice().equals(
                                 truths.get( observation.getQuestionId() ) ) ? 0 : 1; //loss function dm
                     } ).sum();
                     return sum == 0 ? 0.00000001 : sum;
@@ -108,11 +107,11 @@ public class CrhAlgorithm {
      */
     private ImmutableMap<QuestionId, ChoiceId> estimateInitialEntityTruths() {
         return Maps.toMap( this.answers.getQuestions(), entity -> {
-            final ImmutableSet<Answer> answers = this.answers.getAnswers( entity );
+            final ImmutableMultiset<Answer> answers = this.answers.getAnswers( entity );
             final Map<ChoiceId, AtomicInteger> nrAnswers = Maps.newLinkedHashMap();
             answers.forEach(
-                    o -> nrAnswers.computeIfAbsent( o.getChoices().iterator().next(), k -> new AtomicInteger( 0 ) )
-                                  .incrementAndGet() );
+                    o -> nrAnswers.computeIfAbsent( o.getChoice(), k -> new AtomicInteger( 0 ) )
+                            .incrementAndGet() );
             return nrAnswers.entrySet().stream().max(
                     Comparator.comparingLong( e -> e.getValue().get() ) ).get().getKey();
         } );

@@ -1,11 +1,8 @@
 package algorithms.truthinference;
 
-import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import org.junit.Test;
-
-import java.util.Arrays;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.closeTo;
@@ -15,73 +12,7 @@ import static org.hamcrest.Matchers.equalTo;
  * @author LinX
  */
 public class FastDawidSkeneAlgorithmTest {
-    //data from Table 1 of D&S
-    private static final int[][][] RAW_DATA = {
-            //part 1     2    3    4    5   ||| question
-            {{1, 1, 1}, {1}, {1}, {1}, {1}},    //1
-            {{3, 3, 3}, {4}, {3}, {3}, {4}},    //2
-            {{1, 1, 2}, {2}, {1}, {2}, {2}},    //3
-            {{2, 2, 2}, {3}, {1}, {2}, {1}},    //4
-            {{2, 2, 2}, {3}, {2}, {2}, {2}},    //5
-            {{2, 2, 2}, {3}, {3}, {2}, {2}},    //6
-            {{1, 2, 2}, {2}, {1}, {1}, {1}},    //7
-            {{3, 3, 3}, {3}, {4}, {3}, {3}},    //8
-            {{2, 2, 2}, {2}, {2}, {2}, {3}},    //9
-            {{2, 3, 2}, {2}, {2}, {2}, {3}},    //10
-            {{4, 4, 4}, {4}, {4}, {4}, {4}},    //11
-            {{2, 2, 2}, {3}, {3}, {4}, {3}},    //12
-            {{1, 1, 1}, {1}, {1}, {1}, {1}},    //13
-            {{2, 2, 2}, {3}, {2}, {1}, {2}},    //14
-            {{1, 2, 1}, {1}, {1}, {1}, {1}},    //15
-            {{1, 1, 1}, {2}, {1}, {1}, {1}},    //16
-            {{1, 1, 1}, {1}, {1}, {1}, {1}},    //17
-            {{1, 1, 1}, {1}, {1}, {1}, {1}},    //18
-            {{2, 2, 2}, {2}, {2}, {2}, {1}},    //19
-            {{2, 2, 2}, {1}, {3}, {2}, {2}},    //20
-            {{2, 2, 2}, {2}, {2}, {2}, {2}},    //21
-            {{2, 2, 2}, {2}, {2}, {2}, {1}},    //22
-            {{2, 2, 2}, {3}, {2}, {2}, {2}},    //23
-            {{2, 2, 1}, {2}, {2}, {2}, {2}},    //24
-            {{1, 1, 1}, {1}, {1}, {1}, {1}},    //25
-            {{1, 1, 1}, {1}, {1}, {1}, {1}},    //26
-            {{2, 3, 2}, {2}, {2}, {2}, {2}},    //27
-            {{1, 1, 1}, {1}, {1}, {1}, {1}},    //28
-            {{1, 1, 1}, {1}, {1}, {1}, {1}},    //29
-            {{1, 1, 2}, {1}, {1}, {2}, {1}},    //30
-            {{1, 1, 1}, {1}, {1}, {1}, {1}},    //31
-            {{3, 3, 3}, {3}, {2}, {3}, {3}},    //32
-            {{1, 1, 1}, {1}, {1}, {1}, {1}},    //33
-            {{2, 2, 2}, {2}, {2}, {2}, {2}},    //34
-            {{2, 2, 2}, {3}, {2}, {3}, {2}},    //35
-            {{4, 3, 3}, {4}, {3}, {4}, {3}},    //36
-            {{2, 2, 1}, {2}, {2}, {3}, {2}},    //37
-            {{2, 3, 2}, {3}, {2}, {3}, {3}},    //38
-            {{3, 3, 3}, {3}, {4}, {3}, {2}},    //39
-            {{1, 1, 1}, {1}, {1}, {1}, {1}},    //40
-            {{1, 1, 1}, {1}, {1}, {1}, {1}},    //41
-            {{1, 2, 1}, {2}, {1}, {1}, {1}},    //42
-            {{2, 3, 2}, {2}, {2}, {2}, {2}},    //43
-            {{1, 2, 1}, {1}, {1}, {1}, {1}},    //44
-            {{2, 2, 2}, {2}, {2}, {2}, {2}}     //45
-    };
-
-    private static final ImmutableSet<Answer> ANSWERS = createAnswersFromRawData();
-
-    private static ImmutableSet<Answer> createAnswersFromRawData() {
-        final ImmutableSet.Builder<Answer> answers = ImmutableSet.builder();
-        for (int questionIdx = 0; questionIdx < RAW_DATA.length; questionIdx++) {
-            for (int participantIdx = 0; participantIdx < RAW_DATA[questionIdx].length; participantIdx++) {
-                final int i = participantIdx + 1;
-                final int j = questionIdx + 1;
-                answers.add(
-                        Answer.create( ParticipantId.create( participantIdx + 1 ), QuestionId.create( questionIdx + 1 ),
-                                Arrays.stream( RAW_DATA[questionIdx][participantIdx] )
-                                      .mapToObj( ChoiceId::create )
-                                      .collect( ImmutableList.toImmutableList() ) ) );
-            }
-        }
-        return answers.build();
-    }
+    private static final Answers ANSWERS = DawidSkeneAlgorithmTest.OBSERVATIONS;
 
     @Test
     public void when_algorithmRunWithInputParameters_then_returnsExpectedClassProbabilities() {
@@ -508,7 +439,7 @@ public class FastDawidSkeneAlgorithmTest {
                                 new FastDawidSkeneAlgorithm.IndicatorEstimation( ChoiceId.create( 2 ), 1.00 ),
                                 new FastDawidSkeneAlgorithm.IndicatorEstimation( ChoiceId.create( 3 ), 0.00 ),
                                 new FastDawidSkeneAlgorithm.IndicatorEstimation( ChoiceId.create( 4 ), 0.00 ) ) )
-                                                                                                             .build();
+                        .build();
 
 
         //WHEN
@@ -521,8 +452,8 @@ public class FastDawidSkeneAlgorithmTest {
                 ( patient, estimations ) -> estimations.forEach( estimation -> {
                     final FastDawidSkeneAlgorithm.IndicatorEstimation expectedEstimation = expectedClassEstimatinos.get(
                             patient ).stream().filter( p -> p.getChoice().equals( estimation.getChoice() ) )
-                                                                                                                   .findFirst()
-                                                                                                                   .get();
+                            .findFirst()
+                            .get();
                     assertThat( estimation.getIndicatorEstimation(),
                             closeTo( expectedEstimation.getIndicatorEstimation(),
                                     0.01 ) );

@@ -3,7 +3,6 @@ package algorithms.truthinference;
 import algorithms.truthinference.CrowdtruthAlgorithm.MetricsScores;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.ImmutableSet;
 import com.opencsv.bean.CsvBindByName;
 import com.opencsv.bean.CsvToBeanBuilder;
 import junitparams.JUnitParamsRunner;
@@ -92,7 +91,6 @@ public class CrowdtruthAlgorithmTest {
                 TEST_DATA_ANNOTATION_OPTIONS );
 
         //THEN
-        System.err.println( "" );
         //TODO add assertions
     }
 
@@ -151,15 +149,15 @@ public class CrowdtruthAlgorithmTest {
     public void tutorialData() {
         //GIVEN
         final List<TutorialData> data = parseData( "relex_example.csv", TutorialData.class );
-        final ImmutableSet<Answer> processedData = data.stream().flatMap( d -> Arrays.stream( d
+        final ImmutableList<Answer> processedData = data.stream().flatMap( d -> Arrays.stream( d
                 .getChosenAnnotation().toString()
                 .split( " " ) ).map( a -> a.substring( 1,
-                a.length() - 1 ) ).map( String::toLowerCase ).map( a -> new
-                Answer( d.getWorkerId(), d.getMediaUnitId(), ImmutableList.of( ChoiceId.create( a ) ) ) ) )
-                .collect( ImmutableSet.toImmutableSet() );
+                a.length() - 1 ) ).map( String::toLowerCase ).map( a ->
+                Answer.create( d.getWorkerId(), d.getMediaUnitId(), ChoiceId.create( a ) ) ) )
+                .collect( ImmutableList.toImmutableList() );
 
         //WHEN
-        final MetricsScores metricsScores = CrowdtruthAlgorithm.calculateClosed( processedData );
+        final MetricsScores metricsScores = CrowdtruthAlgorithm.calculateClosed( new Answers( processedData ) );
 
         //THEN
         //TODO add assertions
@@ -169,15 +167,15 @@ public class CrowdtruthAlgorithmTest {
     public void tutorialDataCustom() {
         //GIVEN
         final List<CustomTutorialData> data = parseData( "relex_example_custom.csv", CustomTutorialData.class );
-        final ImmutableSet<Answer> processedData = data.stream().flatMap( d -> Arrays.stream( d
+        final ImmutableList<Answer> processedData = data.stream().flatMap( d -> Arrays.stream( d
                 .getChosenAnnotation().toString()
                 .split( " " ) ).map( a -> a.substring( 1,
-                a.length() - 1 ) ).map( String::toLowerCase ).map( a -> new
-                Answer( d.getWorkerId(), d.getMediaUnitId(), ImmutableList.of( ChoiceId.create( a ) ) ) ) ).collect(
-                ImmutableSet.toImmutableSet() );
+                a.length() - 1 ) ).map( String::toLowerCase ).map( a ->
+                Answer.create( d.getWorkerId(), d.getMediaUnitId(), ChoiceId.create( a ) ) ) ).collect(
+                ImmutableList.toImmutableList() );
 
         //WHEN
-        final MetricsScores metricsScores = CrowdtruthAlgorithm.calculateClosed( processedData );
+        final MetricsScores metricsScores = CrowdtruthAlgorithm.calculateClosed( new Answers( processedData ) );
 
         //THEN
         //TODO add assertions
@@ -214,22 +212,21 @@ public class CrowdtruthAlgorithmTest {
     private static <T extends Data> MetricsScores calculateClosedMetricsScores( final String filename, final Class<T>
             deserializedType, final ChoiceId... allAnnotations ) {
         final List<T> data = parseData( filename, deserializedType );
-        final ImmutableSet<Answer> convertedData = convertData( data );
+        final Answers convertedData = convertData( data );
         return CrowdtruthAlgorithm.calculateClosed( convertedData );
     }
 
     private static <T extends Data> MetricsScores calculateOpenMetricsScores( final String filename, final Class<T>
             deserializedType ) {
         final List<T> data = parseData( filename, deserializedType );
-        final ImmutableSet<Answer> annotatedUnits = convertData( data );
+        final Answers annotatedUnits = convertData( data );
         return CrowdtruthAlgorithm.calculateOpen( annotatedUnits );
     }
 
-    public static <T extends Data> ImmutableSet<Answer> convertData( final List<T> data ) {
-        return data.stream().map(
-                d -> new Answer( d.getWorkerId(), d.getMediaUnitId(), ImmutableList.of( d.getChosenAnnotation() ) ) )
-                .collect(
-                        ImmutableSet.toImmutableSet() );
+    public static <T extends Data> Answers convertData( final List<T> data ) {
+        return new Answers( data.stream().map(
+                d -> Answer.create( d.getWorkerId(), d.getMediaUnitId(), d.getChosenAnnotation() ) )
+                .collect( ImmutableList.toImmutableList() ) );
     }
 
     private static <T extends Data> ImmutableList<T> parseData( final String filename, final Class<T>

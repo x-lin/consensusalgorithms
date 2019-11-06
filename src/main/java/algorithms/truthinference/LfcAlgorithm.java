@@ -1,6 +1,7 @@
 package algorithms.truthinference;
 
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableMultiset;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Maps;
 import org.slf4j.Logger;
@@ -8,7 +9,6 @@ import org.slf4j.LoggerFactory;
 
 import java.util.Map;
 import java.util.Optional;
-import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -32,8 +32,8 @@ public class LfcAlgorithm {
 
     private final Answers answers;
 
-    public LfcAlgorithm( final Set<Answer> answers ) {
-        this.answers = new Answers( answers );
+    public LfcAlgorithm( final Answers answers ) {
+        this.answers = answers;
     }
 
     public Output run() {
@@ -84,11 +84,11 @@ public class LfcAlgorithm {
      */
     private ImmutableMap<QuestionId, ImmutableSet<ClassEstimation>> initClassEstimates() {
         return Maps.toMap( this.answers.getQuestions(), task -> {
-            final ImmutableSet<Answer> answers = this.answers.getAnswers( task );
-            final Map<ChoiceId, Long> nrAssignedLabels = answers.stream().map( a -> a.getChoices().iterator().next() )
-                                                                .collect(
-                                                                        Collectors.groupingBy( Function.identity(),
-                                                                                Collectors.counting() ) );
+            final ImmutableMultiset<Answer> answers = this.answers.getAnswers( task );
+            final Map<ChoiceId, Long> nrAssignedLabels = answers.stream().map( Answer::getChoice )
+                    .collect(
+                            Collectors.groupingBy( Function.identity(),
+                                    Collectors.counting() ) );
             return nrAssignedLabels.entrySet().stream().map(
                     l -> new ClassEstimation( l.getKey(), l.getValue() / answers.size() ) ).collect(
                     ImmutableSet.toImmutableSet() );

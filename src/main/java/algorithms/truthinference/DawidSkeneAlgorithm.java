@@ -1,10 +1,7 @@
 package algorithms.truthinference;
 
 import algorithms.Id;
-import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Maps;
-import com.google.common.collect.Sets;
+import com.google.common.collect.*;
 import com.google.common.util.concurrent.AtomicDouble;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -35,8 +32,8 @@ public class DawidSkeneAlgorithm {
 
     private final Answers observations;
 
-    public DawidSkeneAlgorithm( final Set<Answer> observations ) {
-        this.observations = new Answers( observations );
+    public DawidSkeneAlgorithm( final Answers observations ) {
+        this.observations = observations;
     }
 
     public Output run() {
@@ -98,18 +95,17 @@ public class DawidSkeneAlgorithm {
                 final Double pj = patientClassProbabilities.get( trueLabel );
 
                 this.observations.getParticipants().forEach( observer -> {
-                    this.observations.getAnswers( observer, patient ).forEach( o -> {
-                        final Map<ChoiceId, Long> countForEachLabel = o.getChoices().stream().collect(
-                                Collectors.groupingBy( Function.identity(), Collectors.counting() ) );
+                    final Map<ChoiceId, Long> countForEachLabel = this.observations.getAnswers(
+                            observer, patient ).stream().collect(
+                            Collectors.groupingBy( Answer::getChoice, Collectors.counting() ) );
 
-                        countForEachLabel.forEach( ( label, nkil ) -> {
-                            final ErrorRateEstimation errorRateEstimation = errorRates.get(
-                                    new ErrorRateId( observer, label, trueLabel ) );
-                            final double pikjl = errorRateEstimation.getErrorRateEstimation();
+                    countForEachLabel.forEach( ( label, nkil ) -> {
+                        final ErrorRateEstimation errorRateEstimation = errorRates.get(
+                                new ErrorRateId( observer, label, trueLabel ) );
+                        final double pikjl = errorRateEstimation.getErrorRateEstimation();
 
-                            final double pkjlPowerNkil = Math.pow( pikjl, nkil );
-                            productPkjlPowerNkil.set( productPkjlPowerNkil.get() * pkjlPowerNkil );
-                        } );
+                        final double pkjlPowerNkil = Math.pow( pikjl, nkil );
+                        productPkjlPowerNkil.set( productPkjlPowerNkil.get() * pkjlPowerNkil );
                     } );
                 } );
                 sumPjTimesPkjlPowerNkil.addAndGet( pj * productPkjlPowerNkil.get() );
@@ -144,20 +140,19 @@ public class DawidSkeneAlgorithm {
                 final AtomicDouble numerator = new AtomicDouble( 1.0 );
 
                 this.observations.getParticipants().forEach( observer -> {
-                    this.observations.getAnswers( observer, patient ).forEach( o -> {
-                        final Map<ChoiceId, Long> countForEachLabel = o.getChoices().stream().collect(
-                                Collectors.groupingBy( Function.identity(), Collectors.counting() ) );
+                    final Map<ChoiceId, Long> countForEachLabel = this.observations.getAnswers(
+                            observer, patient ).stream().collect(
+                            Collectors.groupingBy( Answer::getChoice, Collectors.counting() ) );
 
-                        countForEachLabel.forEach( ( label, nkil ) -> {
-                            final Optional<Double> piKjl =
-                                    Optional.ofNullable(
-                                            errorRateEstimations.get( new ErrorRateId( observer, label, trueLabel ) ) )
-                                            .map( ErrorRateEstimation::getErrorRateEstimation );
+                    countForEachLabel.forEach( ( label, nkil ) -> {
+                        final Optional<Double> piKjl =
+                                Optional.ofNullable(
+                                        errorRateEstimations.get( new ErrorRateId( observer, label, trueLabel ) ) )
+                                        .map( ErrorRateEstimation::getErrorRateEstimation );
 
-                            piKjl.ifPresent( pikjl -> {
-                                final double pikjlTimesNkil = Math.pow( pikjl, nkil );
-                                numerator.set( numerator.get() * pikjlTimesNkil );
-                            } );
+                        piKjl.ifPresent( pikjl -> {
+                            final double pikjlTimesNkil = Math.pow( pikjl, nkil );
+                            numerator.set( numerator.get() * pikjlTimesNkil );
                         } );
                     } );
 
@@ -199,21 +194,19 @@ public class DawidSkeneAlgorithm {
                         final double Tij = patientClassEstimations.get( patient ).stream().filter(
                                 p -> p.getLabel().equals( trueLabel ) ).findFirst().map(
                                 IndicatorEstimation::getIndicatorEstimation ).orElse( 0.0 );
-                        final ImmutableSet<Answer> observations = this.observations.getAnswers( observer,
-                                patient );
+                        final ImmutableMultiset<Answer> observationsByObserverForPatient = this.observations.getAnswers(
+                                observer, patient );
 
-                        final long nkil = observations.stream().flatMap(
-                                o -> o.getChoices().stream().filter( l -> l.equals( label ) ) ).count();
+                        final long nkil = observationsByObserverForPatient.stream().filter(
+                                o -> o.getChoice().equals( label ) ).count();
 
                         numerator.addAndGet( Tij * nkil );
 
-                        observations.forEach( o -> {
-                            final Map<ChoiceId, Long> countForEachLabel = o.getChoices().stream().collect(
-                                    Collectors.groupingBy( Function.identity(), Collectors.counting() ) );
+                        final Map<ChoiceId, Long> countForEachLabel = observationsByObserverForPatient.stream().collect(
+                                Collectors.groupingBy( Answer::getChoice, Collectors.counting() ) );
 
-                            countForEachLabel.values().forEach(
-                                    c -> denominator.addAndGet( Tij * c ) );
-                        } );
+                        countForEachLabel.values().forEach(
+                                c -> denominator.addAndGet( Tij * c ) );
                     } );
 
                     estimations.add( new ErrorRateEstimation( observer, label, trueLabel,
@@ -258,11 +251,10 @@ public class DawidSkeneAlgorithm {
      * @return patient class estimations for existent labels
      */
     private ImmutableSet<IndicatorEstimation> getInitialEstimatesForTruePatientClasses( final QuestionId patientId ) {
-        final ImmutableSet<Answer> observations = this.observations.getAnswers( patientId );
-        final double totalNrObservations = observations.stream().mapToInt(
-                o -> o.getChoices().size() ).sum();
-        final Map<ChoiceId, Long> nrObservationsPerLabel = observations.stream().flatMap(
-                o -> o.getChoices().stream() ).collect( Collectors.groupingBy( o -> o, Collectors.counting() ) );
+        final ImmutableMultiset<Answer> observations = this.observations.getAnswers( patientId );
+        final double totalNrObservations = observations.size();
+        final Map<ChoiceId, Long> nrObservationsPerLabel = observations.stream().collect( Collectors.groupingBy(
+                Answer::getChoice, Collectors.counting() ) );
 
         return nrObservationsPerLabel.entrySet().stream().map(
                 e -> new IndicatorEstimation( e.getKey(), e.getValue() / totalNrObservations ) ).collect(

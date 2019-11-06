@@ -1,6 +1,7 @@
 package algorithms.truthinference;
 
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableMultiset;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Maps;
 import org.slf4j.Logger;
@@ -8,7 +9,6 @@ import org.slf4j.LoggerFactory;
 
 import java.util.Map;
 import java.util.Optional;
-import java.util.Set;
 
 /**
  * Implements algorithm from:
@@ -29,8 +29,8 @@ public class ZenCrowdAlgorithm {
 
     private final Answers answers;
 
-    public ZenCrowdAlgorithm( final Set<Answer> answers ) {
-        this.answers = new Answers( answers );
+    public ZenCrowdAlgorithm( final Answers answers ) {
+        this.answers = answers;
     }
 
     //TODO incorporate prior estimations of worker quality
@@ -72,14 +72,14 @@ public class ZenCrowdAlgorithm {
     private ImmutableMap<QuestionId, ImmutableSet<ClassEstimation>> calculateClassEstimates(
             final ImmutableMap<ParticipantId, Double> workerReliabilities ) {
         return Maps.toMap( this.answers.getQuestions(), click -> {
-            final ImmutableSet<Answer> answers = this.answers.getAnswers( click );
+            final ImmutableMultiset<Answer> answers = this.answers.getAnswers( click );
 
             final Map<ChoiceId, Double> estimationsForLabel = Maps.newHashMap();
             answers.forEach( answer -> {
                 this.answers.getChoices().forEach( label -> {
                     double estimation = estimationsForLabel.computeIfAbsent( label, l -> 1.0 );
                     final double workerReliability = workerReliabilities.get( answer.getParticipantId() );
-                    if (label.equals( answer.getChoices().iterator().next() )) {
+                    if (label.equals( answer.getChoice() )) {
                         estimation = estimation * workerReliability;
                     }
                     else {
@@ -107,11 +107,11 @@ public class ZenCrowdAlgorithm {
     private ImmutableMap<ParticipantId, Double> calculateWorkerReliability(
             final ImmutableMap<QuestionId, ImmutableSet<ClassEstimation>> classEstimations ) {
         return Maps.toMap( this.answers.getParticipants(), worker -> {
-            final ImmutableSet<Answer> answersForWorker = this.answers.getAnswers( worker );
+            final ImmutableMultiset<Answer> answersForWorker = this.answers.getAnswers( worker );
             return answersForWorker.stream().mapToDouble( answer -> {
                 final Double estimation = classEstimations.get( answer.getQuestionId() )
-                                                          .stream().filter(
-                                q -> q.getChoice().equals( answer.getChoices().iterator().next() ) ).map(
+                        .stream().filter(
+                                q -> q.getChoice().equals( answer.getChoice() ) ).map(
                                 ClassEstimation::getEstimation ).findFirst().orElse( 0.0 );
                 return estimation / answersForWorker.size();
             } ).sum();

@@ -7,7 +7,6 @@ import algorithms.finaldefects.WorkerQuality;
 import algorithms.truthinference.*;
 import algorithms.truthinference.CrowdtruthAlgorithm.MetricsScores;
 import algorithms.vericom.model.*;
-import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Maps;
@@ -151,12 +150,7 @@ public abstract class AbstractCrowdtruthAggregation implements FinalDefectAggreg
     }
 
     private static MetricsScores getMetricsScores( final ImmutableSet<DefectReport> defectReports ) {
-        final ImmutableSet<Answer> data = defectReports.stream().map( r -> new Answer(
-                ParticipantId.create( r.getWorkerId().toString() ),
-                QuestionId.create( r.getEmeAndScenarioId().toString() ),
-                ImmutableList.of( ChoiceId.create( r.getDefectType().name() ) ) ) ).collect(
-                ImmutableSet.toImmutableSet() );
-        return CrowdtruthAlgorithm.calculateClosed( data );
+        return CrowdtruthAlgorithm.calculateClosed( Answers.fromDefectReports( defectReports ) );
     }
 
     public enum SamplingType {

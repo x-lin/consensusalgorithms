@@ -3,9 +3,9 @@ package algorithms.finaldefects.aggregation;
 import algorithms.finaldefects.FinalDefectAggregationAlgorithm;
 import algorithms.finaldefects.SemesterSettings;
 import algorithms.finaldefects.WorkerDefectReports;
-import algorithms.truthinference.*;
+import algorithms.truthinference.Answers;
+import algorithms.truthinference.ZenCrowdAlgorithm;
 import algorithms.vericom.model.*;
-import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import org.slf4j.Logger;
@@ -80,12 +80,7 @@ public class ZenCrowdAggregation implements FinalDefectAggregationAlgorithm {
     }
 
     private static ZenCrowdAlgorithm.Output runAlgorithm( final ImmutableSet<DefectReport> defectReports ) {
-        final ZenCrowdAlgorithm algorithm = new ZenCrowdAlgorithm(
-                defectReports.stream().map( report -> Answer
-                        .create( ParticipantId.create( report.getWorkerId().toInt() ),
-                                QuestionId.create( report.getEmeAndScenarioId().toString() ),
-                                ImmutableList.of( ChoiceId.create( report.getDefectType().toString() ) ) ) )
-                        .collect( ImmutableSet.toImmutableSet() ) );
+        final ZenCrowdAlgorithm algorithm = new ZenCrowdAlgorithm( Answers.fromDefectReports( defectReports ) );
         return algorithm.run();
     }
 }

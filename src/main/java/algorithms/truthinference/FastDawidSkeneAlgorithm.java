@@ -1,10 +1,7 @@
 package algorithms.truthinference;
 
 import algorithms.Id;
-import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Maps;
-import com.google.common.collect.Sets;
+import com.google.common.collect.*;
 import com.google.common.util.concurrent.AtomicDouble;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -32,8 +29,8 @@ public class FastDawidSkeneAlgorithm {
 
     private final Answers answers;
 
-    public FastDawidSkeneAlgorithm( final Set<Answer> answers ) {
-        this.answers = new Answers( answers );
+    public FastDawidSkeneAlgorithm( final Answers answers ) {
+        this.answers = answers;
     }
 
     public Output run() {
@@ -92,18 +89,16 @@ public class FastDawidSkeneAlgorithm {
                 final Double pj = classProbabilities.get( trueChoice );
 
                 this.answers.getParticipants().forEach( participant -> {
-                    this.answers.getAnswers( participant, question ).forEach( o -> {
-                        final Map<ChoiceId, Long> countForEachLabel = o.getChoices().stream().collect(
-                                Collectors.groupingBy( Function.identity(), Collectors.counting() ) );
+                    final Map<ChoiceId, Long> countForEachLabel = this.answers.getAnswers( participant, question )
+                            .stream().collect( Collectors.groupingBy( Answer::getChoice, Collectors.counting() ) );
 
-                        countForEachLabel.forEach( ( choiceId, nkil ) -> {
-                            final ErrorRateEstimation errorRateEstimation = errorRates.get(
-                                    new ErrorRateId( participant, choiceId, trueChoice ) );
-                            final double pikjl = errorRateEstimation.getErrorRateEstimation();
+                    countForEachLabel.forEach( ( choiceId, nkil ) -> {
+                        final ErrorRateEstimation errorRateEstimation = errorRates.get(
+                                new ErrorRateId( participant, choiceId, trueChoice ) );
+                        final double pikjl = errorRateEstimation.getErrorRateEstimation();
 
-                            final double pkjlPowerNkil = Math.pow( pikjl, nkil );
-                            productPkjlPowerNkil.set( productPkjlPowerNkil.get() * pkjlPowerNkil );
-                        } );
+                        final double pkjlPowerNkil = Math.pow( pikjl, nkil );
+                        productPkjlPowerNkil.set( productPkjlPowerNkil.get() * pkjlPowerNkil );
                     } );
                 } );
                 sumPjTimesPkjlPowerNkil.addAndGet( pj * productPkjlPowerNkil.get() );
@@ -140,21 +135,20 @@ public class FastDawidSkeneAlgorithm {
                         final AtomicDouble numerator = new AtomicDouble( 1.0 );
 
                         this.answers.getParticipants().forEach( participant -> {
-                            this.answers.getAnswers( participant, question ).forEach( o -> {
-                                final Map<ChoiceId, Long> countForEachLabel = o.getChoices().stream().collect(
-                                        Collectors.groupingBy( Function.identity(), Collectors.counting() ) );
+                            final Map<ChoiceId, Long> countForEachLabel =
+                                    this.answers.getAnswers( participant, question ).stream().collect(
+                                            Collectors.groupingBy( Answer::getChoice, Collectors.counting() ) );
 
-                                countForEachLabel.forEach( ( choiceId, nkil ) -> {
-                                    final Optional<Double> piKjl =
-                                            Optional.ofNullable( errorRateEstimations
-                                                    .get( new ErrorRateId( participant, choiceId,
-                                                            trueChoice ) ) ).map(
-                                                    ErrorRateEstimation::getErrorRateEstimation );
+                            countForEachLabel.forEach( ( choiceId, nkil ) -> {
+                                final Optional<Double> piKjl =
+                                        Optional.ofNullable( errorRateEstimations
+                                                .get( new ErrorRateId( participant, choiceId,
+                                                        trueChoice ) ) ).map(
+                                                ErrorRateEstimation::getErrorRateEstimation );
 
-                                    piKjl.ifPresent( pikjl -> {
-                                        final double pikjlTimesNkil = Math.pow( pikjl, nkil );
-                                        numerator.set( numerator.get() * pikjlTimesNkil );
-                                    } );
+                                piKjl.ifPresent( pikjl -> {
+                                    final double pikjlTimesNkil = Math.pow( pikjl, nkil );
+                                    numerator.set( numerator.get() * pikjlTimesNkil );
                                 } );
                             } );
 
@@ -212,20 +206,17 @@ public class FastDawidSkeneAlgorithm {
                         final double Tij = classEstimations.get( question ).stream().filter(
                                 p -> p.getChoice().equals( trueChoice ) ).findFirst().map(
                                 IndicatorEstimation::getIndicatorEstimation ).orElse( 0.0 );
-                        final ImmutableSet<Answer> answers = this.answers.getAnswers( participant, question );
+                        final ImmutableMultiset<Answer> answers = this.answers.getAnswers( participant, question );
 
-                        final long nkil = answers.stream().flatMap(
-                                o -> o.getChoices().stream().filter( l -> l.equals( choiceId ) ) ).count();
+                        final long nkil = answers.stream().filter( o -> o.getChoice().equals( choiceId ) ).count();
 
                         numerator.addAndGet( Tij * nkil );
 
-                        answers.forEach( o -> {
-                            final Map<ChoiceId, Long> countForEachChoice = o.getChoices().stream().collect(
-                                    Collectors.groupingBy( Function.identity(), Collectors.counting() ) );
+                        final Map<ChoiceId, Long> countForEachChoice = answers.stream().collect(
+                                Collectors.groupingBy( Answer::getChoice, Collectors.counting() ) );
 
-                            countForEachChoice.values().forEach(
-                                    c -> denominator.addAndGet( Tij * c ) );
-                        } );
+                        countForEachChoice.values().forEach(
+                                c -> denominator.addAndGet( Tij * c ) );
                     } );
 
                     estimations.add( new ErrorRateEstimation( participant, choiceId, trueChoice,
@@ -276,9 +267,9 @@ public class FastDawidSkeneAlgorithm {
      */
     private ImmutableSet<IndicatorEstimation> getInitialEstimatesForTrueClasses(
             final QuestionId questionId ) {
-        final ImmutableSet<Answer> answers = this.answers.getAnswers( questionId );
-        final Map<ChoiceId, Long> nrAnswersPerChoice = answers.stream().flatMap(
-                o -> o.getChoices().stream() ).collect( Collectors.groupingBy( o -> o, Collectors.counting() ) );
+        final ImmutableMultiset<Answer> answers = this.answers.getAnswers( questionId );
+        final Map<ChoiceId, Long> nrAnswersPerChoice = answers.stream().collect( Collectors.groupingBy(
+                Answer::getChoice, Collectors.counting() ) );
         final ChoiceId choiceWithHighestOccurrence = nrAnswersPerChoice.entrySet().stream().max(
                 Comparator.comparingLong( Map.Entry::getValue ) ).get().getKey();
 
