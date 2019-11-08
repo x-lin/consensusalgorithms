@@ -1,6 +1,6 @@
 package algorithms.statistic;
 
-import algorithms.finaldefects.FinalDefectAggregationAlgorithm;
+import algorithms.finaldefects.aggregation.FinalDefectAggregationAlgorithm;
 import algorithms.vericom.model.EmeAndScenarioId;
 import algorithms.vericom.model.EmeId;
 import algorithms.vericom.model.FinalDefect;

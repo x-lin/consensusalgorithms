@@ -14,6 +14,13 @@ public class CsvWorkerRedundancyRunner {
     private static final String BASE_OUT_PATH = "output/analysis/";
 
     public static void main( final String[] args ) throws IOException {
+        writeWorkerRedundancyToCsv();
+    }
+
+    /**
+     * Writes the worker and the nr of tasks done to a CSV file.
+     */
+    private static void writeWorkerRedundancyToCsv() {
         SemesterSettings.SETTINGS.values().forEach( s -> {
             final DefectReports defectReports = DefectReports.fetchFromDb( s );
             final ImmutableList<ImmutableList<String>> values =

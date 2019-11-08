@@ -1,4 +1,4 @@
-package algorithms.finaldefects.majorityvoting.experiencequestionnaire;
+package algorithms.vericom.model;
 
 /**
  * @author LinX

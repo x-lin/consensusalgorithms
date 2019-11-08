@@ -8,5 +8,11 @@ enum AlgorithmType {
     MajorityVoting,
     AdaptiveMajorityVoting,
     MajorityVotingWithQualificationReport,
-    MajorityVotingWithExperienceQuestionnaire
+    MajorityVotingWithExperienceQuestionnaire,
+    CRH,
+    CATD,
+    DawidSkene,
+    FastDawidSkene,
+    HybridDawidSkene,
+    ZenCrowd
 }

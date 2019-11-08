@@ -1,6 +1,5 @@
 package algorithms.finaldefects.aggregation;
 
-import algorithms.finaldefects.FinalDefectAggregationAlgorithm;
 import algorithms.finaldefects.SemesterSettings;
 import algorithms.finaldefects.WorkerDefectReports;
 import algorithms.finaldefects.WorkerQuality;

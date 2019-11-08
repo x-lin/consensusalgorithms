@@ -1,18 +1,13 @@
 package algorithms.web;
 
-import algorithms.finaldefects.FinalDefectAggregationAlgorithm;
 import algorithms.finaldefects.Semester;
 import algorithms.finaldefects.SemesterSettings;
 import algorithms.finaldefects.WorkerQualityInfluence;
-import algorithms.finaldefects.aggregation.CrowdtruthAggregation;
-import algorithms.finaldefects.aggregation.MajorityVotingAlgorithm;
-import algorithms.finaldefects.majorityvoting.adaptive.AdaptiveMajorityVoting;
-import algorithms.finaldefects.majorityvoting.experiencequestionnaire.ExperienceQuestionType;
-import algorithms.finaldefects.majorityvoting.experiencequestionnaire.MajorityVotingWithExperienceQuestionnaire;
-import algorithms.finaldefects.majorityvoting.experiencequestionnaire.Weight;
-import algorithms.finaldefects.majorityvoting.qualitficationreport.MajorityVotingWithQualificationReport;
+import algorithms.finaldefects.aggregation.*;
 import algorithms.statistic.*;
 import algorithms.vericom.model.EmeAndScenarioId;
+import algorithms.vericom.model.ExperienceQuestionType;
+import algorithms.vericom.model.Weight;
 import com.google.common.collect.ImmutableBiMap;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;

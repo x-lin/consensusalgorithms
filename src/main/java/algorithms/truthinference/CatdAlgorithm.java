@@ -103,21 +103,9 @@ public class CatdAlgorithm {
             final Map<ChoiceId, Double> weightedAnswersPerChoice = Maps.newHashMap();
             answers.forEach( claim -> {
                 weightedAnswersPerChoice.compute( claim.getChoice(),
-                        ( k, v ) -> {
-                            final double v1 = Optional.ofNullable( v ).orElse( 0.0 ) +
-                                    sourceWeights.get( claim.getParticipantId() );
-                            if (entity.getId().equals( "421" )) {
-                                LOG.info( "claim {} {} weight {}. overall weight {}", claim.getParticipantId(),
-                                        claim.getChoice(),
-                                        sourceWeights.get( claim.getParticipantId() ), v1 );
-                            }
-                            return v1;
-                        } );
+                        ( k, v ) -> Optional.ofNullable( v ).orElse( 0.0 ) +
+                                sourceWeights.get( claim.getParticipantId() ) );
             } );
-
-            if (entity.getId().equals( "421" )) {
-                LOG.info( "weighted answers for 421: {}.", weightedAnswersPerChoice );
-            }
 
             return weightedAnswersPerChoice.entrySet().stream().max(
                     Comparator.comparingDouble( Map.Entry::getValue ) ).get().getKey();

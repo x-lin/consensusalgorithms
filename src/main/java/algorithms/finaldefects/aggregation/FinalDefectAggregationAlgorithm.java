@@ -1,5 +1,7 @@
-package algorithms.finaldefects;
+package algorithms.finaldefects.aggregation;
 
+import algorithms.finaldefects.SemesterSettings;
+import algorithms.finaldefects.WorkerDefectReports;
 import algorithms.vericom.model.EmeAndScenarioId;
 import algorithms.vericom.model.FinalDefect;
 import algorithms.vericom.model.TaskWorkerId;

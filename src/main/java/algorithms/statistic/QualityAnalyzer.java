@@ -1,8 +1,8 @@
 package algorithms.statistic;
 
-import algorithms.finaldefects.FinalDefectAggregationAlgorithm;
 import algorithms.finaldefects.SemesterSettings;
 import algorithms.finaldefects.aggregation.CrowdtruthAggregation;
+import algorithms.finaldefects.aggregation.FinalDefectAggregationAlgorithm;
 import algorithms.vericom.model.EmeId;
 import algorithms.vericom.model.Emes;
 import algorithms.vericom.model.TrueDefect;

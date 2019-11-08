@@ -1,9 +1,7 @@
-package algorithms.finaldefects.majorityvoting.experiencequestionnaire;
+package algorithms.vericom.model;
 
 import algorithms.finaldefects.Semester;
 import algorithms.finaldefects.SemesterSettings;
-import algorithms.vericom.model.Participant;
-import algorithms.vericom.model.TaskWorkerId;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Maps;

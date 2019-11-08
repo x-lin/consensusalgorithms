@@ -1,9 +1,7 @@
-package algorithms.finaldefects.majorityvoting.adaptive;
+package algorithms.finaldefects.aggregation;
 
-import algorithms.finaldefects.FinalDefectAggregationAlgorithm;
 import algorithms.finaldefects.SemesterSettings;
 import algorithms.finaldefects.WorkerDefectReports;
-import algorithms.finaldefects.aggregation.MajorityVotingAlgorithm;
 import algorithms.vericom.model.*;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;

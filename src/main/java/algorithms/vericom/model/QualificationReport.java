@@ -1,6 +1,5 @@
-package algorithms.finaldefects.majorityvoting.qualitficationreport;
+package algorithms.vericom.model;
 
-import algorithms.vericom.model.TaskWorkerId;
 import com.google.common.collect.ImmutableMap;
 import com.opencsv.CSVReader;
 import com.opencsv.CSVReaderBuilder;

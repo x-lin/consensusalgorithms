@@ -1,8 +1,8 @@
 package algorithms.web;
 
-import algorithms.finaldefects.FinalDefectAggregationAlgorithm;
 import algorithms.finaldefects.Semester;
 import algorithms.finaldefects.WorkerDefectReports;
+import algorithms.finaldefects.aggregation.FinalDefectAggregationAlgorithm;
 import algorithms.statistic.*;
 import algorithms.vericom.model.EmeAndScenarioId;
 import algorithms.vericom.model.TaskWorkerId;

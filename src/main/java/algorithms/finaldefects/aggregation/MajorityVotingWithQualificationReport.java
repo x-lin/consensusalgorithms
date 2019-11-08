@@ -1,9 +1,9 @@
-package algorithms.finaldefects.majorityvoting.qualitficationreport;
+package algorithms.finaldefects.aggregation;
 
 import algorithms.finaldefects.*;
-import algorithms.finaldefects.aggregation.MajorityVotingAlgorithm;
 import algorithms.vericom.model.EmeAndScenarioId;
 import algorithms.vericom.model.FinalDefect;
+import algorithms.vericom.model.QualificationReport;
 import algorithms.vericom.model.TaskWorkerId;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableMap;
