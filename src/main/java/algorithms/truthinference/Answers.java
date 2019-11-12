@@ -83,10 +83,10 @@ public final class Answers {
     }
 
     public static Answers fromDefectReports( final ImmutableSet<DefectReport> defectReports ) {
-        return new Answers( defectReports.stream().map( report -> Answer
+        return new Answers( ImmutableList.copyOf( defectReports.stream().map( report -> Answer
                 .create( ParticipantId.create( report.getWorkerId().toInt() ),
                         QuestionId.create( report.getEmeAndScenarioId().toString() ),
                         ChoiceId.create( report.getDefectType().toString() ) ) )
-                .collect( ImmutableList.toImmutableList() ) );
+                .collect( ImmutableSet.toImmutableSet() ) ) );
     }
 }

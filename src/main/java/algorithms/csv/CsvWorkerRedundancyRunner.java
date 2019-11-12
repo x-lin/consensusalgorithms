@@ -1,4 +1,4 @@
-package algorithms.utils;
+package algorithms.csv;
 
 import algorithms.finaldefects.SemesterSettings;
 import algorithms.vericom.model.DefectReports;
@@ -11,8 +11,6 @@ import java.nio.file.Paths;
  * @author LinX
  */
 public class CsvWorkerRedundancyRunner {
-    private static final String BASE_OUT_PATH = "output/analysis/";
-
     public static void main( final String[] args ) throws IOException {
         writeWorkerRedundancyToCsv();
     }
@@ -29,7 +27,7 @@ public class CsvWorkerRedundancyRunner {
                             .collect( ImmutableList.toImmutableList() );
 
             CsvAlgorithmRunner.write( ImmutableList.of( "workerId", "nrTasks" ), values,
-                    Paths.get( BASE_OUT_PATH, "workerRedundancy_" + s.getSemester() + ".csv" ) );
+                    Paths.get( CsvAlgorithmRunner.BASE_OUT_PATH, "workerRedundancy_" + s.getSemester() + ".csv" ) );
         } );
     }
 }

@@ -28,9 +28,8 @@ public class AlgorithmController {
     private final Map<Semester, CrowdtruthAggregation> crowdtruthAlgorithm;
 
     public AlgorithmController() {
-        this.crowdtruthAlgorithm = Maps.newHashMap();
-//        this.crowdtruthAlgorithm = Maps.toMap( SemesterSettings.SETTINGS.keySet(),
-//                s -> CrowdtruthAggregationAlgorithm.create( SemesterSettings.get( s ) ) ); //TODO uncomment
+        this.crowdtruthAlgorithm = Maps.toMap( SemesterSettings.SETTINGS.keySet(),
+                s -> CrowdtruthAggregation.create( SemesterSettings.get( s ) ) );
     }
 
     @GetMapping("/finalDefects/CrowdTruth")

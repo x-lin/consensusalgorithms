@@ -1,4 +1,4 @@
-package algorithms.utils;
+package algorithms.csv;
 
 import java.util.List;
 

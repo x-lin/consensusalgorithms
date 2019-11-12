@@ -1,7 +1,6 @@
-package algorithms.majorityvoting.basic;
+package algorithms.finaldefects.aggregation;
 
 import algorithms.finaldefects.SemesterSettings;
-import algorithms.finaldefects.aggregation.MajorityVotingAlgorithm;
 import algorithms.vericom.model.*;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableBiMap;

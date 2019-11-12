@@ -1,8 +1,7 @@
-package algorithms.utils;
+package algorithms.csv;
 
 import algorithms.finaldefects.Semester;
 import algorithms.finaldefects.SemesterSettings;
-import algorithms.finaldefects.WorkerQualityInfluence;
 import algorithms.statistic.ConfusionMatrix;
 import algorithms.web.AlgorithmController;
 import algorithms.web.WebFinalDefects;
@@ -32,15 +31,13 @@ import java.util.stream.IntStream;
 public class CsvAlgorithmRunner {
     private static final Logger LOG = LoggerFactory.getLogger( CsvAlgorithmRunner.class );
 
-    private static final String BASE_OUT_PATH = "output/analysis/";
+    static final String BASE_OUT_PATH = "output/analysis/";
 
     public static void main( final String[] args ) throws IOException {
         final Runner runner = new Runner();
         final ImmutableSet<CompletableFuture<WebFinalDefects>> defects = runner.run();
 
         LOG.info( "Number of final defect reports to be written: " + defects.size() );
-
-//        runFinalDefects( defects );
 
         runConfusionMatrix( defects );
 
@@ -49,13 +46,6 @@ public class CsvAlgorithmRunner {
                     LOG.info( "Shutting down." );
                     runner.shutdown();
                 } );
-    }
-
-    private static String getFilename( final WebFinalDefects d ) {
-        final StringBuilder builder = new StringBuilder();
-        builder.append( d.getSemester() ).append( "_" ).append( d.getAlgorithmType() );
-        d.getParameters().forEach( ( k, v ) -> builder.append( "_" ).append( k ).append( "_" ).append( v ) );
-        return builder.toString();
     }
 
     private static void runConfusionMatrix( final ImmutableSet<CompletableFuture<WebFinalDefects>> defects ) {
@@ -129,59 +119,11 @@ public class CsvAlgorithmRunner {
         private void addAdaptiveMajorityVoting( final ImmutableSet.Builder<CompletableFuture<WebFinalDefects>> defects,
                 final Semester semester ) {
             IntStream.rangeClosed( 0, 100 ).mapToObj( i -> ((double) i) / 100 )
-                     .forEach( threshold -> {
-                         defects.add( getFinalDefects(
-                                 () -> this.algorithmController
-                                         .adaptiveMajorityVotingFinalDefects( threshold, semester ) ) );
-                     } );
-        }
-
-        private void addMajorityVotingWithQualificationTest(
-                final ImmutableSet.Builder<CompletableFuture<WebFinalDefects>> defects, final Semester semester ) {
-            defects.add( getFinalDefects( () -> this.algorithmController
-                    .majorityVotingWithQualificationReportFinalDefects( WorkerQualityInfluence.LINEAR, 0,
-                            semester ) ) );
-            IntStream.rangeClosed( 0, 20 ).mapToObj( i -> ((double) i) / 20 ).forEach(
-                    alpha -> defects.add( getFinalDefects( () -> this.algorithmController
-                            .majorityVotingWithQualificationReportFinalDefects(
-                                    WorkerQualityInfluence.EXPONENTIAL,
-                                    alpha, semester ) ) ) );
-        }
-
-        private void addMajorityVotingWithExperienceQuestionnaire(
-                final ImmutableSet.Builder<CompletableFuture<WebFinalDefects>> defects, final Semester semester ) {
-            IntStream.rangeClosed( 0, 1 ).mapToObj( i -> ((double) i) / 2 ).forEach( wLanguageSkills -> {
-                IntStream.rangeClosed( 0, 1 ).mapToObj( i -> ((double) i) / 2 ).forEach( wProjectSkills -> {
-                    IntStream.rangeClosed( 0, 1 ).mapToObj( i -> ((double) i) / 2 ).forEach( wQASkills -> {
-                        IntStream.rangeClosed( 0, 1 ).mapToObj( i -> ((double) i) / 2 ).forEach( wWorkingEnv -> {
-                            IntStream.rangeClosed( 0, 1 ).mapToObj( i -> ((double) i) / 2 ).forEach( wDomainExp -> {
-                                IntStream.rangeClosed( 0, 1 ).mapToObj( i -> ((double) i) / 2 ).forEach(
-                                        wCrowdsourcing -> {
-                                            IntStream.rangeClosed( 0, 5 ).mapToObj( i -> ((double) i) / 5 )
-                                                     .forEach(
-                                                             alpha -> defects.add( getFinalDefects(
-                                                                     () -> this.algorithmController
-                                                                             .majorityVotingWithExperienceQuestionnaireFinalDefects(
-                                                                                     WorkerQualityInfluence.EXPONENTIAL,
-                                                                                     alpha,
-                                                                                     semester,
-                                                                                     wLanguageSkills,
-                                                                                     wProjectSkills,
-                                                                                     wQASkills,
-                                                                                     wWorkingEnv, wDomainExp,
-                                                                                     wCrowdsourcing ) ) ) );
-                                            defects.add( getFinalDefects( () -> this.algorithmController
-                                                    .majorityVotingWithExperienceQuestionnaireFinalDefects(
-                                                            WorkerQualityInfluence.LINEAR, 0,
-                                                            semester,
-                                                            wLanguageSkills, wProjectSkills, wQASkills,
-                                                            wWorkingEnv, wDomainExp, wCrowdsourcing ) ) );
-                                        } );
-                            } );
-                        } );
+                    .forEach( threshold -> {
+                        defects.add( getFinalDefects(
+                                () -> this.algorithmController
+                                        .adaptiveMajorityVotingFinalDefects( threshold, semester ) ) );
                     } );
-                } );
-            } );
         }
 
         public void shutdown() {

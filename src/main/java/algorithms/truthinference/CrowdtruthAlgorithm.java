@@ -129,7 +129,6 @@ public class CrowdtruthAlgorithm {
         final AtomicDouble numerator = new AtomicDouble( 0 );
         final AtomicDouble denominator = new AtomicDouble( 0 );
 
-
         this.workers.forEach( ( worker1, w1annotations ) -> {
             final double worker1Quality = this.workerQualityScores.get( worker1 );
             this.workers.forEach( ( worker2, w2annotations ) -> {
@@ -137,9 +136,9 @@ public class CrowdtruthAlgorithm {
                         w2annotations.keySet() );
                 if (!worker1.equals( worker2 ) && !commonMediaUnits.isEmpty()) {
                     final double worker2Quality = this.workerQualityScores.get( worker2 );
+
                     final AtomicDouble probabilityNumerator = new AtomicDouble( 0.0 );
                     final AtomicDouble probabilityDenominator = new AtomicDouble( 0.0 );
-
                     commonMediaUnits.forEach( mediaUnit -> {
                         final Entry<Double, Double> probability = probabilityWorkerAnnotation(
                                 mediaUnit,
@@ -147,13 +146,14 @@ public class CrowdtruthAlgorithm {
                                 w2annotations.get( mediaUnit ).getOrDefault( annotation, 0L ) );
                         probabilityNumerator.addAndGet( probability.getKey() );
                         probabilityDenominator.addAndGet( probability.getValue() );
-                        if (probabilityDenominator.get() > 0.0) {
-                            numerator.addAndGet(
-                                    worker1Quality * worker2Quality *
-                                            (probabilityNumerator.get() / probabilityDenominator.get()) );
-                            denominator.addAndGet( worker1Quality * worker2Quality );
-                        }
                     } );
+
+                    if (probabilityDenominator.get() > 0.0) {
+                        numerator.addAndGet(
+                                worker1Quality * worker2Quality *
+                                        (probabilityNumerator.get() / probabilityDenominator.get()) );
+                        denominator.addAndGet( worker1Quality * worker2Quality );
+                    }
                 }
             } );
         } );
@@ -168,7 +168,7 @@ public class CrowdtruthAlgorithm {
         final AtomicDouble denominator = new AtomicDouble( 0 );
         final double qualityScore = this.mediaUnitQualityScores.get( mediaUnit );
         numerator.addAndGet( qualityScore * scoreAnnotation1 * scoreAnnotation2 );
-        denominator.addAndGet( qualityScore * scoreAnnotation2 );
+        denominator.addAndGet( scoreAnnotation1 * scoreAnnotation2 );
         return new SimpleImmutableEntry<>( numerator.get(), denominator.get() );
     }
 

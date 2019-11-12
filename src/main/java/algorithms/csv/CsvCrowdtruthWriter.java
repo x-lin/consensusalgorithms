@@ -1,4 +1,4 @@
-package algorithms.crowdtruth;
+package algorithms.csv;
 
 import algorithms.finaldefects.FinalDefectCsvWriter;
 import algorithms.finaldefects.SemesterSettings;
